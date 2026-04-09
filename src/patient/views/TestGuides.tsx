@@ -89,24 +89,24 @@ const UrinalysisGuidelines = () => (
     {/* Quick Visual Guide */}
     <div>
       <h4 className="font-bold font-display text-[var(--color-on-surface)] mb-4">Quick Visual Guide</h4>
-      <div className="flex overflow-x-auto pb-4 gap-3 snap-x -mx-6 px-6 no-scrollbar">
+      <div className="grid grid-cols-2 gap-3 pb-4">
         
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-orange-50 rounded-full flex items-center justify-center text-2xl mb-3">🌅</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Morning<br/>sample</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-2xl mb-3">🧼</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Clean<br/>first</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-2xl mb-3">🥛</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Midstream<br/>catch</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-cyan-50 rounded-full flex items-center justify-center text-2xl mb-3">💧</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Stay<br/>hydrated</span>
         </div>
@@ -188,24 +188,24 @@ const FBSGuidelines = () => (
     {/* Quick Visual Guide */}
     <div>
       <h4 className="font-bold font-display text-[var(--color-on-surface)] mb-4">Quick Visual Guide</h4>
-      <div className="flex overflow-x-auto pb-4 gap-3 snap-x -mx-6 px-6 no-scrollbar">
+      <div className="grid grid-cols-2 gap-3 pb-4">
         
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-2xl mb-3">🍽️</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Fast if<br/>required</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-2xl mb-3">💧</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Water<br/>is OK</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-3">👕</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Loose<br/>sleeves</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-2xl mb-3">🧘</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Stay<br/>calm</span>
         </div>
@@ -271,24 +271,24 @@ const CBCGuidelines = () => (
     {/* Quick Visual Guide */}
     <div>
       <h4 className="font-bold font-display text-[var(--color-on-surface)] mb-4">Quick Visual Guide</h4>
-      <div className="flex overflow-x-auto pb-4 gap-3 snap-x -mx-6 px-6 no-scrollbar">
+      <div className="grid grid-cols-2 gap-3 pb-4">
         
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-2xl mb-3">🍽️</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Fast if<br/>required</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-2xl mb-3">💧</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Water<br/>is OK</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-3">👕</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Loose<br/>sleeves</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-2xl mb-3">🧘</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Stay<br/>calm</span>
         </div>
@@ -361,24 +361,24 @@ const LipidGuidelines = () => (
     {/* Quick Visual Guide */}
     <div>
       <h4 className="font-bold font-display text-[var(--color-on-surface)] mb-4">Quick Visual Guide</h4>
-      <div className="flex overflow-x-auto pb-4 gap-3 snap-x -mx-6 px-6 no-scrollbar">
+      <div className="grid grid-cols-2 gap-3 pb-4">
         
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-2xl mb-3">🍽️</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Fast if<br/>required</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-2xl mb-3">💧</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Water<br/>is OK</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-3">👕</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Loose<br/>sleeves</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-2xl mb-3">🧘</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Stay<br/>calm</span>
         </div>
@@ -444,24 +444,24 @@ const TFTGuidelines = () => (
     {/* Quick Visual Guide */}
     <div>
       <h4 className="font-bold font-display text-[var(--color-on-surface)] mb-4">Quick Visual Guide</h4>
-      <div className="flex overflow-x-auto pb-4 gap-3 snap-x -mx-6 px-6 no-scrollbar">
+      <div className="grid grid-cols-2 gap-3 pb-4">
         
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-rose-50 rounded-full flex items-center justify-center text-2xl mb-3">🍽️</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Fast if<br/>required</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-blue-50 rounded-full flex items-center justify-center text-2xl mb-3">💧</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Water<br/>is OK</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-purple-50 rounded-full flex items-center justify-center text-2xl mb-3">👕</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Loose<br/>sleeves</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-emerald-50 rounded-full flex items-center justify-center text-2xl mb-3">🧘</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Stay<br/>calm</span>
         </div>
@@ -537,14 +537,14 @@ const StoolGuidelines = () => (
     {/* Quick Visual Guide */}
     <div>
       <h4 className="font-bold font-display text-[var(--color-on-surface)] mb-4">Quick Visual Guide</h4>
-      <div className="flex overflow-x-auto pb-4 gap-3 snap-x -mx-6 px-6 no-scrollbar">
+      <div className="grid grid-cols-2 gap-3 pb-4">
         
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-indigo-50 rounded-full flex items-center justify-center text-2xl mb-3">🧪</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Use<br/>container</span>
         </div>
 
-        <div className="shrink-0 snap-start bg-white border border-[#e5e9eb] rounded-2xl p-4 w-[110px] flex flex-col items-center text-center shadow-sm">
+        <div className="bg-white border border-[#e5e9eb] rounded-2xl p-4 flex flex-col items-center justify-center text-center shadow-sm hover:border-[#427cf2]/30 transition-colors">
           <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center text-2xl mb-3">📋</div>
           <span className="text-xs font-bold font-body text-[var(--color-on-surface)] leading-tight">Label<br/>sample</span>
         </div>
