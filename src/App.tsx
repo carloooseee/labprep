@@ -2,6 +2,9 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './patient/context/AppContext';
 
+// Auth Views
+import Login from './Login';
+
 // Patient Views
 import Layout from './patient/components/Layout';
 import Home from './patient/views/Home';
@@ -11,6 +14,7 @@ import Notifications from './patient/views/Notifications';
 import Profile from './patient/views/Profile';
 
 // Admin Views
+import AdminLayout from './admin/components/AdminLayout';
 import AdminDashboard from './admin/views/Dashboard';
 import AdminHospitals from './admin/views/Hospitals';
 import AdminPatients from './admin/views/Patients';
@@ -23,8 +27,11 @@ export default function App() {
     <AppProvider>
       <BrowserRouter>
         <Routes>
-          {/* Default Redirect to Patient Home */}
-          <Route path="/" element={<Navigate to="/patient/home" replace />} />
+          {/* Default Redirect to Login */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          
+          {/* Auth Route */}
+          <Route path="/login" element={<Login />} />
 
           {/* Patient Application Routes */}
           <Route path="/patient" element={<Layout />}>
@@ -36,7 +43,7 @@ export default function App() {
           </Route>
 
           {/* Admin Application Routes */}
-          <Route path="/admin">
+          <Route path="/admin" element={<AdminLayout />}>
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="hospitals" element={<AdminHospitals />} />
             <Route path="patients" element={<AdminPatients />} />

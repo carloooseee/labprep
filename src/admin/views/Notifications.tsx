@@ -1,7 +1,79 @@
+import { PaperAirplaneIcon, BellAlertIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+
+const pastBroadcasts = [
+  { id: 1, title: 'System Maintenance', message: 'The portal will be down for 2 hours tonight.', date: 'Oct 15, 2026', recipients: 'All Users', status: 'Sent' },
+  { id: 2, title: 'New Hospital Added', message: 'Metro General is now accepting online schedules.', date: 'Oct 10, 2026', recipients: 'Patients', status: 'Sent' },
+  { id: 3, title: 'Holiday Advisory', message: 'Limited lab hours on National Holiday.', date: 'Sep 28, 2026', recipients: 'All Users', status: 'Sent' },
+];
+
 export default function Notifications() {
   return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold font-display text-[var(--color-primary)]">Admin Notifications</h1>
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb]">
+        <div>
+          <h2 className="text-2xl font-display font-semibold text-gray-900">Push Notifications</h2>
+          <p className="text-gray-500 mt-1">Send broadcast messages to patients and hospital staff.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Compose Notification */}
+        <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-[#e5e9eb] p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+            <PaperAirplaneIcon className="w-5 h-5 mr-2 text-blue-500" />
+            New Broadcast
+          </h3>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
+              <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none">
+                <option>All Users</option>
+                <option>Patients Only</option>
+                <option>Hospitals Only</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+              <input type="text" placeholder="Notification Title" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
+              <textarea rows={4} placeholder="Type your message..." className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none resize-none"></textarea>
+            </div>
+            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition-colors shadow-sm flex justify-center items-center">
+              <span>Send Now</span>
+            </button>
+          </div>
+        </div>
+
+        {/* History */}
+        <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-[#e5e9eb] p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-6 flex items-center">
+            <BellAlertIcon className="w-5 h-5 mr-2 text-emerald-500" />
+            Broadcast History
+          </h3>
+          <div className="space-y-4">
+            {pastBroadcasts.map((broadcast) => (
+              <div key={broadcast.id} className="p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
+                <div className="flex justify-between items-start mb-2">
+                  <h4 className="font-semibold text-gray-900">{broadcast.title}</h4>
+                  <span className="text-xs text-gray-400">{broadcast.date}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-3">{broadcast.message}</p>
+                <div className="flex items-center justify-between text-xs font-medium">
+                  <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded-md">Audience: {broadcast.recipients}</span>
+                  <span className="flex items-center text-green-600">
+                    <CheckCircleIcon className="w-4 h-4 mr-1" />
+                    {broadcast.status}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }
