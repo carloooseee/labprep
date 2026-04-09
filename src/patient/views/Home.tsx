@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { 
+  SparklesIcon,
   EllipsisHorizontalCircleIcon, 
   BuildingOfficeIcon, 
   BellAlertIcon,
@@ -32,8 +33,8 @@ export default function Home() {
         </header>
 
         {/* Hero Card */}
-        <div className="gradient-primary rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-20"><EllipsisHorizontalCircleIcon className="w-24 h-24" /></div>
+        <div className="bg-gradient-to-r from-[#417af0] to-[#27c463] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-4 opacity-20"><SparklesIcon className="w-24 h-24" /></div>
           <div className="relative z-10">
             <span className="text-xs font-bold uppercase tracking-wider backdrop-blur-md">Good Afternoon!</span>
             <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Welcome</h2>
@@ -55,7 +56,7 @@ export default function Home() {
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </Link>
           
-          <Link to="/patient/hospitals" className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] border-t-4 border-t-emerald-500 hover:scale-[1.01] transition-transform overflow-hidden">
+          {/* <Link to="/patient/hospitals" className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] border-t-4 border-t-emerald-500 hover:scale-[1.01] transition-transform overflow-hidden">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center">
                 <BeakerIcon className="w-6 h-6" />
@@ -63,14 +64,14 @@ export default function Home() {
               <span className="font-bold font-display text-gray-800">Test</span>
             </div>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
-          </Link>
+          </Link> */}
           
           <Link to="/patient/test-guides" className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] border-t-4 border-t-purple-500 hover:scale-[1.01] transition-transform overflow-hidden">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center">
                 <DocumentTextIcon className="w-6 h-6" />
               </div>
-              <span className="font-bold font-display text-gray-800">Guides</span>
+              <span className="font-bold font-display text-gray-800">Test Guides</span>
             </div>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </Link>

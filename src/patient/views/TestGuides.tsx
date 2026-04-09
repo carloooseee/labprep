@@ -1,24 +1,11 @@
 import { useAppContext } from '../context/AppContext';
-import { proceduresCollection } from '../data/Procedures';
+import { proceduresCollection, hospitalsCollection } from '../data/Procedures';
 import { BeakerIcon } from '@heroicons/react/24/outline';
-import { EllipsisHorizontalCircleIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon, EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
+import { Link } from 'react-router-dom';
 
 export default function TestGuides() {
-  const { selectedHospitalId } = useAppContext();
-
-  if (!selectedHospitalId) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8 h-[70vh] text-center">
-        <div className="w-16 h-16 bg-[var(--color-surface-container)] rounded-full flex items-center justify-center mb-4">
-          <BeakerIcon className="w-8 h-8 text-[var(--color-primary)]" />
-        </div>
-        <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)]">No Hospital Selected</h2>
-        <p className="mt-2 text-sm font-body text-[var(--color-on-surface-variant)]">
-          Please select a hospital from the Hospitals tab to view the available test preparation guides.
-        </p>
-      </div>
-    );
-  }
+  const { selectedHospitalId, setSelectedHospitalId } = useAppContext();
 
   const filteredGuides = proceduresCollection.filter(
     (proc) => proc.hospitalId === selectedHospitalId
@@ -26,17 +13,49 @@ export default function TestGuides() {
 
   return (
     <div className="p-6 pb-24">
-      <header className="mb-6">
-        <h1 className="text-4xl font-extrabold font-display text-[var(--color-on-surface)] tracking-tight">Test Guides</h1>
+      <header className="mb-10 flex justify-between items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold font-display text-[var(--color-primary)] tracking-tight mb-1">LabPrep</h1>
+          <p className="text-xs font-body text-[var(--color-on-surface-variant)] font-semibold uppercase tracking-widest">Prepare Right. Test Right.</p>
+        </div>
+        <div className="flex space-x-3 shrink-0">
+          <Link to="/patient/hospitals" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
+            <BuildingOfficeIcon className="w-6 h-6 text-[var(--color-primary)]" />
+          </Link>
+          <Link to="/patient/notifications" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
+            <BellAlertIcon className="w-6 h-6 text-emerald-600" />
+          </Link>
+        </div>
       </header>
 
       {/* Hero Card */}
-      <div className="gradient-primary rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-20"><EllipsisHorizontalCircleIcon className="w-24 h-24" /></div>
+      <div className="bg-gradient-to-r from-[#e745a7] to-[#b34bee] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-20"><DocumentTextIcon className="w-24 h-24" /></div>
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Test Preparation Guides</h2>
           <div className="flex items-center mt-6 space-x-2">
             <span className="font-body text-sm font-medium">Learn how to prepare for your lab tests</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Hospital Selector */}
+      <div className="mb-8">
+        <label className="block text-sm font-bold font-display text-[var(--color-on-surface-variant)] mb-2 uppercase tracking-wide">
+          Filter by Hospital
+        </label>
+        <div className="relative">
+          <select 
+            value={selectedHospitalId || ''} 
+            onChange={(e) => setSelectedHospitalId(e.target.value)}
+            className="w-full appearance-none bg-[var(--color-surface-container-lowest)] border border-[var(--color-surface-container-highest)] text-[var(--color-on-surface)] font-body font-bold py-3 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all"
+          >
+            {hospitalsCollection.map(hospital => (
+              <option key={hospital.id} value={hospital.id}>{hospital.name}</option>
+            ))}
+          </select>
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--color-on-surface-variant)]">
+            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
           </div>
         </div>
       </div>

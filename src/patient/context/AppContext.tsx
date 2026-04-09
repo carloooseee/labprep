@@ -1,5 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import type { ReactNode } from 'react';
+import { hospitalsCollection } from '../data/Procedures';
 
 interface AppContextType {
   selectedHospitalId: string | null;
@@ -9,7 +10,7 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(null);
+  const [selectedHospitalId, setSelectedHospitalId] = useState<string | null>(hospitalsCollection[0]?.id || null);
 
   return (
     <AppContext.Provider value={{ selectedHospitalId, setSelectedHospitalId }}>

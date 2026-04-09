@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { BellAlertIcon } from '@heroicons/react/24/outline';
-import { EllipsisHorizontalCircleIcon } from '@heroicons/react/24/solid';
+import { BellAlertIcon as BellAlertIconOutline } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
+import { Link } from 'react-router-dom';
 
 interface Reminder {
   id: number;
@@ -41,16 +42,24 @@ export default function Notifications() {
 
   return (
     <div className="p-6 pb-24">
-      <header className="mb-8">
-        <h1 className="text-4xl font-extrabold font-display text-[var(--color-on-surface)] tracking-tight">Alerts</h1>
-        <p className="text-sm font-body text-[var(--color-on-surface-variant)] mt-2">
-          Manage your upcoming test preparation reminders.
-        </p>
+      <header className="mb-10 flex justify-between items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold font-display text-[var(--color-primary)] tracking-tight mb-1">LabPrep</h1>
+          <p className="text-xs font-body text-[var(--color-on-surface-variant)] font-semibold uppercase tracking-widest">Prepare Right. Test Right.</p>
+        </div>
+        <div className="flex space-x-3 shrink-0">
+          <Link to="/patient/hospitals" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
+            <BuildingOfficeIcon className="w-6 h-6 text-[var(--color-primary)]" />
+          </Link>
+          <Link to="/patient/notifications" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
+            <BellAlertIcon className="w-6 h-6 text-emerald-600" />
+          </Link>
+        </div>
       </header>
 
       {/* Hero Card */}
-      <div className="gradient-primary rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
-        <div className="absolute top-0 right-0 p-4 opacity-20"><EllipsisHorizontalCircleIcon className="w-24 h-24" /></div>
+      <div className="bg-gradient-to-r from-[#fe9a00] to-[#ff3000] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-20"><BellAlertIcon className="w-24 h-24" /></div>
         <div className="relative z-10">
           <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Notifications & Reminders</h2>
           <div className="flex items-center mt-6 space-x-2">
@@ -61,7 +70,7 @@ export default function Notifications() {
 
       <button
         onClick={scheduleReminder}
-        className="w-full gradient-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-[var(--color-primary)]/20 active:scale-95 transition-transform"
+        className="w-full bg-gradient-to-r from-[#fe9a00] to-[#ff3000] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff3000]/20 active:scale-95 transition-transform"
       >
         Simulate Prep Reminder (5s)
       </button>
@@ -70,7 +79,7 @@ export default function Notifications() {
         {reminders.map((reminder) => (
           <div key={reminder.id} className="bg-[var(--color-surface-container-lowest)] p-5 rounded-2xl flex items-start space-x-4">
             <div className="w-10 h-10 rounded-full bg-[var(--color-surface-container-low)] flex items-center justify-center shrink-0">
-              <BellAlertIcon className="w-5 h-5 text-[var(--color-primary)]" />
+              <BellAlertIconOutline className="w-5 h-5 text-[#ff3000]" />
             </div>
             <div>
               <h4 className="font-bold font-display text-[var(--color-on-surface)]">{reminder.title}</h4>
