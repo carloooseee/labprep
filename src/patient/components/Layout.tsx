@@ -13,14 +13,14 @@ export default function Layout() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--color-background)]">
+    <div className="flex flex-col h-[100dvh] w-full bg-[#f5f7f9] overflow-hidden">
       {/* Main Content Area */}
-      <main className="flex-1 pb-20 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto w-full relative">
         <Outlet />
       </main>
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 w-full glass border-t border-[var(--color-surface-container-highest)]/20 px-2 pb-safe pt-2">
+      <nav className="shrink-0 w-full bg-white/90 backdrop-blur-lg border-t border-[#e5e9eb] px-2 pb-[env(safe-area-inset-bottom,0px)] z-50">
         <div className="flex justify-around items-center h-16">
           {tabs.map((tab) => (
             <NavLink
@@ -28,7 +28,7 @@ export default function Layout() {
               to={tab.path}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ${
-                  isActive ? 'text-[var(--color-primary)]' : 'text-[var(--color-on-surface-variant)]'
+                  isActive ? 'text-blue-600' : 'text-gray-500 hover:text-gray-900'
                 }`
               }
             >
@@ -36,7 +36,7 @@ export default function Layout() {
                 const Icon = isActive ? tab.iconActive : tab.icon;
                 return (
                   <>
-                    <Icon className={`w-6 h-6 ${isActive ? 'scale-110 shadow-sm' : ''}`} />
+                    <Icon className={`w-6 h-6 ${isActive ? 'scale-110' : ''}`} />
                     <span className="text-[10px] font-medium font-body">{tab.name}</span>
                   </>
                 );
