@@ -86,6 +86,71 @@ export default function Home() {
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </Link>
         </div>
+
+        {/* Popular Test Guides Section */}
+        <div className="mt-10 mb-4 flex justify-between items-end">
+          <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)]">Popular Guides</h3>
+          <Link to="/patient/test-guides" className="text-sm font-bold text-[var(--color-primary)]">See all</Link>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 pb-2">
+          <Link to="/patient/test-guides" className="bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] transition-transform active:scale-95 flex flex-col h-full">
+
+            <h4 className="font-bold font-display text-gray-800 text-sm leading-tight mb-1">Urinalysis</h4>
+            <p className="text-[11px] font-body text-[var(--color-on-surface-variant)] leading-snug flex-grow">A test of your urine to check for UTIs, kidney issues, or diabetes.</p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <span className="inline-block bg-indigo-50 text-indigo-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                Urine Test
+              </span>
+              <span className="inline-block bg-emerald-50 text-emerald-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                No Fasting
+              </span>
+            </div>
+          </Link>
+
+          <Link to="/patient/test-guides" className="bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] transition-transform active:scale-95 flex flex-col h-full">
+
+            <h4 className="font-bold font-display text-gray-800 text-sm leading-tight mb-1">Fasting Blood Sugar</h4>
+            <p className="text-[11px] font-body text-[var(--color-on-surface-variant)] leading-snug flex-grow">Measures your blood sugar after an overnight fast for diabetes.</p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <span className="inline-block bg-rose-50 text-rose-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                Blood Test
+              </span>
+              <span className="inline-block bg-orange-50 text-orange-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                Fasting Required
+              </span>
+            </div>
+          </Link>
+
+          <Link to="/patient/test-guides" className="bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] transition-transform active:scale-95 flex flex-col h-full">
+
+            <h4 className="font-bold font-display text-gray-800 text-sm leading-tight mb-1">Complete Blood Count</h4>
+            <p className="text-[11px] font-body text-[var(--color-on-surface-variant)] leading-snug flex-grow">Evaluates your overall health and detects a wide range of disorders.</p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <span className="inline-block bg-rose-50 text-rose-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                Blood Test
+              </span>
+              <span className="inline-block bg-emerald-50 text-emerald-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                No Fasting
+              </span>
+            </div>
+          </Link>
+
+          <Link to="/patient/test-guides" className="bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] transition-transform active:scale-95 flex flex-col h-full">
+
+            <h4 className="font-bold font-display text-gray-800 text-sm leading-tight mb-1">Lipid Profile</h4>
+            <p className="text-[11px] font-body text-[var(--color-on-surface-variant)] leading-snug flex-grow">A complete test measuring the amount of cholesterol and triglycerides.</p>
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              <span className="inline-block bg-rose-50 text-rose-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                Blood Test
+              </span>
+              <span className="inline-block bg-orange-50 text-orange-600 px-2 py-1 rounded-md text-[9px] font-bold uppercase tracking-wider">
+                Fasting Required
+              </span>
+            </div>
+          </Link>
+        </div>
+
       </div>
     </div>
   );

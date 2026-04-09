@@ -1,7 +1,9 @@
 import { EnvelopeIcon, PhoneIcon, IdentificationIcon } from '@heroicons/react/24/outline';
 import { UserCircleIcon } from '@heroicons/react/24/solid';
+import { useNavigate } from 'react-router-dom';
 
 export default function Profile() {
+  const navigate = useNavigate();
   return (
     <div className="p-6 pb-24">
       <div className="flex flex-col items-center mt-8 mb-10">
@@ -45,7 +47,10 @@ export default function Profile() {
       </div>
       
       <div className="mt-10">
-        <button className="w-full bg-[var(--color-surface-container)] text-[var(--color-on-surface)] font-bold py-4 rounded-xl active:scale-95 transition-transform">
+        <button 
+          onClick={() => navigate('/login')}
+          className="w-full bg-[var(--color-surface-container)] text-[var(--color-on-surface)] font-bold py-4 rounded-xl active:scale-95 transition-transform"
+        >
           Log Out
         </button>
       </div>
