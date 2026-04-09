@@ -150,7 +150,7 @@ export default function Notifications() {
       {/* Add Reminder Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+          <div className="absolute inset-0 bg-black/60 transition-opacity" onClick={() => setIsModalOpen(false)}></div>
           <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             
             <div className="flex justify-between items-center p-6 border-b border-[#e5e9eb] shrink-0">
