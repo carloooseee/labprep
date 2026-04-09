@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { BellAlertIcon } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalCircleIcon } from '@heroicons/react/24/solid';
 
 interface Reminder {
   id: number;
@@ -46,6 +47,17 @@ export default function Notifications() {
           Manage your upcoming test preparation reminders.
         </p>
       </header>
+
+      {/* Hero Card */}
+      <div className="gradient-primary rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-20"><EllipsisHorizontalCircleIcon className="w-24 h-24" /></div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Notifications & Reminders</h2>
+          <div className="flex items-center mt-6 space-x-2">
+            <span className="font-body text-sm font-medium">Stay on track with your test preparations</span>
+          </div>
+        </div>
+      </div>
 
       <button
         onClick={scheduleReminder}

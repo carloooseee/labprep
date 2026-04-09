@@ -1,6 +1,7 @@
 import { useAppContext } from '../context/AppContext';
 import { hospitalsCollection } from '../data/Procedures';
 import { MapPinIcon } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalCircleIcon } from '@heroicons/react/24/solid';
 
 export default function HospitalPicker() {
   const { selectedHospitalId, setSelectedHospitalId } = useAppContext();
@@ -13,6 +14,17 @@ export default function HospitalPicker() {
           Choose your medical center to see tailored preparation guides.
         </p>
       </header>
+
+      {/* Hero Card */}
+      <div className="gradient-primary rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-20"><EllipsisHorizontalCircleIcon className="w-24 h-24" /></div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Choose Your Hospital</h2>
+          <div className="flex items-center mt-6 space-x-2">
+            <span className="font-body text-sm font-medium">Select your preferred hospital to get customized test preparation instructions tailored for you.</span>
+          </div>
+        </div>
+      </div>
 
       <div className="space-y-4">
         {hospitalsCollection.map((hospital) => {

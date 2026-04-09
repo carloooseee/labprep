@@ -1,6 +1,7 @@
 import { useAppContext } from '../context/AppContext';
 import { proceduresCollection } from '../data/Procedures';
 import { BeakerIcon } from '@heroicons/react/24/outline';
+import { EllipsisHorizontalCircleIcon } from '@heroicons/react/24/solid';
 
 export default function TestGuides() {
   const { selectedHospitalId } = useAppContext();
@@ -28,6 +29,17 @@ export default function TestGuides() {
       <header className="mb-6">
         <h1 className="text-4xl font-extrabold font-display text-[var(--color-on-surface)] tracking-tight">Test Guides</h1>
       </header>
+
+      {/* Hero Card */}
+      <div className="gradient-primary rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-20"><EllipsisHorizontalCircleIcon className="w-24 h-24" /></div>
+        <div className="relative z-10">
+          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Test Preparation Guides</h2>
+          <div className="flex items-center mt-6 space-x-2">
+            <span className="font-body text-sm font-medium">Learn how to prepare for your lab tests</span>
+          </div>
+        </div>
+      </div>
 
       {filteredGuides.length === 0 ? (
         <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this hospital.</p>
