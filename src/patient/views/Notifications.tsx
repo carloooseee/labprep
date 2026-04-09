@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
-import { BellAlertIcon as BellAlertIconOutline } from '@heroicons/react/24/outline';
+import { BellAlertIcon as BellAlertIconOutline, XMarkIcon } from '@heroicons/react/24/outline';
 import { EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
+import { proceduresCollection } from '../data/Procedures';
 
 interface Reminder {
   id: number;
@@ -14,6 +15,14 @@ export default function Notifications() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [remindersEnabled, setRemindersEnabled] = useState(true);
 
+  // Form & Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTestId, setSelectedTestId] = useState(proceduresCollection[0]?.id || '');
+  const [testDate, setTestDate] = useState('');
+  const [reminderType, setReminderType] = useState('Fasting');
+  const [reminderDateTime, setReminderDateTime] = useState('');
+  const [message, setMessage] = useState('');
+
   useEffect(() => {
     // Request permission on mount
     LocalNotifications.requestPermissions();
@@ -24,14 +33,24 @@ export default function Notifications() {
       alert('Please enable reminders in settings first.');
       return;
     }
-    const id = Date.now();
-    const d = new Date(Date.now() + 5000); // 5 seconds from now for demo
+
+    if (!selectedTestId || !reminderDateTime) {
+      alert('Please select a test and set a reminder date/time.');
+      return;
+    }
+
+    const testProc = proceduresCollection.find(p => p.id === selectedTestId);
+    const testName = testProc ? testProc.name : 'Lab Test';
+
+    const safeId = Math.floor(Math.random() * 1000000);
+    const d = new Date(reminderDateTime);
+    
     await LocalNotifications.schedule({
       notifications: [
         {
-          title: 'Prep Reminder: Fasting Blood Sugar',
-          body: 'Remember to start fasting now. Do not eat or drink anything but water for the next 8-10 hours.',
-          id: id,
+          title: `Prep: ${testName} (${reminderType})`,
+          body: message || `Time to prepare for your ${testName}.`,
+          id: safeId,
           schedule: { at: d },
           sound: undefined,
           attachments: undefined,
@@ -41,8 +60,13 @@ export default function Notifications() {
       ],
     });
 
-    setReminders([{ id, title: 'Fasting Blood Sugar', body: 'Scheduled for 5 seconds from now' }, ...reminders]);
-    alert('Reminder scheduled for 5 seconds from now!');
+    setReminders([{ id: safeId, title: testName, body: `Scheduled for ${d.toLocaleString()}` }, ...reminders]);
+    setIsModalOpen(false);
+
+    // Reset Form
+    setMessage('');
+    setReminderDateTime('');
+    setTestDate('');
   };
 
   return (
@@ -92,10 +116,16 @@ export default function Notifications() {
       </div>
 
       <button
-        onClick={scheduleReminder}
+        onClick={() => {
+          if (!remindersEnabled) {
+            alert('Please enable reminders in settings first.');
+            return;
+          }
+          setIsModalOpen(true);
+        }}
         className="w-full bg-gradient-to-r from-[#fe9a00] to-[#ff3000] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff3000]/20 active:scale-95 transition-transform"
       >
-        Simulate Prep Reminder (5s)
+        + Add New Reminder
       </button>
 
       <div className="mt-8 space-y-4">
@@ -116,6 +146,103 @@ export default function Notifications() {
           </p>
         )}
       </div>
+
+      {/* Add Reminder Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setIsModalOpen(false)}></div>
+          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            
+            <div className="flex justify-between items-center p-6 border-b border-[#e5e9eb] shrink-0">
+              <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight">Add New Reminder</h2>
+              <button onClick={() => setIsModalOpen(false)} className="w-9 h-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors flex items-center justify-center shrink-0">
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4 overflow-y-auto no-scrollbar">
+              {/* Select Test */}
+              <div>
+                <label className="block text-sm font-bold text-[var(--color-on-surface)] mb-2">Select Test</label>
+                <select 
+                  className="w-full border-2 border-[#e5e9eb] rounded-xl p-3.5 bg-white text-[var(--color-on-surface)] font-body focus:border-[#fe9a00] focus:ring-0 outline-none transition-colors"
+                  value={selectedTestId}
+                  onChange={(e) => setSelectedTestId(e.target.value)}
+                >
+                  {proceduresCollection.map(p => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Test Date */}
+              <div>
+                <label className="block text-sm font-bold text-[var(--color-on-surface)] mb-2">Test Date</label>
+                <input 
+                  type="date" 
+                  className="w-full border-2 border-[#e5e9eb] rounded-xl p-3.5 bg-white text-[var(--color-on-surface)] font-body cursor-text focus:border-[#fe9a00] focus:ring-0 outline-none transition-colors"
+                  value={testDate}
+                  onChange={(e) => setTestDate(e.target.value)}
+                />
+              </div>
+
+              {/* Reminder Type */}
+              <div>
+                <label className="block text-sm font-bold text-[var(--color-on-surface)] mb-2">Reminder Type</label>
+                <select 
+                  className="w-full border-2 border-[#e5e9eb] rounded-xl p-3.5 bg-white text-[var(--color-on-surface)] font-body focus:border-[#fe9a00] focus:ring-0 outline-none transition-colors"
+                  value={reminderType}
+                  onChange={(e) => setReminderType(e.target.value)}
+                >
+                  <option>Fasting</option>
+                  <option>Sample Collection</option>
+                  <option>Medication</option>
+                  <option>Diet</option>
+                </select>
+              </div>
+
+              {/* Reminder Date and Time */}
+              <div>
+                <label className="block text-sm font-bold text-[var(--color-on-surface)] mb-2">Notification Date & Time</label>
+                <input 
+                  type="datetime-local" 
+                  className="w-full border-2 border-[#e5e9eb] rounded-xl p-3.5 bg-white text-[var(--color-on-surface)] font-body cursor-text focus:border-[#fe9a00] focus:ring-0 outline-none transition-colors"
+                  value={reminderDateTime}
+                  onChange={(e) => setReminderDateTime(e.target.value)}
+                />
+              </div>
+
+              {/* Message */}
+              <div>
+                <label className="block text-sm font-bold text-[var(--color-on-surface)] mb-2">Message</label>
+                <textarea 
+                  rows={3}
+                  placeholder="E.g., Stop eating immediately..."
+                  className="w-full border-2 border-[#e5e9eb] rounded-xl p-3.5 bg-white text-[var(--color-on-surface)] font-body focus:border-[#fe9a00] focus:ring-0 outline-none resize-none transition-colors"
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                ></textarea>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-[#e5e9eb] shrink-0 mt-auto flex gap-3 bg-[var(--color-surface)]">
+              <button 
+                onClick={() => setIsModalOpen(false)}
+                className="flex-1 bg-white border-2 border-[#e5e9eb] text-gray-500 font-bold py-4 rounded-xl hover:bg-gray-50 active:scale-95 transition-transform"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={scheduleReminder}
+                className="flex-1 bg-gradient-to-r from-[#fe9a00] to-[#ff3000] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff3000]/20 active:scale-95 transition-transform"
+              >
+                Add Reminder
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
