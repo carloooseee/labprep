@@ -55,7 +55,24 @@ export default function HospitalPicker() {
             </div>
         ))}
       </div>
-      <h1 className="text-sm font-extrabold font-display mt-4 mb-4 text-[var(--color-on-surface)] tracking-tight">COMING SOON</h1>
+      <h1 className="text-sm font-extrabold font-display mt-8 mb-4 text-[var(--color-on-surface)] tracking-tight opacity-60">COMING SOON</h1>
+      <div className="space-y-4">
+        {/* Mock Coming Soon */}
+        <div className="p-5 rounded-2xl bg-gray-50 border border-[#e5e9eb] opacity-60 cursor-not-allowed grayscale relative overflow-hidden">
+          <div className="flex items-start justify-between">
+            <div>
+              <h3 className="text-lg font-bold font-display text-gray-600">
+                Other hospitals
+              </h3>
+              <div className="flex items-center mt-2 text-gray-400">
+                <BuildingOfficeIcon className="w-4 h-4 mr-1" />
+                <span className="text-sm font-body">Expanding coverage areas</span>
+              </div>
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-200 px-2.5 py-1 rounded-md mt-1">COMING SOON</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

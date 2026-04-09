@@ -12,6 +12,7 @@ interface Reminder {
 
 export default function Notifications() {
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [remindersEnabled, setRemindersEnabled] = useState(true);
 
   useEffect(() => {
     // Request permission on mount
@@ -19,6 +20,10 @@ export default function Notifications() {
   }, []);
 
   const scheduleReminder = async () => {
+    if (!remindersEnabled) {
+      alert('Please enable reminders in settings first.');
+      return;
+    }
     const id = Date.now();
     const d = new Date(Date.now() + 5000); // 5 seconds from now for demo
     await LocalNotifications.schedule({
@@ -65,6 +70,24 @@ export default function Notifications() {
           <div className="flex items-center mt-6 space-x-2">
             <span className="font-body text-sm font-medium">Stay on track with your test preparations</span>
           </div>
+        </div>
+      </div>
+
+      {/* Settings Section */}
+      <div className="mb-8">
+        <h3 className="text-xl font-display font-bold text-[var(--color-on-surface)] mb-4">Settings</h3>
+        <div className="bg-[var(--color-surface-container-lowest)] p-5 rounded-2xl border border-[#e5e9eb] shadow-sm flex items-center justify-between">
+          <div className="pr-4">
+            <h4 className="font-bold font-display text-[var(--color-on-surface)] tracking-tight">Enable Reminders</h4>
+            <p className="text-xs mt-1 font-body text-[var(--color-on-surface-variant)] leading-relaxed">Receive push notifications for your upcoming tests</p>
+          </div>
+          {/* Custom Toggle Switch */}
+          <button 
+            onClick={() => setRemindersEnabled(!remindersEnabled)}
+            className={`w-12 h-7 rounded-full flex items-center shrink-0 transition-colors duration-300 focus:outline-none ${remindersEnabled ? 'bg-gradient-to-r from-[#fe9a00] to-[#ff3000]' : 'bg-gray-300'}`}
+          >
+            <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${remindersEnabled ? 'translate-x-[24px]' : 'translate-x-[4px]'}`} />
+          </button>
         </div>
       </div>
 
