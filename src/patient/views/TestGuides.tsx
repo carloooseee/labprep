@@ -1,14 +1,28 @@
+import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { proceduresCollection, hospitalsCollection } from '../data/Procedures';
-import { BeakerIcon } from '@heroicons/react/24/outline';
+import { BeakerIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
+const getCategoryColor = (category: string) => {
+  switch (category) {
+    case 'Urine': return 'bg-orange-50 text-orange-600';
+    case 'Blood': return 'bg-rose-50 text-rose-600';
+    case 'Stool': return 'bg-amber-100 text-amber-800';
+    default: return 'bg-gray-100 text-gray-600';
+  }
+};
+
 export default function TestGuides() {
   const { selectedHospitalId, setSelectedHospitalId } = useAppContext();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const filteredGuides = proceduresCollection.filter(
-    (proc) => proc.hospitalId === selectedHospitalId
+    (proc) => proc.hospitalId === selectedHospitalId 
+           && proc.name.toLowerCase().includes(searchQuery.toLowerCase())
+           && (selectedCategory === 'All' || proc.category === selectedCategory)
   );
 
   return (
@@ -40,7 +54,7 @@ export default function TestGuides() {
       </div>
 
       {/* Hospital Selector */}
-      <div className="mb-8">
+      <div className="mb-4">
         <label className="block text-sm font-bold font-display text-[var(--color-on-surface-variant)] mb-2 uppercase tracking-wide">
           Filter by Hospital
         </label>
@@ -60,28 +74,77 @@ export default function TestGuides() {
         </div>
       </div>
 
+      {/* Search Input */}
+      <div className="mb-6">
+        <label className="block text-sm font-bold font-display text-[var(--color-on-surface-variant)] mb-2 uppercase tracking-wide">
+          Search Tests
+        </label>
+        <div className="relative">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <MagnifyingGlassIcon className="h-5 w-5 text-[var(--color-on-surface-variant)]" />
+          </div>
+          <input
+            type="text"
+            placeholder="Search for a test..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-[var(--color-surface-container-lowest)] border border-[var(--color-surface-container-highest)] text-[var(--color-on-surface)] font-body py-3 pl-11 pr-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all"
+          />
+        </div>
+      </div>
+
+      {/* Category Filter Buttons */}
+      <div className="mb-8 flex flex-wrap gap-2 pb-2">
+        {['All', 'Urine', 'Blood', 'Stool', 'Other'].map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategory(cat)}
+            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 snap-start shrink-0 ${
+              selectedCategory === cat 
+                ? 'bg-[#427cf2] text-white shadow-md shadow-[#427cf2]/20 border border-transparent' 
+                : 'bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface-variant)] border border-[var(--color-surface-container-highest)]'
+            }`}
+          >
+            {cat === 'All' ? 'All Tests' : `${cat} Test`}
+          </button>
+        ))}
+      </div>
+
       {filteredGuides.length === 0 ? (
         <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this hospital.</p>
       ) : (
-        <div className="space-y-6">
-          {filteredGuides.map((guide) => (
-            <div key={guide.id} className="bg-[var(--color-surface-container-lowest)] p-6 rounded-2xl">
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)]">{guide.name}</h3>
-                <span className="bg-[var(--color-secondary-container)] text-[var(--color-secondary)] px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                  {guide.category}
-                </span>
+        <div className="space-y-10">
+          {['Urine', 'Blood', 'Stool', 'Other'].map((cat) => {
+            const categoryGuides = filteredGuides.filter(g => g.category === cat);
+            if (categoryGuides.length === 0) return null;
+            return (
+              <div key={cat}>
+                <h2 className="text-lg font-bold font-display text-[var(--color-on-surface-variant)] mb-4 border-b border-[var(--color-surface-container-highest)] pb-2">{cat} Tests</h2>
+                <div className="space-y-6">
+                  {categoryGuides.map((guide) => (
+                    <div key={guide.id} className="bg-[var(--color-surface-container-lowest)] p-6 rounded-2xl border border-[#e5e9eb] shadow-sm">
+                      <div className="flex justify-between items-start mb-4">
+                        <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)]">{guide.name}</h3>
+                        <div className="flex space-x-2 shrink-0 flex-wrap justify-end">
+                          {guide.fastingRequirement && (
+                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 mb-1 lg:mb-0 border border-gray-200 shadow-sm">
+                              {guide.fastingRequirement}
+                            </span>
+                          )}
+                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(guide.category)} mb-1 lg:mb-0 border border-transparent shadow-sm`}>
+                            {guide.category}
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-sm font-body leading-relaxed text-[var(--color-on-surface-variant)] whitespace-pre-wrap">
+                        {guide.instructions}
+                      </p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <ul className="space-y-3">
-                {guide.instructions.map((inst, idx) => (
-                  <li key={idx} className="flex items-start">
-                    <span className="w-2 h-2 mt-1.5 mr-3 rounded-full bg-[var(--color-primary)] shrink-0" />
-                    <span className="text-sm font-body leading-relaxed text-[var(--color-on-surface-variant)]">{inst}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

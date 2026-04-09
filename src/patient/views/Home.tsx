@@ -1,11 +1,9 @@
 import { Link } from 'react-router-dom';
 import { 
   SparklesIcon,
-  EllipsisHorizontalCircleIcon, 
   BuildingOfficeIcon, 
   BellAlertIcon,
   UserIcon,
-  BeakerIcon,
   DocumentTextIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/solid';

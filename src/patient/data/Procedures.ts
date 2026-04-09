@@ -2,8 +2,9 @@ export interface Procedure {
   id: string;
   hospitalId: string;
   name: string;
-  category: 'Blood' | 'Urine' | 'Stool' | 'Imaging' | 'Other';
-  instructions: string[];
+  category: 'Blood' | 'Urine' | 'Stool' | 'Other';
+  instructions: string;
+  fastingRequirement?: string;
 }
 
 export const proceduresCollection: Procedure[] = [
@@ -12,42 +13,44 @@ export const proceduresCollection: Procedure[] = [
     hospitalId: 'h1',
     name: 'Fasting Blood Sugar',
     category: 'Blood',
-    instructions: [
-      'Fast for exactly 8 to 10 hours before the test.',
-      'Do not eat or drink anything except water.',
-      'Take your regular medications unless instructed otherwise.',
-    ],
+    instructions: 'Measures your blood glucose level after fasting to check for diabetes or prediabetes.',
+    fastingRequirement: '8 Hr Fast',
   },
   {
     id: 'p2',
     hospitalId: 'h1',
     name: 'Lipid Profile',
     category: 'Blood',
-    instructions: [
-      'Fast for 10-12 hours prior to the test.',
-      'Avoid alcohol for 24 hours before the test.',
-    ],
+    instructions: 'Measures cholesterol and triglycerides to assess cardiovascular disease risk.',
+    fastingRequirement: '12 Hr Fast',
   },
   {
     id: 'p3',
-    hospitalId: 'h2',
+    hospitalId: 'h1',
     name: 'Urinalysis',
     category: 'Urine',
-    instructions: [
-      'Collect the first morning urine using the sterile container provided.',
-      'Clean the genital area thoroughly before collection.',
-    ],
+    instructions: 'Examines urine to detect and manage various diseases and conditions.',
   },
   {
-    id: 'p4',
+    id: 'p5',
     hospitalId: 'h1',
-    name: 'MRI Scan',
-    category: 'Imaging',
-    instructions: [
-      'Remove all metal objects, including jewelry and watches.',
-      'Notify the technician of any implants or pacemakers.',
-      'Avoid eating 4 hours prior if contrast is used.',
-    ],
+    name: 'Stool Examination',
+    category: 'Stool',
+    instructions: 'Analyzes stool sample to detect digestive problems, infections, or bleeding.',
+  },
+  {
+    id: 'p6',
+    hospitalId: 'h1',
+    name: 'Complete Blood Count (CBC)',
+    category: 'Blood',
+    instructions: 'A comprehensive test that evaluates your overall health and detects various disorders.',
+  },
+  {
+    id: 'p7',
+    hospitalId: 'h1',
+    name: 'Thyroid Function Test (TFT)',
+    category: 'Blood',
+    instructions: 'Measures thyroid hormone levels to check how well your thyroid is working.',
   }
 ];
 
