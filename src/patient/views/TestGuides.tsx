@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { proceduresCollection, hospitalsCollection } from '../data/Procedures';
+import { proceduresCollection, hospitalsCollection, type Procedure } from '../data/Procedures';
 import { BeakerIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
-import { DocumentTextIcon, EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon, EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
 const getCategoryColor = (category: string) => {
@@ -14,10 +14,21 @@ const getCategoryColor = (category: string) => {
   }
 };
 
+const getCategoryOverlayColor = (category: string) => {
+  switch (category) {
+    case 'Urine': return 'from-orange-500/40 to-orange-600/10';
+    case 'Blood': return 'from-rose-500/40 to-rose-600/10';
+    case 'Stool': return 'from-amber-700/40 to-amber-800/10';
+    default: return 'from-gray-500/40 to-gray-600/10';
+  }
+};
+
 export default function TestGuides() {
   const { selectedHospitalId, setSelectedHospitalId } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedGuide, setSelectedGuide] = useState<Procedure | null>(null);
+  const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
 
   const filteredGuides = proceduresCollection.filter(
     (proc) => proc.hospitalId === selectedHospitalId 
@@ -122,23 +133,35 @@ export default function TestGuides() {
                 <h2 className="text-lg font-bold font-display text-[var(--color-on-surface-variant)] mb-4 border-b border-[var(--color-surface-container-highest)] pb-2">{cat} Tests</h2>
                 <div className="space-y-6">
                   {categoryGuides.map((guide) => (
-                    <div key={guide.id} className="bg-[var(--color-surface-container-lowest)] p-6 rounded-2xl border border-[#e5e9eb] shadow-sm">
-                      <div className="flex justify-between items-start mb-4">
-                        <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)]">{guide.name}</h3>
-                        <div className="flex space-x-2 shrink-0 flex-wrap justify-end">
+                    <div 
+                      key={guide.id} 
+                      onClick={() => { setSelectedGuide(guide); setActiveTab('Preparations'); }}
+                      className="bg-[var(--color-surface-container-lowest)] rounded-2xl border border-[#e5e9eb] shadow-sm overflow-hidden flex flex-col cursor-pointer transition-transform duration-200 active:scale-[0.98] hover:shadow-md"
+                    >
+                      {guide.imageUrl && (
+                        <div className="h-32 bg-gray-100 shrink-0 relative overflow-hidden group">
+                          <img src={guide.imageUrl} alt={guide.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 absolute inset-0 z-0" />
+                          <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(guide.category)} pointer-events-none mix-blend-multiply`}></div>
+                        </div>
+                      )}
+                      <div className="p-6 flex-grow flex flex-col">
+                        <div className="flex justify-between items-start mb-3">
+                          <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)] leading-tight">{guide.name}</h3>
+                        </div>
+                        <p className="text-sm font-body leading-relaxed text-[var(--color-on-surface-variant)] whitespace-pre-wrap mb-5">
+                          {guide.instructions}
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-auto pt-2">
                           {guide.fastingRequirement && (
-                            <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 mb-1 lg:mb-0 border border-gray-200 shadow-sm">
+                            <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm shrink-0">
                               {guide.fastingRequirement}
                             </span>
                           )}
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(guide.category)} mb-1 lg:mb-0 border border-transparent shadow-sm`}>
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(guide.category)} border border-transparent shadow-sm shrink-0`}>
                             {guide.category}
                           </span>
                         </div>
                       </div>
-                      <p className="text-sm font-body leading-relaxed text-[var(--color-on-surface-variant)] whitespace-pre-wrap">
-                        {guide.instructions}
-                      </p>
                     </div>
                   ))}
                 </div>
@@ -147,6 +170,73 @@ export default function TestGuides() {
           })}
         </div>
       )}
+
+      {selectedGuide && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedGuide(null)}></div>
+          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+            
+            {/* Modal Header Hero */}
+            {selectedGuide.imageUrl && (
+              <div className="h-24 relative shrink-0">
+                <img src={selectedGuide.imageUrl} alt={selectedGuide.name} className="w-full h-full object-cover" />
+                <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(selectedGuide.category)} mix-blend-multiply`}></div>
+                
+                <button 
+                  onClick={() => setSelectedGuide(null)} 
+                  className="absolute top-4 right-4 z-20 w-9 h-9 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors border border-white/20 shadow-sm"
+                >
+                  <XMarkIcon className="w-5 h-5" />
+                </button>
+              </div>
+            )}
+            
+            {/* Modal Content */}
+            <div className="flex flex-col flex-grow overflow-hidden">
+              <div className="p-6 pb-0 shrink-0">
+                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.name}</h2>
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {selectedGuide.fastingRequirement && (
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
+                      {selectedGuide.fastingRequirement}
+                    </span>
+                  )}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
+                    {selectedGuide.category}
+                  </span>
+                </div>
+                
+                {/* Segmented Tab Control */}
+                <div className="flex bg-[var(--color-surface-container-highest)] p-1 rounded-xl mb-6 shadow-inner">
+                  <button 
+                    className={`flex-1 py-2 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Preparations' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
+                    onClick={() => setActiveTab('Preparations')}
+                  >
+                    Preparations
+                  </button>
+                  <button 
+                    className={`flex-1 py-2 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Guidelines' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
+                    onClick={() => setActiveTab('Guidelines')}
+                  >
+                    Guidelines
+                  </button>
+                </div>
+              </div>
+
+              {/* Dynamic Scrollable Content */}
+              <div className="p-6 pt-0 overflow-y-auto">
+                <p className="text-[15px] font-body leading-relaxed text-[var(--color-on-surface-variant)] whitespace-pre-wrap">
+                  {activeTab === 'Preparations' 
+                    ? selectedGuide.instructions 
+                    : (selectedGuide.guidelines || "No specific guidelines provided for this procedure yet.")}
+                </p>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
