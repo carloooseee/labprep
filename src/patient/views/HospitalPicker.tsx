@@ -1,11 +1,18 @@
-
-import { hospitalsCollection } from '../data/Procedures';
-import { MapPinIcon } from '@heroicons/react/24/outline';
-import { EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
+import { useAppContext } from '../context/AppContext';
+import { MapPinIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
 
 export default function HospitalPicker() {
+  const { hospitals, loading } = useAppContext();
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 pb-24">
@@ -36,7 +43,7 @@ export default function HospitalPicker() {
       </div>
       <h1 className="text-sm font-extrabold font-display mb-4 text-[var(--color-on-surface)] tracking-tight">AVAILABLE HOSPITALS</h1>
       <div className="space-y-4">
-        {hospitalsCollection.map((hospital) => (
+        {hospitals.map((hospital) => (
             <div
               key={hospital.id}
               className="p-5 rounded-2xl transition-all duration-300 bg-[var(--color-surface-container-lowest)] border-2 border-transparent hover:border-[#427cf2] hover:shadow-md"

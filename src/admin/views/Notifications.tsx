@@ -1,12 +1,60 @@
-import { PaperAirplaneIcon, BellAlertIcon, CheckCircleIcon } from '@heroicons/react/24/outline';
+import { useState, useEffect } from 'react';
+import { PaperAirplaneIcon, BellAlertIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { db } from '../../firebase';
+import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
 
-const pastBroadcasts = [
-  { id: 1, title: 'System Maintenance', message: 'The portal will be down for 2 hours tonight.', date: 'Oct 15, 2026', recipients: 'All Users', status: 'Sent' },
-  { id: 2, title: 'New Hospital Added', message: 'Metro General is now accepting online schedules.', date: 'Oct 10, 2026', recipients: 'Patients', status: 'Sent' },
-  { id: 3, title: 'Holiday Advisory', message: 'Limited lab hours on National Holiday.', date: 'Sep 28, 2026', recipients: 'All Users', status: 'Sent' },
-];
 
 export default function Notifications() {
+  const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [target, setTarget] = useState('All Users');
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    const q = query(collection(db, 'broadcasts'), orderBy('date', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setBroadcasts(data);
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const handleSend = async () => {
+    if (!title || !message) {
+      alert("Please fill in both title and message.");
+      return;
+    }
+    setSending(true);
+    try {
+      await addDoc(collection(db, 'broadcasts'), {
+        title,
+        message,
+        recipients: target,
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        status: 'Sent'
+      });
+      setTitle('');
+      setMessage('');
+      alert("Broadcast sent successfully!");
+    } catch (error) {
+      console.error("Error sending broadcast:", error);
+      alert("Failed to send broadcast.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb]">
@@ -19,7 +67,7 @@ export default function Notifications() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Compose Notification */}
-        <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-[#e5e9eb] p-6">
+        <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-[#e5e9eb] p-6 h-fit">
           <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
             <PaperAirplaneIcon className="w-5 h-5 mr-2 text-blue-500" />
             New Broadcast
@@ -27,7 +75,11 @@ export default function Notifications() {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Target Audience</label>
-              <select className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none">
+              <select 
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none font-bold"
+              >
                 <option>All Users</option>
                 <option>Patients Only</option>
                 <option>Hospitals Only</option>
@@ -35,14 +87,31 @@ export default function Notifications() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-              <input type="text" placeholder="Notification Title" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none" />
+              <input 
+                type="text" 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Notification Title" 
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none font-bold" 
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-              <textarea rows={4} placeholder="Type your message..." className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none resize-none"></textarea>
+              <textarea 
+                rows={4} 
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type your message..." 
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none resize-none font-medium"
+              ></textarea>
             </div>
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl transition-colors shadow-sm flex justify-center items-center">
-              <span>Send Now</span>
+            <button 
+              onClick={handleSend}
+              disabled={sending}
+              className={`w-full ${sending ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex justify-center items-center`}
+            >
+              {sending ? <ArrowPathIcon className="w-5 h-5 animate-spin mr-2" /> : null}
+              <span>{sending ? 'Sending...' : 'Send Now'}</span>
             </button>
           </div>
         </div>
@@ -54,14 +123,14 @@ export default function Notifications() {
             Broadcast History
           </h3>
           <div className="space-y-4">
-            {pastBroadcasts.map((broadcast) => (
-              <div key={broadcast.id} className="p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors">
+            {broadcasts.map((broadcast) => (
+              <div key={broadcast.id} className="p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors animate-in slide-in-from-right-4 duration-300">
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-semibold text-gray-900">{broadcast.title}</h4>
-                  <span className="text-xs text-gray-400">{broadcast.date}</span>
+                  <h4 className="font-bold text-gray-900">{broadcast.title}</h4>
+                  <span className="text-xs text-gray-400 font-medium">{broadcast.date}</span>
                 </div>
-                <p className="text-sm text-gray-600 mb-3">{broadcast.message}</p>
-                <div className="flex items-center justify-between text-xs font-medium">
+                <p className="text-sm text-gray-600 mb-3 leading-relaxed">{broadcast.message}</p>
+                <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase">
                   <span className="text-gray-500 bg-gray-100 px-2 py-1 rounded-md">Audience: {broadcast.recipients}</span>
                   <span className="flex items-center text-green-600">
                     <CheckCircleIcon className="w-4 h-4 mr-1" />
@@ -70,6 +139,9 @@ export default function Notifications() {
                 </div>
               </div>
             ))}
+            {broadcasts.length === 0 && (
+              <div className="text-center py-12 text-gray-400 italic">No broadcast history available.</div>
+            )}
           </div>
         </div>
 

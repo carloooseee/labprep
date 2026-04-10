@@ -21,6 +21,7 @@ import AdminPatients from './admin/views/Patients';
 import AdminProcedures from './admin/views/Procedures';
 import AdminNotifications from './admin/views/Notifications';
 import AdminSettings from './admin/views/Settings';
+import SeedDatabase from './admin/views/SeedDatabase';
 
 export default function App() {
   return (
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="procedures" element={<AdminProcedures />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="settings" element={<AdminSettings />} />
+            <Route path="seed" element={<SeedDatabase />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -1,32 +1,53 @@
 import { useState } from 'react';
-import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, EnvelopeIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { useAppContext } from '../../patient/context/AppContext';
+import { db } from '../../firebase';
+import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
 
-const hospitals = [
-  { id: 1, name: 'Metro General Hospital', location: '123 Medical Blvd, Downtown', contact: '+63 912 345 6789', status: 'Active' },
-  { id: 2, name: 'Citywide Health Clinic', location: '456 Wellness Way, Northside', contact: '+63 923 456 7890', status: 'Pending' },
-  { id: 3, name: 'Valley Medical Center', location: '789 Care Lane, West End', contact: '+63 934 567 8901', status: 'Disabled' },
-  { id: 4, name: 'St. Jude Medical Arts', location: '101 Healing St, South District', contact: '+63 945 678 9012', status: 'Active' },
-  { id: 5, name: 'Northshore Wellness Hub', location: '202 Bayview Dr, Port Area', contact: '+63 956 789 0123', status: 'Active' },
-  { id: 6, name: 'Eastside Community Lab', location: '303 Sunrise Ave, East Gate', contact: '+63 967 890 1234', status: 'Disabled' },
-];
 
 export default function Hospitals() {
+  const { hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingHospital, setEditingHospital] = useState<any>(null);
 
   const filteredHospitals = hospitals.filter((hospital) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch = (
       hospital.name.toLowerCase().includes(query) ||
-      hospital.location.toLowerCase().includes(query) ||
-      hospital.contact.toLowerCase().includes(query)
+      (hospital.location && typeof hospital.location === 'string' && (hospital.location as string).toLowerCase().includes(query)) ||
+      (hospital.contact && hospital.contact.toLowerCase().includes(query))
     );
     
     const matchesStatus = statusFilter === 'All Status' || hospital.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
+
+  const handleSave = async (data: any) => {
+    try {
+      if (editingHospital) {
+        await setDoc(doc(db, 'hospitals', editingHospital.id), data, { merge: true });
+      } else {
+        const docRef = await addDoc(collection(db, 'hospitals'), data);
+        await setDoc(docRef, { id: docRef.id }, { merge: true });
+      }
+      setIsModalOpen(false);
+      setEditingHospital(null);
+    } catch (error) {
+      console.error("Error saving hospital:", error);
+      alert("Failed to save hospital.");
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -73,7 +94,11 @@ export default function Hospitals() {
         <ul className="divide-y divide-gray-100">
           {filteredHospitals.length > 0 ? (
             filteredHospitals.map((hospital) => (
-              <li key={hospital.id} className="p-6 hover:bg-gray-50 transition-colors flex items-start space-x-4">
+              <li 
+                key={hospital.id} 
+                className="p-6 hover:bg-gray-50 transition-colors flex items-start space-x-4 cursor-pointer"
+                onClick={() => { setEditingHospital(hospital); setIsModalOpen(true); }}
+              >
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl shrink-0">
                   <BuildingOffice2Icon className="w-6 h-6" />
                 </div>
@@ -93,14 +118,14 @@ export default function Hospitals() {
                       {hospital.status}
                     </span>
                   </div>
-                  <div className="flex flex-col sm:flex-row sm:gap-6 mt-1.5">
-                    <div className="flex items-center text-sm text-gray-500">
+          <div className="flex flex-col sm:flex-row sm:gap-6 mt-1.5 overflow-hidden">
+                    <div className="flex items-center text-sm text-gray-500 truncate">
                       <MapPinIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                      {hospital.location}
+                      {typeof hospital.location === 'string' ? hospital.location : hospital.address}
                     </div>
-                    <div className="flex items-center text-sm text-gray-500 mt-1 sm:mt-0">
+                    <div className="flex items-center text-sm text-gray-500 mt-1 sm:mt-0 shrink-0">
                       <PhoneIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                      {hospital.contact}
+                      {hospital.contact || 'No contact'}
                     </div>
                   </div>
                 </div>
@@ -116,10 +141,14 @@ export default function Hospitals() {
 
       <Modal 
         isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title="Add Hospital"
+        onClose={() => { setIsModalOpen(false); setEditingHospital(null); }} 
+        title={editingHospital ? "Edit Hospital" : "Add Hospital"}
       >
-        <AddHospitalForm onClose={() => setIsModalOpen(false)} />
+        <AddHospitalForm 
+          onClose={() => { setIsModalOpen(false); setEditingHospital(null); }} 
+          onSave={handleSave}
+          initialData={editingHospital}
+        />
       </Modal>
     </div>
   );
@@ -150,13 +179,28 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
   );
 }
 
-function AddHospitalForm({ onClose }: { onClose: () => void }) {
+function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void, onSave: (data: any) => void, initialData?: any }) {
+  const [formData, setFormData] = useState(initialData || {
+    name: '',
+    location: '',
+    contact: '',
+    email: '',
+    status: 'Active'
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
   return (
-    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
+    <form className="space-y-4" onSubmit={handleSubmit}>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Hospital Name</label>
         <input 
           type="text" 
+          value={formData.name}
+          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="e.g. Metro General Hospital"
           className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
           required
@@ -168,8 +212,10 @@ function AddHospitalForm({ onClose }: { onClose: () => void }) {
           <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text" 
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
             placeholder="Complete physical address"
-            className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
             required
           />
         </div>
@@ -181,8 +227,10 @@ function AddHospitalForm({ onClose }: { onClose: () => void }) {
             <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
+              value={formData.contact}
+              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
               placeholder="+63 900..."
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
               required
             />
           </div>
@@ -193,8 +241,10 @@ function AddHospitalForm({ onClose }: { onClose: () => void }) {
             <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="email" 
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               placeholder="clinic@hospital.com"
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
               required
             />
           </div>
@@ -202,7 +252,11 @@ function AddHospitalForm({ onClose }: { onClose: () => void }) {
       </div>
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-        <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
+        <select 
+          value={formData.status}
+          onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer font-bold"
+        >
           <option>Active</option>
           <option>Pending</option>
           <option>Disabled</option>
@@ -213,15 +267,15 @@ function AddHospitalForm({ onClose }: { onClose: () => void }) {
         <button 
           type="button"
           onClick={onClose}
-          className="px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+          className="px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors font-bold"
         >
           Cancel
         </button>
         <button 
           type="submit"
-          className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-sm transition-colors"
+          className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-sm transition-colors font-bold"
         >
-          Save Hospital
+          {initialData ? "Update Hospital" : "Save Hospital"}
         </button>
       </div>
     </form>

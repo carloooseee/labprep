@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { BellAlertIcon as BellAlertIconOutline, XMarkIcon } from '@heroicons/react/24/outline';
-import { EllipsisHorizontalCircleIcon, BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
+import { BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
 import { Link } from 'react-router-dom';
-import { proceduresCollection } from '../data/Procedures';
+import { useAppContext } from '../context/AppContext';
 
 interface Reminder {
   id: number;
@@ -12,16 +12,23 @@ interface Reminder {
 }
 
 export default function Notifications() {
+  const { testGuides } = useAppContext();
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [remindersEnabled, setRemindersEnabled] = useState(true);
 
   // Form & Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedTestId, setSelectedTestId] = useState(proceduresCollection[0]?.id || '');
+  const [selectedTestId, setSelectedTestId] = useState('');
   const [testDate, setTestDate] = useState('');
   const [reminderType, setReminderType] = useState('Fasting');
   const [reminderDateTime, setReminderDateTime] = useState('');
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (testGuides.length > 0 && !selectedTestId) {
+      setSelectedTestId(testGuides[0].id);
+    }
+  }, [testGuides]);
 
   useEffect(() => {
     // Request permission on mount
@@ -39,7 +46,7 @@ export default function Notifications() {
       return;
     }
 
-    const testProc = proceduresCollection.find(p => p.id === selectedTestId);
+    const testProc = testGuides.find(p => p.id === selectedTestId);
     const testName = testProc ? testProc.name : 'Lab Test';
 
     const safeId = Math.floor(Math.random() * 1000000);
@@ -169,7 +176,7 @@ export default function Notifications() {
                   value={selectedTestId}
                   onChange={(e) => setSelectedTestId(e.target.value)}
                 >
-                  {proceduresCollection.map(p => (
+                  {testGuides.map(p => (
                     <option key={p.id} value={p.id}>{p.name}</option>
                   ))}
                 </select>

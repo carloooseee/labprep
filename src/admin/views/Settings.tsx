@@ -1,4 +1,4 @@
-import { Cog6ToothIcon, ShieldCheckIcon, LockClosedIcon } from '@heroicons/react/24/outline';
+import { Cog6ToothIcon, ShieldCheckIcon } from '@heroicons/react/24/outline';
 
 export default function Settings() {
   return (

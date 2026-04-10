@@ -1,35 +1,33 @@
+import { useAppContext } from '../../patient/context/AppContext';
+
+// Icons moved into map logic
+
+import { Link } from 'react-router-dom';
 import { 
   UsersIcon, 
   ClipboardDocumentCheckIcon, 
   BuildingOfficeIcon, 
   BellIcon,
   CalendarDaysIcon,
-  ChevronRightIcon,
-  ClipboardDocumentListIcon
+  ChevronRightIcon
 } from '@heroicons/react/24/outline';
-import { Link } from 'react-router-dom';
-
-const stats = [
-  { name: 'Total Patients', value: '1,245', icon: UsersIcon },
-  { name: 'Active Hospitals', value: '14', icon: BuildingOfficeIcon },
-  { name: 'Tests Completed', value: '8,392', icon: ClipboardDocumentCheckIcon },
-  { name: 'Notifications Sent', value: '342', icon: BellIcon },
-];
-
-const recentActivity = [
-  { id: 1, user: 'John Doe', action: 'Completed Blood Test', time: '2 hours ago' },
-  { id: 2, user: 'Jane Smith', action: 'Registered as new patient', time: '4 hours ago' },
-  { id: 3, user: 'Metro Hospital', action: 'Updated available test procedures', time: '5 hours ago' },
-  { id: 4, user: 'Alan Turing', action: 'Requested test guide', time: '1 day ago' },
-];
 
 export default function Dashboard() {
+  const { stats, activity, hospitals, selectedHospitalId, setSelectedHospitalId } = useAppContext();
+
+  const displayStats = [
+    { name: 'Total Patients', value: stats?.totalPatients.toLocaleString() || '0', icon: UsersIcon },
+    { name: 'Active Hospitals', value: hospitals.length.toString(), icon: BuildingOfficeIcon },
+    { name: 'Tests Completed', value: stats?.testsCompleted.toLocaleString() || '0', icon: ClipboardDocumentCheckIcon },
+    { name: 'Notifications Sent', value: stats?.notificationsSent.toLocaleString() || '0', icon: BellIcon },
+  ];
+
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-4 md:gap-6">
-        {stats.map((stat) => {
+        {displayStats.map((stat) => {
           const Icon = stat.icon;
           return (
             <div key={stat.name} className="bg-white rounded-2xl p-6 shadow-sm border border-[#e5e9eb] hover:shadow-md transition-shadow">
@@ -47,7 +45,6 @@ export default function Dashboard() {
                   <Icon className="w-6 h-6" />
                 </div>
               </div>
-
             </div>
           );
         })}
@@ -68,8 +65,25 @@ export default function Dashboard() {
               <ChevronRightIcon className="w-4 h-4 ml-1" />
             </Link>
           </div>
-          <div className="flex-1 rounded-xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center">
-            <p className="text-gray-400 font-medium">Chart Visualization Area</p>
+          <div className="flex-1 overflow-y-auto">
+            <div className="space-y-4">
+              {activity.map((item) => (
+                <div key={item.id} className="flex items-start justify-between p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
+                  <div>
+                    <h4 className="text-sm font-bold text-gray-800">{item.user}</h4>
+                    <p className="text-xs text-gray-500">{item.action}</p>
+                  </div>
+                  <span className="text-[10px] text-gray-400 font-medium">
+                    {item.timestamp?.toDate ? item.timestamp.toDate().toLocaleTimeString() : 'Just now'}
+                  </span>
+                </div>
+              ))}
+              {activity.length === 0 && (
+                <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
+                  No recent activity found for this facility.
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -85,11 +99,14 @@ export default function Dashboard() {
           <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Hospital</label>
-              <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all">
-                <option value="">Choose a facility...</option>
-                <option value="1">Metro General Hospital</option>
-                <option value="2">Citywide Health Clinic</option>
-                <option value="3">Valley Medical Center</option>
+              <select 
+                value={selectedHospitalId || ''}
+                onChange={(e) => setSelectedHospitalId(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
+              >
+                {hospitals.map(h => (
+                  <option key={h.id} value={h.id}>{h.name}</option>
+                ))}
               </select>
             </div>
 

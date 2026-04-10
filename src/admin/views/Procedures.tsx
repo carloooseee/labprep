@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { 
   PlusIcon, 
-  ClipboardDocumentListIcon, 
   BeakerIcon, 
   MagnifyingGlassIcon, 
   BuildingOfficeIcon,
@@ -13,59 +12,12 @@ import {
   ShieldCheckIcon,
   TrashIcon,
   PencilSquareIcon,
-  EyeIcon
+  EyeIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
-
-const INITIAL_PROCEDURES = [
-  { 
-    id: 1, 
-    name: 'COVID-19 RT-PCR Swab', 
-    category: 'Swab Test', 
-    hospital: 'Philippine General Hospital', 
-    fasting: 'No', 
-    description: 'Gold standard diagnostic test for COVID-19 detection via nasopharyngeal swab.',
-    prep: 'Avoid eating 30 mins before the test. No alcohol consumption 24 hours prior.',
-    duration: 15,
-    status: 'Active',
-    icon: BeakerIcon 
-  },
-  { 
-    id: 2, 
-    name: 'Fasting Blood Sugar (FBS)', 
-    category: 'Blood Test', 
-    hospital: 'Metro General Hospital', 
-    fasting: 'Yes (8-10 hours)', 
-    description: 'Measures your blood sugar levels after an overnight fast to screen for diabetes.',
-    prep: 'Do not eat or drink anything except water for at least 8 hours.',
-    duration: 10,
-    status: 'Active',
-    icon: BeakerIcon 
-  },
-  { 
-    id: 3, 
-    name: 'Urinalysis (Routine)', 
-    category: 'Urinalysis', 
-    hospital: 'Citywide Health Clinic', 
-    fasting: 'No', 
-    description: 'Standard screening for kidney health, infections, and other conditions.',
-    prep: 'Clean the mid-stream catch as per standard guidelines.',
-    duration: 5,
-    status: 'Active',
-    icon: ClipboardDocumentListIcon 
-  },
-  { 
-    id: 4, 
-    name: 'Lipid Profile (Full)', 
-    category: 'Blood Test', 
-    hospital: 'Philippine General Hospital', 
-    fasting: 'Yes (10-12 hours)', 
-    description: 'Comprehensive assessment of cholesterol levels including LDL, HDL, and Triglycerides.',
-    prep: 'Strict fasting required for 12 hours. Normal physical activity only.',
-    duration: 15,
-    status: 'Draft',
-    icon: BeakerIcon 
-  },
-];
+import { useAppContext } from '../../patient/context/AppContext';
+import { db } from '../../firebase';
+import { doc, setDoc, deleteDoc, collection, addDoc } from 'firebase/firestore';
 
 const categories = [
   'All Categories',
@@ -77,53 +29,55 @@ const categories = [
   'Other Test'
 ];
 
-const hospitals = [
-  'All Hospitals',
-  'Metro General Hospital',
-  'Citywide Health Clinic',
-  'Valley Medical Center'
-];
-
 export default function Procedures() {
-  const [proceduresList, setProceduresList] = useState(INITIAL_PROCEDURES);
+  const { testGuides, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All Categories');
   const [hospitalFilter, setHospitalFilter] = useState('All Hospitals');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeActionId, setActiveActionId] = useState<number | null>(null);
+  const [activeActionId, setActiveActionId] = useState<string | null>(null);
   const [editingProcedure, setEditingProcedure] = useState<any>(null);
   const [viewingProcedure, setViewingProcedure] = useState<any>(null);
 
-  const filteredProcedures = proceduresList.filter((proc) => {
+  const filteredProcedures = testGuides.filter((proc) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch = proc.name.toLowerCase().includes(query);
     const matchesCategory = categoryFilter === 'All Categories' || proc.category === categoryFilter;
-    const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospital === hospitalFilter;
+    const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospitalId === hospitalFilter;
     
     return matchesSearch && matchesCategory && matchesHospital;
   });
 
-  const handleDelete = (id: number) => {
+  const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this procedure?')) {
-      setProceduresList(prev => prev.filter(p => p.id !== id));
+      await deleteDoc(doc(db, 'testGuides', id));
       setActiveActionId(null);
     }
   };
 
-  const handleSave = (data: any) => {
-    if (editingProcedure) {
-      setProceduresList(prev => prev.map(p => p.id === editingProcedure.id ? { ...p, ...data } : p));
-    } else {
-      const newProc = {
-        ...data,
-        id: Math.max(...proceduresList.map(p => p.id), 0) + 1,
-        icon: data.category === 'Blood Test' ? BeakerIcon : ClipboardDocumentListIcon
-      };
-      setProceduresList(prev => [...prev, newProc]);
+  const handleSave = async (data: any) => {
+    try {
+      if (editingProcedure) {
+        await setDoc(doc(db, 'testGuides', editingProcedure.id), data, { merge: true });
+      } else {
+        const docRef = await addDoc(collection(db, 'testGuides'), data);
+        await setDoc(docRef, { id: docRef.id }, { merge: true });
+      }
+      setIsModalOpen(false);
+      setEditingProcedure(null);
+    } catch (error) {
+      console.error("Error saving procedure:", error);
+      alert("Failed to save procedure.");
     }
-    setIsModalOpen(false);
-    setEditingProcedure(null);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -152,9 +106,10 @@ export default function Procedures() {
             <select 
               value={hospitalFilter}
               onChange={(e) => setHospitalFilter(e.target.value)}
-              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer"
+              className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer font-bold"
             >
-              {hospitals.map(h => <option key={h} value={h}>{h}</option>)}
+              <option value="All Hospitals">All Hospitals</option>
+              {hospitals.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
             </select>
           </div>
         </div>
@@ -185,93 +140,86 @@ export default function Procedures() {
       <div className="bg-white rounded-2xl shadow-sm border border-[#e5e9eb] overflow-hidden">
         <ul className="divide-y divide-gray-100">
           {filteredProcedures.length > 0 ? (
-            filteredProcedures.map((proc) => {
-              const Icon = proc.icon;
-              return (
-                <li key={proc.id} className="relative p-6 hover:bg-gray-50 transition-colors flex items-start space-x-6 group">
-                  <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 group-hover:bg-indigo-100 transition-colors">
-                    <Icon className="w-8 h-8" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between">
-                      <div className="pr-12">
-                        <h3 className="font-semibold text-gray-900 text-xl leading-tight">{proc.name}</h3>
-                      </div>
+            filteredProcedures.map((proc) => (
+              <li key={proc.id} className="relative p-6 hover:bg-gray-50 transition-colors flex items-start space-x-6 group">
+                <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 group-hover:bg-indigo-100 transition-colors">
+                  <BeakerIcon className="w-8 h-8" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="pr-12">
+                      <h3 className="font-semibold text-gray-900 text-xl leading-tight">{proc.name}</h3>
+                    </div>
+                    
+                    {/* Action Menu (3-dot) */}
+                    <div className="absolute top-6 right-6">
+                      <button 
+                        onClick={() => setActiveActionId(activeActionId === proc.id ? null : proc.id)}
+                        className={`p-2 rounded-full transition-colors ${activeActionId === proc.id ? 'bg-gray-200 text-gray-900' : 'hover:bg-gray-200 text-gray-400'}`}
+                      >
+                        <EllipsisVerticalIcon className="w-6 h-6" />
+                      </button>
                       
-                      {/* Action Menu (3-dot) */}
-                      <div className="absolute top-6 right-6">
-                        <button 
-                          onClick={() => setActiveActionId(activeActionId === proc.id ? null : proc.id)}
-                          className={`p-2 rounded-full transition-colors ${activeActionId === proc.id ? 'bg-gray-200 text-gray-900' : 'hover:bg-gray-200 text-gray-400'}`}
-                        >
-                          <EllipsisVerticalIcon className="w-6 h-6" />
-                        </button>
-                        
-                        {activeActionId === proc.id && (
-                          <>
-                            {/* Overlay to close on click outside */}
-                            <div className="fixed inset-0 z-10" onClick={() => setActiveActionId(null)} />
-                            
-                            <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 animate-in zoom-in-95 fade-in duration-100 origin-top-right">
-                              <button 
-                                onClick={() => { setViewingProcedure(proc); setActiveActionId(null); }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                              >
-                                <EyeIcon className="w-4 h-4 mr-3 text-gray-400" />
-                                Check Details
-                              </button>
-                              <button 
-                                onClick={() => { setEditingProcedure(proc); setIsModalOpen(true); setActiveActionId(null); }}
-                                className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
-                              >
-                                <PencilSquareIcon className="w-4 h-4 mr-3 text-gray-400" />
-                                Edit
-                              </button>
-                              <div className="my-1 border-t border-gray-100" />
-                              <button 
-                                onClick={() => handleDelete(proc.id)}
-                                className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center font-medium"
-                              >
-                                <TrashIcon className="w-4 h-4 mr-3" />
-                                Delete
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-y-3 gap-x-6 text-sm">
-                      <div className="flex items-center space-x-3">
-                        <div className="flex items-center text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg font-medium border border-blue-100">
-                          <TagIcon className="w-4 h-4 mr-2" />
-                          {proc.category}
-                        </div>
-                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border shrink-0 ${
-                          proc.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' :
-                          proc.status === 'Draft' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                          'bg-red-50 text-red-700 border-red-100'
-                        }`}>
-                          {proc.status}
-                        </span>
-                      </div>
-                      <div className="flex items-center text-gray-500 font-medium">
-                        <BuildingOfficeIcon className="w-4 h-4 mr-1.5 text-gray-400" />
-                        {proc.hospital}
-                      </div>
-                      <div className="flex items-center text-gray-500">
-                        <ShieldCheckIcon className="w-4 h-4 mr-1.5 text-gray-400" />
-                        Fasting: <span className="ml-1 text-gray-900 font-semibold">{proc.fasting}</span>
-                      </div>
-                      <div className="flex items-center text-gray-500">
-                        <ClockIcon className="w-4 h-4 mr-1.5 text-gray-400" />
-                        Est. duration: <span className="ml-1 text-gray-900 font-semibold">{proc.duration} min</span>
-                      </div>
+                      {activeActionId === proc.id && (
+                        <>
+                          {/* Overlay to close on click outside */}
+                          <div className="fixed inset-0 z-10" onClick={() => setActiveActionId(null)} />
+                          
+                          <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 animate-in zoom-in-95 fade-in duration-100 origin-top-right">
+                            <button 
+                              onClick={() => { setViewingProcedure(proc); setActiveActionId(null); }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                            >
+                              <EyeIcon className="w-4 h-4 mr-3 text-gray-400" />
+                              Check Details
+                            </button>
+                            <button 
+                              onClick={() => { setEditingProcedure(proc); setIsModalOpen(true); setActiveActionId(null); }}
+                              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center"
+                            >
+                              <PencilSquareIcon className="w-4 h-4 mr-3 text-gray-400" />
+                              Edit
+                            </button>
+                            <div className="my-1 border-t border-gray-100" />
+                            <button 
+                              onClick={() => handleDelete(proc.id)}
+                              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center font-medium"
+                            >
+                              <TrashIcon className="w-4 h-4 mr-3" />
+                              Delete
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
-                </li>
-              );
-            })
+
+                  <div className="mt-3 flex flex-wrap items-center gap-y-3 gap-x-6 text-sm">
+                    <div className="flex items-center space-x-3">
+                      <div className="flex items-center text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg font-medium border border-blue-100">
+                        <TagIcon className="w-4 h-4 mr-2" />
+                        {proc.category}
+                      </div>
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border shrink-0 ${
+                        proc.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' :
+                        proc.status === 'Draft' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                        'bg-red-50 text-red-700 border-red-100'
+                      }`}>
+                        {proc.status}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-gray-500 font-medium">
+                      <BuildingOfficeIcon className="w-4 h-4 mr-1.5 text-gray-400" />
+                      {hospitals.find(h => h.id === proc.hospitalId)?.name || 'Global'}
+                    </div>
+                    <div className="flex items-center text-gray-500">
+                      <ShieldCheckIcon className="w-4 h-4 mr-1.5 text-gray-400" />
+                      Fasting: <span className="ml-1 text-gray-900 font-semibold">{proc.fastingRequirement || 'None'}</span>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            ))
           ) : (
             <li className="p-12 text-center text-gray-500 italic">
               No procedures found matching your current filters.
@@ -289,6 +237,7 @@ export default function Procedures() {
           onClose={() => { setIsModalOpen(false); setEditingProcedure(null); }} 
           onSave={handleSave}
           initialData={editingProcedure}
+          hospitals={hospitals}
         />
       </Modal>
 
@@ -331,16 +280,16 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
   );
 }
 
-function AddProcedureForm({ onClose, onSave, initialData }: { onClose: () => void, onSave: (data: any) => void, initialData?: any }) {
+function AddProcedureForm({ onClose, onSave, initialData, hospitals }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[] }) {
   const [formData, setFormData] = useState(initialData || {
-    hospital: 'Metro General Hospital',
+    hospitalId: hospitals[0]?.id || '',
     category: 'Blood Test',
     name: '',
     description: '',
-    prep: '',
-    fasting: 'No',
-    duration: 15,
-    status: 'Active'
+    fastingRequirement: '',
+    status: 'Active',
+    preparations: [],
+    guidelines: { dos: [], donts: [] }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -356,14 +305,14 @@ function AddProcedureForm({ onClose, onSave, initialData }: { onClose: () => voi
           <div className="relative">
             <BuildingOfficeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select 
-              value={formData.hospital}
-              onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none"
+              value={formData.hospitalId}
+              onChange={(e) => setFormData({ ...formData, hospitalId: e.target.value })}
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none font-bold"
             >
-              <option>Metro General Hospital</option>
-              <option>Citywide Health Clinic</option>
-              <option>Valley Medical Center</option>
-              <option>Philippine General Hospital</option>
+              <option value="">Global (All Hospitals)</option>
+              {hospitals.map(h => (
+                <option key={h.id} value={h.id}>{h.name}</option>
+              ))}
             </select>
           </div>
         </div>
@@ -410,42 +359,17 @@ function AddProcedureForm({ onClose, onSave, initialData }: { onClose: () => voi
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Preparation Steps (Instructions)</label>
-        <textarea 
-          rows={3}
-          value={formData.prep}
-          onChange={(e) => setFormData({ ...formData, prep: e.target.value })}
-          placeholder="Enter detailed guidelines for the patient..."
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
-        />
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Fasting Required</label>
-          <select 
-            value={formData.fasting}
-            onChange={(e) => setFormData({ ...formData, fasting: e.target.value })}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
-          >
-            <option>No</option>
-            <option>Yes (8-10 hours)</option>
-            <option>Yes (10-12 hours)</option>
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Duration (Mins)</label>
-          <div className="relative">
-            <ClockIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="number" 
-              value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) })}
-              placeholder="15"
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-            />
-          </div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Fasting Requirement</label>
+          <input 
+            type="text" 
+            value={formData.fastingRequirement}
+            onChange={(e) => setFormData({ ...formData, fastingRequirement: e.target.value })}
+            placeholder="e.g. 8-10 hours, Water only"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
@@ -490,13 +414,13 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl">
-          <procedure.icon className="w-10 h-10" />
+          <BeakerIcon className="w-10 h-10" />
         </div>
         <div>
           <h4 className="text-2xl font-bold text-gray-900">{procedure.name}</h4>
           <div className="flex items-center text-sm text-gray-500 mt-0.5">
             <BuildingOfficeIcon className="w-4 h-4 mr-1.5" />
-            {procedure.hospital}
+            {procedure.hospitalId || 'Global Procedure'}
           </div>
         </div>
       </div>
@@ -537,10 +461,16 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
           </p>
         </div>
         <div>
-          <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Instructions</h5>
-          <p className="text-gray-600 leading-relaxed text-sm bg-amber-50/30 p-4 rounded-xl border border-amber-50">
-            {procedure.prep}
-          </p>
+          <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Steps</h5>
+          <div className="space-y-2 bg-amber-50/30 p-4 rounded-xl border border-amber-50">
+            {procedure.preparations?.map((step: any, idx: number) => (
+              <div key={idx} className="text-sm text-gray-600 flex gap-2">
+                <span className="font-bold">{step.icon}</span>
+                <span>{step.title}: {step.description}</span>
+              </div>
+            ))}
+            {(!procedure.preparations || procedure.preparations.length === 0) && <p className="text-sm text-gray-400 italic">No preparation steps defined.</p>}
+          </div>
         </div>
       </div>
 
