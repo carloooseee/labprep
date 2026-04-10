@@ -21,32 +21,41 @@ export default function Procedures() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {procedures.map((proc) => {
-          const Icon = proc.icon;
-          return (
-            <div key={proc.id} className="bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb] hover:shadow-md transition-shadow flex items-start space-x-4">
-              <div className="p-4 rounded-2xl bg-indigo-50 text-indigo-600">
-                <Icon className="w-8 h-8" />
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start">
-                  <h3 className="font-semibold text-gray-900 text-lg">{proc.name}</h3>
-                  <button className="text-sm font-medium text-blue-600 hover:text-blue-800">Edit</button>
+      <div className="bg-white rounded-2xl shadow-sm border border-[#e5e9eb] overflow-hidden">
+        <ul className="divide-y divide-gray-100">
+          {procedures.map((proc) => {
+            const Icon = proc.icon;
+            return (
+              <li key={proc.id} className="p-6 hover:bg-gray-50 transition-colors flex items-start space-x-4">
+                <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl shrink-0">
+                  <Icon className="w-6 h-6" />
                 </div>
-                <div className="mt-2 flex items-center space-x-3 text-sm">
-                  <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg">{proc.category}</span>
-                  <span className="text-gray-500">{proc.reqs} Preparation Steps</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
+                    <h3 className="font-semibold text-gray-900 text-lg truncate">{proc.name}</h3>
+                    <div className="flex items-center space-x-2 self-start md:self-auto">
+                      <span className="px-2.5 py-1 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium">
+                        {proc.category}
+                      </span>
+                      <button className="text-sm font-medium text-blue-600 hover:text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors">
+                        Edit
+                      </button>
+                    </div>
+                  </div>
+                  <div className="flex flex-col sm:flex-row sm:gap-6 mt-1.5">
+                    <div className="flex items-center text-sm text-gray-500">
+                      <span className="font-medium text-gray-700 mr-1">{proc.reqs}</span> 
+                      Preparation Steps
+                    </div>
+                    <p className="text-sm text-gray-400 mt-1 sm:mt-0 italic truncate">
+                      Guidelines for extraction and patient preparation.
+                    </p>
+                  </div>
                 </div>
-                <div className="mt-4 pt-4 border-t border-gray-100">
-                  <p className="text-sm text-gray-500 line-clamp-2">
-                    Standard lab procedure. Patients must follow {proc.reqs} specific guidelines before specimen extraction to ensure accurate results.
-                  </p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              </li>
+            );
+          })}
+        </ul>
       </div>
     </div>
   );
