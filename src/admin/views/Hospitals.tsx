@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, EnvelopeIcon } from '@heroicons/react/24/outline';
 
 const hospitals = [
   { id: 1, name: 'Metro General Hospital', location: '123 Medical Blvd, Downtown', contact: '+63 912 345 6789', status: 'Active' },
@@ -13,6 +13,7 @@ const hospitals = [
 export default function Hospitals() {
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredHospitals = hospitals.filter((hospital) => {
     const query = searchQuery.toLowerCase();
@@ -58,7 +59,10 @@ export default function Hospitals() {
             <option>Disabled</option>
           </select>
 
-          <button className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all font-medium shadow-sm hover:shadow-md active:scale-95">
+          <button 
+            onClick={() => setIsModalOpen(true)}
+            className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl transition-all font-medium shadow-sm hover:shadow-md active:scale-95"
+          >
             <PlusIcon className="w-5 h-5" />
             <span>Add Hospital</span>
           </button>
@@ -109,6 +113,117 @@ export default function Hospitals() {
           )}
         </ul>
       </div>
+
+      <Modal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+        title="Add Hospital"
+      >
+        <AddHospitalForm onClose={() => setIsModalOpen(false)} />
+      </Modal>
     </div>
+  );
+}
+
+// Modal Component (can be extracted if reused often)
+function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode }) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div 
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" 
+        onClick={onClose} 
+      />
+      <div className="relative bg-white w-full max-w-lg rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-100">
+          <h3 className="text-xl font-display font-semibold text-gray-900">{title}</h3>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <XMarkIcon className="w-6 h-6 text-gray-400" />
+          </button>
+        </div>
+        <div className="p-6">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AddHospitalForm({ onClose }: { onClose: () => void }) {
+  return (
+    <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onClose(); }}>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Hospital Name</label>
+        <input 
+          type="text" 
+          placeholder="e.g. Metro General Hospital"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          required
+        />
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Address</label>
+        <div className="relative">
+          <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input 
+            type="text" 
+            placeholder="Complete physical address"
+            className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+            required
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Number</label>
+          <div className="relative">
+            <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="+63 900..."
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              required
+            />
+          </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
+          <div className="relative">
+            <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <input 
+              type="email" 
+              placeholder="clinic@hospital.com"
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              required
+            />
+          </div>
+        </div>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
+        <select className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer">
+          <option>Active</option>
+          <option>Pending</option>
+          <option>Disabled</option>
+        </select>
+      </div>
+      
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 mt-6">
+        <button 
+          type="button"
+          onClick={onClose}
+          className="px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 shadow-sm transition-colors"
+        >
+          Save Hospital
+        </button>
+      </div>
+    </form>
   );
 }
