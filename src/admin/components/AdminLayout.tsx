@@ -39,23 +39,23 @@ export default function AdminLayout() {
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-black/60 z-40 md:hidden transition-opacity"
           onClick={closeSidebar}
         />
       )}
 
       {/* Sidebar */}
       <div 
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#e5e9eb] flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 md:relative md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#1d2530] border-r border-white/10 flex flex-col shadow-2xl md:shadow-sm transform transition-transform duration-300 md:relative md:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-6 flex items-center justify-between md:justify-center border-b border-[#e5e9eb]">
-          <h1 className="text-2xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-emerald-500">
+        <div className="p-6 flex items-center justify-between md:justify-center border-b border-white/10">
+          <h1 className="text-2xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
             LabPrep Admin
           </h1>
           <button 
-            className="md:hidden p-2 text-gray-500 hover:text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
+            className="md:hidden p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
             onClick={closeSidebar}
           >
             <XMarkIcon className="w-6 h-6" />
@@ -73,8 +73,8 @@ export default function AdminLayout() {
                 className={({ isActive }) =>
                   `flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${
                     isActive 
-                      ? 'bg-blue-50 text-blue-700 font-medium' 
-                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                      ? 'bg-blue-600/20 text-blue-400 font-medium' 
+                      : 'text-gray-400 hover:bg-white/5 hover:text-white'
                   }`
                 }
               >
@@ -85,10 +85,10 @@ export default function AdminLayout() {
           })}
         </nav>
 
-        <div className="p-4 border-t border-[#e5e9eb]">
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className="flex items-center space-x-3 px-4 py-3 w-full rounded-xl text-red-600 hover:bg-red-50 transition-all font-medium"
+            className="flex items-center space-x-3 px-4 py-3 w-full rounded-xl text-red-400 hover:bg-red-400/10 transition-all font-medium"
           >
             <ArrowLeftOnRectangleIcon className="w-6 h-6" />
             <span>Sign Out</span>
@@ -107,11 +107,6 @@ export default function AdminLayout() {
               <Bars3Icon className="w-6 h-6" />
             </button>
             <h2 className="text-xl font-display font-semibold text-gray-800 truncate">Administrator Portal</h2>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-blue-500 to-emerald-400 flex items-center justify-center text-white font-bold shadow-md shrink-0">
-              A
-            </div>
           </div>
         </header>
 
