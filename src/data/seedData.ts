@@ -63,6 +63,47 @@ export const testGuides = [
     }
   },
   {
+    id: 'p2',
+    name: 'Lipid Profile',
+    category: 'Blood',
+    description: 'Measures cholesterol and triglycerides to assess cardiovascular disease risk.',
+    fastingRequirement: '12 Hr Fast',
+    imageUrl: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800',
+    defaultInstructions: 'Fast for 12 hours. Only water is permitted.',
+    preparations: [
+      { icon: '🍽️', title: 'Fasting', description: 'Complete fasting for 12 hours', timing: 'Night before test' },
+      { icon: '💧', title: 'Hydration', description: 'Drink only plain water', timing: 'During fasting' },
+      { icon: '🚫', title: 'Alcohol', description: 'Avoid alcohol for 24 hours', timing: '24 hours before' }
+    ],
+    guidelines: {
+      dos: [
+        { icon: '💧', text: 'Stay hydrated with water' },
+        { icon: '🧘', text: 'Remain calm during blood draw' }
+      ],
+      donts: [
+        { icon: '🍔', text: 'Do not eat fatty meals 24 hours before' },
+        { icon: '🍷', text: 'Do not consume alcohol' }
+      ]
+    },
+    translations: {
+      tl: {
+        name: 'Lipid Profile',
+        description: 'Sinusukat ang kolesterol at triglycerides upang malaman ang panganib sa sakit sa puso.',
+        preparations: [
+          { icon: '🍽️', title: 'Pag-aayuno', description: 'Huwag kumain ng 12 oras', timing: 'Gabi bago ang test' }
+        ],
+        guidelines: {
+          dos: [
+            { icon: '💧', text: 'Uminom ng tubig' }
+          ],
+          donts: [
+            { icon: '🍔', text: 'Huwag kumain ng mamantika 24 oras bago ang test' }
+          ]
+        }
+      }
+    }
+  },
+  {
     id: 'p3',
     name: 'Urinalysis',
     category: 'Urine',
@@ -102,8 +143,102 @@ export const testGuides = [
         }
       }
     }
+  },
+  {
+    id: 'p5',
+    name: 'Stool Examination (Fecalysis)',
+    category: 'Stool',
+    description: 'Analyzes stool sample to detect digestive problems, infections, or bleeding.',
+    imageUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800',
+    defaultInstructions: 'Collect a small pea-sized sample in the provided sterile container.',
+    preparations: [
+      { icon: '💩', title: 'Collection', description: 'Use the spoon provided in the kit', timing: 'Morning of test' },
+      { icon: '🧼', title: 'Hygiene', description: 'Wash hands before and after collection', timing: 'During collection' }
+    ],
+    guidelines: {
+      dos: [
+        { icon: '📦', text: 'Ensure the container is tightly sealed' },
+        { icon: '⏰', text: 'Submit sample within 2 hours' }
+      ],
+      donts: [
+        { icon: '🚽', text: 'Avoid mixing with toilet water' },
+        { icon: '💦', text: 'Do not mix with urine' }
+      ]
+    },
+    translations: {
+      tl: {
+        name: 'Pagsusuri ng Tae (Fecalysis)',
+        description: 'Sinusuri ang dumi upang matukoy ang mga problema sa pagtunaw o impeksyon.',
+        preparations: [
+          { icon: '💩', title: 'Pagkolekta', description: 'Gamitin ang kutsarang kasama sa kit', timing: 'Umaga ng test' }
+        ],
+        guidelines: {
+          dos: [
+            { icon: '📦', text: 'Siguraduhing selyado ang lalagyan' }
+          ],
+          donts: [
+            { icon: '🚽', text: 'Iwasang mahaluan ng tubig mula sa toilet' }
+          ]
+        }
+      }
+    }
+  },
+  {
+    id: 'p6',
+    name: 'Complete Blood Count (CBC)',
+    category: 'Blood',
+    description: 'A comprehensive test that evaluates your overall health and detects various disorders.',
+    imageUrl: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=800',
+    defaultInstructions: 'No fasting required unless specified by your doctor.',
+    preparations: [
+      { icon: '💉', title: 'Blood Draw', description: 'Sample will be taken from a vein', timing: 'During test' }
+    ],
+    guidelines: {
+      dos: [
+        { icon: '📋', text: 'Inform staff of any medications you are taking' },
+        { icon: '🩹', text: 'Keep the bandage on for 15 minutes' }
+      ],
+      donts: [
+        { icon: '🏋️', text: 'Avoid heavy lifting with the tested arm' }
+      ]
+    },
+    translations: {
+      tl: {
+        name: 'Complete Blood Count (CBC)',
+        description: 'Isang komprehensibong test na sumusuri sa iyong pangkalahatang kalusugan.',
+        preparations: [
+          { icon: '💉', title: 'Pagkuha ng Dugo', description: 'Kukuha ng sample mula sa ugat', timing: 'Habang nagte-test' }
+        ]
+      }
+    }
+  },
+  {
+    id: 'p7',
+    name: 'Thyroid Function Test (TFT)',
+    category: 'Blood',
+    description: 'Measures thyroid hormone levels to check how well your thyroid is working.',
+    imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800',
+    defaultInstructions: 'Standard blood draw. No fasting required.',
+    preparations: [
+      { icon: '🦋', title: 'Thyroid Check', description: 'Checks for hyper/hypothyroidism', timing: 'During test' }
+    ],
+    guidelines: {
+      dos: [
+        { icon: '⏰', text: 'Note the time of your last thyroid medication' }
+      ],
+      donts: [
+        { icon: '☕', text: 'Avoid large amounts of caffeine before test' }
+      ]
+    },
+    translations: {
+      tl: {
+        name: 'Thyroid Function Test (TFT)',
+        description: 'Sinusukat ang antas ng thyroid hormone sa iyong katawan.'
+      }
+    }
   }
 ];
+
 
 export const hospitalOverrides = [
   {
@@ -148,19 +283,36 @@ export const broadcasts = [
 
 export const initialUsers = [
   {
-    uid: 'admin1',
+    uid: 'admin_primary',
     displayName: 'Hospital Admin',
-    email: 'admin@genhosp.com',
+    email: 'admin@hospital.com',
     role: 'admin',
     hospitalId: 'h1',
     preferredLanguage: 'en'
   },
   {
-    uid: 'patient1',
-    displayName: 'Juan Dela Cruz',
-    email: 'juan@example.com',
+    uid: 'patient_nash',
+    displayName: 'Nash Soriano',
+    email: 'nash@soriano.com',
     role: 'patient',
     hospitalId: 'h1',
-    preferredLanguage: 'tl'
+    preferredLanguage: 'en'
+  },
+  {
+    uid: 'patient_rizelle',
+    displayName: 'Rizelle Vergara',
+    email: 'rizelle@vergara.com',
+    role: 'patient',
+    hospitalId: 'h1',
+    preferredLanguage: 'en'
+  },
+  {
+    uid: 'patient_rich',
+    displayName: 'Rich Villaflores',
+    email: 'rich@villaflores.com',
+    role: 'patient',
+    hospitalId: 'h1',
+    preferredLanguage: 'en'
   }
 ];
+

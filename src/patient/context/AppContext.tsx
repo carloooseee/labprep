@@ -42,6 +42,15 @@ export interface Activity {
   timestamp: any;
 }
 
+export interface Broadcast {
+  id: string;
+  title: string;
+  message: string;
+  recipients: string;
+  date: string;
+  status: string;
+}
+
 interface AppContextType {
   selectedHospitalId: string | null;
   setSelectedHospitalId: (id: string | null) => void;
@@ -49,8 +58,10 @@ interface AppContextType {
   testGuides: TestGuide[];
   stats: Stat | null;
   activity: Activity[];
+  broadcasts: Broadcast[];
   loading: boolean;
 }
+
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
@@ -62,6 +73,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [overrides, setOverrides] = useState<any[]>([]);
   const [stats, setStats] = useState<Stat | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Helper for deep merging overrides (simple version for the schema)
@@ -93,9 +105,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setGlobalTestGuides(guideData);
     });
 
+    // 2.5 Listen to Broadcasts
+    const broadcastsUnsubscribe = onSnapshot(query(collection(db, 'broadcasts'), orderBy('date', 'desc')), (snapshot) => {
+      const broadcastData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Broadcast));
+      setBroadcasts(broadcastData);
+    });
+
     return () => {
       hospitalsUnsubscribe();
       guidesUnsubscribe();
+      broadcastsUnsubscribe();
     }
   }, []);
 
@@ -170,7 +189,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       hospitals, 
       testGuides,
       stats,
-      activity, 
+      activity,
+      broadcasts,
       loading 
     }}>
       {children}

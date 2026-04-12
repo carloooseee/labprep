@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { 
   HomeIcon, 
   BuildingOfficeIcon, 
@@ -22,12 +23,8 @@ const navigation = [
 ];
 
 export default function AdminLayout() {
-  const navigate = useNavigate();
+  const { signOut } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-
-  const handleLogout = () => {
-    navigate('/login');
-  };
 
   const closeSidebar = () => {
     setIsSidebarOpen(false);
@@ -87,13 +84,14 @@ export default function AdminLayout() {
 
         <div className="p-4 border-t border-white/10">
           <button
-            onClick={handleLogout}
+            onClick={signOut}
             className="flex items-center space-x-3 px-4 py-3 w-full rounded-xl text-red-400 hover:bg-red-400/10 transition-all font-medium"
           >
             <ArrowLeftOnRectangleIcon className="w-6 h-6" />
             <span>Sign Out</span>
           </button>
         </div>
+
       </div>
 
       {/* Main Content */}
