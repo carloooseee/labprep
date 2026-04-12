@@ -1,21 +1,41 @@
 import { db } from '../firebase';
-import { collection, doc, writeBatch, GeoPoint, Timestamp } from 'firebase/firestore';
+import { collection, doc, writeBatch, GeoPoint, Timestamp, getDocs, deleteDoc } from 'firebase/firestore';
 import { hospitals, testGuides, initialUsers, hospitalOverrides, stats, activity, broadcasts } from '../data/seedData';
 
 /**
- * Seeds the initial data to Firestore.
- * This includes hospitals, global test guides, and initial user profiles.
+ * Seeds the initial data to Firestore after a total wipe of existing collections.
  */
 export const seedFirestore = async () => {
-  const batch = writeBatch(db);
-
   try {
+    const collectionsToWipe = [
+      'hospitals', 
+      'testGuides', 
+      'hospitalOverrides', 
+      'users', 
+      'broadcasts', 
+      'stats', 
+      'activity'
+    ];
+
+    console.log('--- STARTING TOTAL SYSTEM RESET ---');
+
+    for (const colName of collectionsToWipe) {
+      console.log(`Wiping ${colName}...`);
+      const snapshot = await getDocs(collection(db, colName));
+      const deleteBatch = writeBatch(db);
+      snapshot.docs.forEach(snap => deleteBatch.delete(snap.ref));
+      await deleteBatch.commit();
+    }
+
+    const batch = writeBatch(db);
+
     // 1. Seed Hospitals
     console.log('Seeding Hospitals...');
     for (const hospital of hospitals) {
       const hospitalRef = doc(db, 'hospitals', hospital.id);
       batch.set(hospitalRef, {
         ...hospital,
+        name: hospital.procedureName || hospital.name, // Support both keys
         location: new GeoPoint(hospital.location._lat, hospital.location._long)
       });
     }

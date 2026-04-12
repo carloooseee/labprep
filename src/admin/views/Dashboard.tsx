@@ -13,10 +13,10 @@ import {
 } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
-  const { stats, activity, hospitals, selectedHospitalId, setSelectedHospitalId } = useAppContext();
+  const { stats, activity, hospitals, patients, selectedHospitalId, setSelectedHospitalId } = useAppContext();
 
   const displayStats = [
-    { name: 'Total Patients', value: stats?.totalPatients.toLocaleString() || '0', icon: UsersIcon },
+    { name: 'Total Patients', value: patients.length.toString(), icon: UsersIcon },
     { name: 'Active Hospitals', value: hospitals.length.toString(), icon: BuildingOfficeIcon },
     { name: 'Tests Completed', value: stats?.testsCompleted.toLocaleString() || '0', icon: ClipboardDocumentCheckIcon },
     { name: 'Notifications Sent', value: stats?.notificationsSent.toLocaleString() || '0', icon: BellIcon },

@@ -2,29 +2,31 @@ import { useState } from 'react';
 import { 
   MagnifyingGlassIcon, 
   UserIcon, 
-  EnvelopeIcon,
-  PhoneIcon
+  EnvelopeIcon, 
+  PhoneIcon,
+  ArrowPathIcon
 } from '@heroicons/react/24/outline';
-
-const patients = [
-  { id: 1, name: 'John Doe', email: 'john.doe@email.com', contact: '+63 912 345 6789', status: 'Completed' },
-  { id: 2, name: 'Althea Smith', email: 'althea.smith@email.com', contact: '+63 923 456 7890', status: 'Pending' },
-  { id: 3, name: 'Robert Johnson', email: 'robert.j@email.com', contact: '+63 934 567 8901', status: 'Scheduled' },
-  { id: 4, name: 'Emily Davis', email: 'emily.davis@email.com', contact: '+63 945 678 9012', status: 'Completed' },
-  { id: 5, name: 'Michael Chen', email: 'm.chen@email.com', contact: '+63 956 789 0123', status: 'Scheduled' },
-];
+import { useAppContext } from '../../patient/context/AppContext';
 
 export default function Patients() {
+  const { patients, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('All Status');
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <ArrowPathIcon className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
+
   const filteredPatients = patients.filter((patient) => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch = (
-      patient.name.toLowerCase().includes(query) ||
-      patient.email.toLowerCase().includes(query) ||
-      patient.contact.toLowerCase().includes(query)
-    );
+    const nameMatch = (patient.displayName || patient.name || '').toLowerCase().includes(query);
+    const emailMatch = (patient.email || '').toLowerCase().includes(query);
+    const contactMatch = (patient.contact || '').toLowerCase().includes(query);
+    const matchesSearch = nameMatch || emailMatch || contactMatch;
     
     const matchesStatus = statusFilter === 'All Status' || patient.status === statusFilter;
     

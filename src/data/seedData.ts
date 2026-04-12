@@ -1,14 +1,14 @@
 export const hospitals = [
   {
     id: 'h1',
-    name: 'General Hospital Memorial',
+    procedureName: 'General Hospital Memorial',
     address: '123 Medical Way',
     contactNumber: '555-0101',
     location: { _lat: 14.5995, _long: 120.9842 } // Manila area
   },
   {
     id: 'h2',
-    name: 'Westside Clinic',
+    procedureName: 'Westside Clinic',
     address: '456 Care Blvd',
     contactNumber: '555-0202',
     location: { _lat: 14.5547, _long: 121.0244 } // Makati area
@@ -18,13 +18,15 @@ export const hospitals = [
 export const testGuides = [
   {
     id: 'p1',
-    name: 'Fasting Blood Sugar (FBS)',
-    category: 'Blood',
+    procedureName: 'Fasting Blood Sugar (FBS)',
+    category: 'Blood Test',
     description: 'Measures your blood glucose level after fasting to check for diabetes or prediabetes.',
-    fastingRequirement: '8 Hr Fast',
+    fastingRequired: '8 Hr Fast',
+    duration: 15,
+    status: 'Active',
     imageUrl: 'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&q=80&w=800',
     defaultInstructions: 'Arrive 15 minutes early. A phlebotomist will draw blood from a vein in your arm.',
-    preparations: [
+    preparationSteps: [
       { icon: '🍽️', title: 'Fasting', description: 'Fast for 8-12 hours before the test', timing: 'Night before test' },
       { icon: '💧', title: 'Water', description: 'Only drink plain water during fasting', timing: 'During fasting period' },
       { icon: '📌', title: 'Timing', description: 'Schedule test early in the morning', timing: 'Morning' }
@@ -44,9 +46,9 @@ export const testGuides = [
     },
     translations: {
       tl: {
-        name: 'Fasting Blood Sugar (FBS)',
+        procedureName: 'Fasting Blood Sugar (FBS)',
         description: 'Sinusukat ang antas ng asukal sa iyong dugo matapos mag-ayuno upang suriin ang diabetes.',
-        preparations: [
+        preparationSteps: [
           { icon: '🍽️', title: 'Pag-aayuno', description: 'Huwag kumain ng 8-12 oras bago ang test', timing: 'Gabi bago ang test' },
           { icon: '💧', title: 'Tubig', description: 'Tubig lamang ang maaaring inumin habang nag-aayuno', timing: 'Habang nag-aayuno' }
         ],
@@ -64,13 +66,15 @@ export const testGuides = [
   },
   {
     id: 'p2',
-    name: 'Lipid Profile',
-    category: 'Blood',
+    procedureName: 'Lipid Profile',
+    category: 'Blood Test',
     description: 'Measures cholesterol and triglycerides to assess cardiovascular disease risk.',
-    fastingRequirement: '12 Hr Fast',
+    fastingRequired: '12 Hr Fast',
+    duration: 15,
+    status: 'Active',
     imageUrl: 'https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=800',
     defaultInstructions: 'Fast for 12 hours. Only water is permitted.',
-    preparations: [
+    preparationSteps: [
       { icon: '🍽️', title: 'Fasting', description: 'Complete fasting for 12 hours', timing: 'Night before test' },
       { icon: '💧', title: 'Hydration', description: 'Drink only plain water', timing: 'During fasting' },
       { icon: '🚫', title: 'Alcohol', description: 'Avoid alcohol for 24 hours', timing: '24 hours before' }
@@ -87,9 +91,9 @@ export const testGuides = [
     },
     translations: {
       tl: {
-        name: 'Lipid Profile',
+        procedureName: 'Lipid Profile',
         description: 'Sinusukat ang kolesterol at triglycerides upang malaman ang panganib sa sakit sa puso.',
-        preparations: [
+        preparationSteps: [
           { icon: '🍽️', title: 'Pag-aayuno', description: 'Huwag kumain ng 12 oras', timing: 'Gabi bago ang test' }
         ],
         guidelines: {
@@ -105,12 +109,14 @@ export const testGuides = [
   },
   {
     id: 'p3',
-    name: 'Urinalysis',
-    category: 'Urine',
+    procedureName: 'Urinalysis',
+    category: 'Urinalysis',
     description: 'Examines urine to detect and manage various diseases and conditions.',
+    duration: 10,
+    status: 'Active',
     imageUrl: 'https://images.unsplash.com/photo-1581093450021-4a7360e9a6b5?auto=format&fit=crop&q=80&w=800',
     defaultInstructions: 'Collect a midstream urine sample using a sterile cup.',
-    preparations: [
+    preparationSteps: [
       { icon: '🌅', title: 'Morning Sample', description: 'Collect first morning urine sample', timing: 'Morning of test' },
       { icon: '📌', title: 'Container', description: 'Use a clean, dry sterile container', timing: 'During collection' },
       { icon: '🥛', title: 'Midstream', description: 'Collect midstream urine (discard first burst)', timing: 'During collection' }
@@ -128,9 +134,9 @@ export const testGuides = [
     },
     translations: {
       tl: {
-        name: 'Urinalysis (Pagsusuri ng Ihi)',
+        procedureName: 'Urinalysis (Pagsusuri ng Ihi)',
         description: 'Sinusuri ang ihi upang matukoy ang iba\'t ibang sakit at kondisyon.',
-        preparations: [
+        preparationSteps: [
           { icon: '🌅', title: 'Unang Ihi', description: 'Kolektahin ang unang ihi sa umaga', timing: 'Umaga ng test' }
         ],
         guidelines: {
@@ -146,12 +152,14 @@ export const testGuides = [
   },
   {
     id: 'p5',
-    name: 'Stool Examination (Fecalysis)',
-    category: 'Stool',
+    procedureName: 'Stool Examination (Fecalysis)',
+    category: 'Stool Test',
     description: 'Analyzes stool sample to detect digestive problems, infections, or bleeding.',
+    duration: 10,
+    status: 'Active',
     imageUrl: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=800',
     defaultInstructions: 'Collect a small pea-sized sample in the provided sterile container.',
-    preparations: [
+    preparationSteps: [
       { icon: '💩', title: 'Collection', description: 'Use the spoon provided in the kit', timing: 'Morning of test' },
       { icon: '🧼', title: 'Hygiene', description: 'Wash hands before and after collection', timing: 'During collection' }
     ],
@@ -167,9 +175,9 @@ export const testGuides = [
     },
     translations: {
       tl: {
-        name: 'Pagsusuri ng Tae (Fecalysis)',
+        procedureName: 'Pagsusuri ng Tae (Fecalysis)',
         description: 'Sinusuri ang dumi upang matukoy ang mga problema sa pagtunaw o impeksyon.',
-        preparations: [
+        preparationSteps: [
           { icon: '💩', title: 'Pagkolekta', description: 'Gamitin ang kutsarang kasama sa kit', timing: 'Umaga ng test' }
         ],
         guidelines: {
@@ -185,12 +193,14 @@ export const testGuides = [
   },
   {
     id: 'p6',
-    name: 'Complete Blood Count (CBC)',
-    category: 'Blood',
+    procedureName: 'Complete Blood Count (CBC)',
+    category: 'Blood Test',
     description: 'A comprehensive test that evaluates your overall health and detects various disorders.',
+    duration: 15,
+    status: 'Active',
     imageUrl: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=800',
     defaultInstructions: 'No fasting required unless specified by your doctor.',
-    preparations: [
+    preparationSteps: [
       { icon: '💉', title: 'Blood Draw', description: 'Sample will be taken from a vein', timing: 'During test' }
     ],
     guidelines: {
@@ -204,9 +214,9 @@ export const testGuides = [
     },
     translations: {
       tl: {
-        name: 'Complete Blood Count (CBC)',
+        procedureName: 'Complete Blood Count (CBC)',
         description: 'Isang komprehensibong test na sumusuri sa iyong pangkalahatang kalusugan.',
-        preparations: [
+        preparationSteps: [
           { icon: '💉', title: 'Pagkuha ng Dugo', description: 'Kukuha ng sample mula sa ugat', timing: 'Habang nagte-test' }
         ]
       }
@@ -214,12 +224,14 @@ export const testGuides = [
   },
   {
     id: 'p7',
-    name: 'Thyroid Function Test (TFT)',
-    category: 'Blood',
+    procedureName: 'Thyroid Function Test (TFT)',
+    category: 'Blood Test',
     description: 'Measures thyroid hormone levels to check how well your thyroid is working.',
+    duration: 20,
+    status: 'Active',
     imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&q=80&w=800',
     defaultInstructions: 'Standard blood draw. No fasting required.',
-    preparations: [
+    preparationSteps: [
       { icon: '🦋', title: 'Thyroid Check', description: 'Checks for hyper/hypothyroidism', timing: 'During test' }
     ],
     guidelines: {
@@ -232,7 +244,7 @@ export const testGuides = [
     },
     translations: {
       tl: {
-        name: 'Thyroid Function Test (TFT)',
+        procedureName: 'Thyroid Function Test (TFT)',
         description: 'Sinusukat ang antas ng thyroid hormone sa iyong katawan.'
       }
     }
@@ -247,7 +259,7 @@ export const hospitalOverrides = [
     testGuideId: 'p3',
     overrides: {
       description: 'OVERRIDDEN: Please collect sample in our specific clinic containers at Westside.',
-      fastingRequirement: '6 Hr Hydration'
+      fastingRequired: '6 Hr Hydration'
     }
   }
 ];

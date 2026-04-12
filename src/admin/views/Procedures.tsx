@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { 
   PlusIcon, 
   BeakerIcon, 
@@ -19,16 +20,6 @@ import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';
 import { doc, setDoc, deleteDoc, collection, addDoc } from 'firebase/firestore';
 
-const categories = [
-  'All Categories',
-  'Urinalysis',
-  'Blood Test',
-  'Imaging',
-  'Stool Test',
-  'Swab Test',
-  'Other Test'
-];
-
 export default function Procedures() {
   const { testGuides, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,11 +30,33 @@ export default function Procedures() {
   const [editingProcedure, setEditingProcedure] = useState<any>(null);
   const [viewingProcedure, setViewingProcedure] = useState<any>(null);
 
-  const filteredProcedures = testGuides.filter((proc) => {
+  // Derive dynamic categories from data
+  const categoryPriority: Record<string, number> = {
+    'Urinalysis': 1,
+    'Blood Test': 2,
+    'Stool Test': 3,
+    'Imaging': 4
+  };
+
+  const dynamicCategories = ['All Categories', ...new Set(testGuides.map(p => p.category))]
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (a === 'All Categories') return -1;
+      if (b === 'All Categories') return 1;
+      const pA = categoryPriority[a] || 999;
+      const pB = categoryPriority[b] || 999;
+      if (pA !== pB) return pA - pB;
+      return a.localeCompare(b);
+    });
+
+  const filteredProcedures = testGuides.filter((proc: any) => {
     const query = searchQuery.toLowerCase();
-    const matchesSearch = proc.name.toLowerCase().includes(query);
+    const nameMatch = (proc.procedureName || proc.name || '').toLowerCase().includes(query);
+    const descMatch = (proc.description || '').toLowerCase().includes(query);
+    const matchesSearch = nameMatch || descMatch;
+    
     const matchesCategory = categoryFilter === 'All Categories' || proc.category === categoryFilter;
-    const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospitalId === hospitalFilter;
+    const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospital === hospitalFilter;
     
     return matchesSearch && matchesCategory && matchesHospital;
   });
@@ -81,15 +94,13 @@ export default function Procedures() {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      
-      {/* Header & Controls Section */}
+      {/* Search & Filter Header */}
       <div className="bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb] space-y-4">
         <div>
           <h2 className="text-2xl font-display font-semibold text-gray-900">Hospital Procedures</h2>
           <p className="text-gray-500 mt-1">Manage test guides, preparation steps, and requirements.</p>
         </div>
 
-        {/* Row 2: Search and Hospital Filter */}
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -122,7 +133,7 @@ export default function Procedures() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer font-medium text-gray-700"
             >
-              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+              {dynamicCategories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
 
@@ -136,11 +147,13 @@ export default function Procedures() {
         </div>
       </div>
 
-      {/* List Section */}
+      {/* Procedure List */}
       <div className="bg-white rounded-2xl shadow-sm border border-[#e5e9eb] overflow-hidden">
         <ul className="divide-y divide-gray-100">
-          {filteredProcedures.length > 0 ? (
-            filteredProcedures.map((proc) => (
+          {filteredProcedures.length === 0 ? (
+            <li className="p-12 text-center text-gray-500 italic">No procedures found matching your current filters.</li>
+          ) : (
+            filteredProcedures.map((proc: any) => (
               <li key={proc.id} className="relative p-6 hover:bg-gray-50 transition-colors flex items-start space-x-6 group">
                 <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 group-hover:bg-indigo-100 transition-colors">
                   <BeakerIcon className="w-8 h-8" />
@@ -148,10 +161,30 @@ export default function Procedures() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div className="pr-12">
-                      <h3 className="font-semibold text-gray-900 text-xl leading-tight">{proc.name}</h3>
+                      <h3 className="font-semibold text-gray-900 text-xl leading-tight">{proc.procedureName}</h3>
+                      <div className="flex flex-wrap items-center gap-y-2 gap-x-4 mt-2 text-sm text-gray-500">
+                        <div className="flex items-center font-medium">
+                          <BuildingOfficeIcon className="w-4 h-4 mr-1.5 text-gray-400" />
+                          {hospitals.find((h: any) => h.id === proc.hospital)?.name || 'Global'}
+                        </div>
+                        <div className="flex items-center">
+                          <ShieldCheckIcon className="w-4 h-4 mr-1.5 text-gray-400" />
+                          Fasting: <span className="ml-1 text-gray-900 font-semibold">{proc.fastingRequired || 'None'}</span>
+                        </div>
+                        <div className="flex items-center text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg font-medium border border-blue-100 text-xs">
+                          <TagIcon className="w-4 h-4 mr-2" />
+                          {proc.category}
+                        </div>
+                        <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border shrink-0 ${
+                          proc.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' :
+                          proc.status === 'Draft' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                          'bg-red-50 text-red-700 border-red-100'
+                        }`}>
+                          {proc.status}
+                        </span>
+                      </div>
                     </div>
-                    
-                    {/* Action Menu (3-dot) */}
+
                     <div className="absolute top-6 right-6">
                       <button 
                         onClick={() => setActiveActionId(activeActionId === proc.id ? null : proc.id)}
@@ -162,9 +195,7 @@ export default function Procedures() {
                       
                       {activeActionId === proc.id && (
                         <>
-                          {/* Overlay to close on click outside */}
                           <div className="fixed inset-0 z-10" onClick={() => setActiveActionId(null)} />
-                          
                           <div className="absolute right-0 top-full mt-1 w-48 bg-white rounded-xl shadow-xl border border-gray-100 py-2 z-20 animate-in zoom-in-95 fade-in duration-100 origin-top-right">
                             <button 
                               onClick={() => { setViewingProcedure(proc); setActiveActionId(null); }}
@@ -193,41 +224,14 @@ export default function Procedures() {
                       )}
                     </div>
                   </div>
-
-                  <div className="mt-3 flex flex-wrap items-center gap-y-3 gap-x-6 text-sm">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg font-medium border border-blue-100">
-                        <TagIcon className="w-4 h-4 mr-2" />
-                        {proc.category}
-                      </div>
-                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold tracking-wider uppercase border shrink-0 ${
-                        proc.status === 'Active' ? 'bg-green-50 text-green-700 border-green-100' :
-                        proc.status === 'Draft' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                        'bg-red-50 text-red-700 border-red-100'
-                      }`}>
-                        {proc.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-gray-500 font-medium">
-                      <BuildingOfficeIcon className="w-4 h-4 mr-1.5 text-gray-400" />
-                      {hospitals.find(h => h.id === proc.hospitalId)?.name || 'Global'}
-                    </div>
-                    <div className="flex items-center text-gray-500">
-                      <ShieldCheckIcon className="w-4 h-4 mr-1.5 text-gray-400" />
-                      Fasting: <span className="ml-1 text-gray-900 font-semibold">{proc.fastingRequirement || 'None'}</span>
-                    </div>
-                  </div>
                 </div>
               </li>
             ))
-          ) : (
-            <li className="p-12 text-center text-gray-500 italic">
-              No procedures found matching your current filters.
-            </li>
           )}
         </ul>
       </div>
 
+      {/* Modals */}
       <Modal 
         isOpen={isModalOpen} 
         onClose={() => { setIsModalOpen(false); setEditingProcedure(null); }} 
@@ -238,6 +242,7 @@ export default function Procedures() {
           onSave={handleSave}
           initialData={editingProcedure}
           hospitals={hospitals}
+          categories={dynamicCategories}
         />
       </Modal>
 
@@ -255,16 +260,13 @@ export default function Procedures() {
   );
 }
 
-// Modal Component Reused
-function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: React.ReactNode }) {
+// Support Components
+function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose: () => void, title: string, children: ReactNode }) {
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div 
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" 
-        onClick={onClose} 
-      />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={onClose} />
       <div className="relative bg-white w-full max-w-2xl rounded-2xl shadow-2xl animate-in zoom-in-95 fade-in duration-200 overflow-hidden max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
           <h3 className="text-xl font-display font-semibold text-gray-900">{title}</h3>
@@ -280,17 +282,36 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
   );
 }
 
-function AddProcedureForm({ onClose, onSave, initialData, hospitals }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[] }) {
+function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[], categories: string[] }) {
   const [formData, setFormData] = useState(initialData || {
-    hospitalId: hospitals[0]?.id || '',
-    category: 'Blood Test',
-    name: '',
+    hospital: hospitals[0]?.id || '',
+    procedureName: '',
+    category: categories[0] || 'Blood Test',
     description: '',
-    fastingRequirement: '',
-    status: 'Active',
-    preparations: [],
-    guidelines: { dos: [], donts: [] }
+    preparationSteps: [],
+    fastingRequired: '',
+    duration: 15,
+    status: 'Active'
   });
+
+  const addStep = () => {
+    setFormData({
+      ...formData,
+      preparationSteps: [...formData.preparationSteps, { icon: '📝', title: '', description: '' }]
+    });
+  };
+
+  const removeStep = (index: number) => {
+    const newSteps = [...formData.preparationSteps];
+    newSteps.splice(index, 1);
+    setFormData({ ...formData, preparationSteps: newSteps });
+  };
+
+  const updateStep = (index: number, field: string, value: string) => {
+    const newSteps = [...formData.preparationSteps];
+    newSteps[index] = { ...newSteps[index], [field]: value };
+    setFormData({ ...formData, preparationSteps: newSteps });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -305,47 +326,25 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals }: { onClose
           <div className="relative">
             <BuildingOfficeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select 
-              value={formData.hospitalId}
-              onChange={(e) => setFormData({ ...formData, hospitalId: e.target.value })}
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none font-bold"
+              value={formData.hospital}
+              onChange={(e) => setFormData({ ...formData, hospital: e.target.value })}
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none cursor-pointer appearance-none font-bold"
             >
               <option value="">Global (All Hospitals)</option>
-              {hospitals.map(h => (
-                <option key={h.id} value={h.id}>{h.name}</option>
-              ))}
+              {hospitals.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
             </select>
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
-          <div className="relative">
-            <TagIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select 
-              value={formData.category}
-              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none"
-            >
-              <option>Blood Test</option>
-              <option>Urinalysis</option>
-              <option>Imaging</option>
-              <option>Stool Test</option>
-              <option>Swab Test</option>
-              <option>Other Test</option>
-            </select>
-          </div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Procedure Name</label>
+          <input 
+            type="text" 
+            value={formData.procedureName}
+            onChange={(e) => setFormData({ ...formData, procedureName: e.target.value })}
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
+            required
+          />
         </div>
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Procedure Name</label>
-        <input 
-          type="text" 
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder="e.g. Complete Blood Count (CBC)"
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-          required
-        />
       </div>
 
       <div>
@@ -354,60 +353,52 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals }: { onClose
           rows={2}
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Briefly describe the purpose of the test..."
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none"
         />
       </div>
 
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Fasting Requirement</label>
-          <input 
-            type="text" 
-            value={formData.fastingRequirement}
-            onChange={(e) => setFormData({ ...formData, fastingRequirement: e.target.value })}
-            placeholder="e.g. 8-10 hours, Water only"
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-          />
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700">Preparation Steps</label>
+          <button type="button" onClick={addStep} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center">
+            <PlusIcon className="w-3 h-3 mr-1" /> Add Step
+          </button>
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Status</label>
-          <div className="relative">
-            <InformationCircleIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select 
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer appearance-none"
-            >
-              <option>Active</option>
-              <option>Draft</option>
-              <option>Inactive</option>
-            </select>
-          </div>
+        <div className="space-y-3">
+          {formData.preparationSteps.map((step: any, idx: number) => (
+            <div key={idx} className="flex gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+              <input type="text" value={step.icon} onChange={(e) => updateStep(idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <div className="flex-1 space-y-2">
+                <input type="text" value={step.title} onChange={(e) => updateStep(idx, 'title', e.target.value)} placeholder="Title" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" />
+                <input type="text" value={step.description} onChange={(e) => updateStep(idx, 'description', e.target.value)} placeholder="Instructions" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" />
+              </div>
+              <button type="button" onClick={() => removeStep(idx)} className="text-gray-400 hover:text-red-500"><XMarkIcon className="w-4 h-4" /></button>
+            </div>
+          ))}
         </div>
       </div>
-      
-      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 mt-6">
-        <button 
-          type="button"
-          onClick={onClose}
-          className="px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors"
-        >
-          Cancel
-        </button>
-        <button 
-          type="submit"
-          className="px-6 py-2.5 bg-[#1d2530] text-white font-medium rounded-xl hover:bg-black shadow-sm transition-colors"
-        >
-          {initialData ? "Update Procedure" : "Save Procedure"}
-        </button>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Fasting Required</label>
+          <input type="text" value={formData.fastingRequired} onChange={(e) => setFormData({ ...formData, fastingRequired: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Duration (min)</label>
+          <input type="number" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 15 })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
+        </div>
+      </div>
+
+      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+        <button type="button" onClick={onClose} className="px-6 py-2.5 border border-gray-200 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition-colors">Cancel</button>
+        <button type="submit" className="px-6 py-2.5 bg-[#1d2530] text-white font-medium rounded-xl hover:bg-black transition-colors">Save Procedure</button>
       </div>
     </form>
   );
 }
 
 function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () => void }) {
+  const { hospitals } = useAppContext();
   if (!procedure) return null;
 
   return (
@@ -417,71 +408,86 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
           <BeakerIcon className="w-10 h-10" />
         </div>
         <div>
-          <h4 className="text-2xl font-bold text-gray-900">{procedure.name}</h4>
+          <h4 className="text-2xl font-bold text-gray-900">{procedure.procedureName}</h4>
           <div className="flex items-center text-sm text-gray-500 mt-0.5">
             <BuildingOfficeIcon className="w-4 h-4 mr-1.5" />
-            {procedure.hospitalId || 'Global Procedure'}
+            {hospitals.find((h: any) => h.id === procedure.hospital)?.name || 'Global Procedure'}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4 text-xs font-semibold">
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Category</div>
-          <div className="text-gray-900 font-semibold flex items-center">
-            <TagIcon className="w-4 h-4 mr-2 text-gray-400" />
-            {procedure.category}
-          </div>
+          <div className="text-[10px] text-gray-400 uppercase mb-1">Category</div>
+          <div>{procedure.category}</div>
         </div>
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Status</div>
-          <div className="text-gray-900 font-semibold">{procedure.status}</div>
+          <div className="text-[10px] text-gray-400 uppercase mb-1">Status</div>
+          <div>{procedure.status}</div>
         </div>
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Fasting</div>
-          <div className="text-gray-900 font-semibold flex items-center">
-            <ShieldCheckIcon className="w-4 h-4 mr-2 text-gray-400" />
-            {procedure.fasting}
-          </div>
+          <div className="text-[10px] text-gray-400 uppercase mb-1">Fasting</div>
+          <div>{procedure.fastingRequired || 'None'}</div>
         </div>
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-          <div className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Est. Duration</div>
-          <div className="text-gray-900 font-semibold flex items-center">
-            <ClockIcon className="w-4 h-4 mr-2 text-gray-400" />
-            {procedure.duration} minutes
-          </div>
+          <div className="text-[10px] text-gray-400 uppercase mb-1">Duration</div>
+          <div>{procedure.duration} min</div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <h5 className="text-sm font-bold text-gray-900 mb-2">Clinical Description</h5>
-          <p className="text-gray-600 leading-relaxed text-sm bg-blue-50/30 p-4 rounded-xl border border-blue-50">
-            {procedure.description}
-          </p>
-        </div>
-        <div>
-          <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Steps</h5>
-          <div className="space-y-2 bg-amber-50/30 p-4 rounded-xl border border-amber-50">
-            {procedure.preparations?.map((step: any, idx: number) => (
-              <div key={idx} className="text-sm text-gray-600 flex gap-2">
-                <span className="font-bold">{step.icon}</span>
-                <span>{step.title}: {step.description}</span>
+      <div>
+        <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Steps</h5>
+        <div className="space-y-2">
+          {procedure.preparationSteps?.map((step: any, idx: number) => (
+            <div key={idx} className="flex items-start gap-3 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
+              <span className="text-lg shrink-0">{step.icon}</span>
+              <div className="flex-1">
+                <p className="text-[11px] font-bold text-gray-800">{step.title}</p>
+                <p className="text-[10px] text-gray-500 leading-tight">{step.description}</p>
               </div>
-            ))}
-            {(!procedure.preparations || procedure.preparations.length === 0) && <p className="text-sm text-gray-400 italic">No preparation steps defined.</p>}
+            </div>
+          ))}
+          {!procedure.preparationSteps?.length && (
+            <p className="text-xs text-gray-400 italic">No preparation steps defined.</p>
+          )}
+        </div>
+      </div>
+
+      <div>
+        <h5 className="text-sm font-bold text-gray-900 mb-3">Testing Guidelines</h5>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100/50">
+            <h6 className="text-[10px] font-bold text-emerald-800 uppercase mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              What to Do
+            </h6>
+            <ul className="space-y-2">
+              {procedure.guidelines?.dos?.map((item: any, idx: number) => (
+                <li key={idx} className="flex gap-2 text-[10px] text-emerald-900 leading-tight">
+                  <span className="shrink-0">{item.icon}</span> {item.text}
+                </li>
+              ))}
+              {!procedure.guidelines?.dos?.length && <li className="text-[10px] text-emerald-600/50 italic">None</li>}
+            </ul>
+          </div>
+          <div className="bg-red-50/50 p-4 rounded-xl border border-red-100/50">
+            <h6 className="text-[10px] font-bold text-red-800 uppercase mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400"></span>
+              To Avoid
+            </h6>
+            <ul className="space-y-2">
+              {procedure.guidelines?.donts?.map((item: any, idx: number) => (
+                <li key={idx} className="flex gap-2 text-[10px] text-red-900 leading-tight">
+                  <span className="shrink-0">{item.icon}</span> {item.text}
+                </li>
+              ))}
+              {!procedure.guidelines?.donts?.length && <li className="text-[10px] text-red-600/50 italic">None</li>}
+            </ul>
           </div>
         </div>
       </div>
 
-      <div className="pt-4 border-t border-gray-100">
-        <button 
-          onClick={onClose}
-          className="w-full py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-colors"
-        >
-          Close Preview
-        </button>
-      </div>
+      <button onClick={onClose} className="w-full py-3 bg-gray-900 text-white font-semibold rounded-xl hover:bg-black transition-colors">Close Preview</button>
     </div>
   );
 }

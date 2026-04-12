@@ -36,7 +36,7 @@ const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide,
             {language === 'tl' ? 'Mga Hakbang sa Paghahanda' : 'Preparation Steps'}
           </h3>
           <div className="relative border-l-2 border-[#e5e9eb] ml-4 space-y-8 pb-4">
-            {content.preparations?.map((step: any, idx: number) => (
+            {content.preparationSteps?.map((step: any, idx: number) => (
               <div key={idx} className="relative pl-6">
                 <div className="absolute -left-[17px] top-0 w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-lg border-[3px] border-white shadow-sm ring-1 ring-[#e5e9eb]">
                   {step.icon}
@@ -90,13 +90,13 @@ const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide,
         </div>
       </div>
 
-      {content.fastingRequirement && (
+      {content.fastingRequired && (
         <div className="bg-orange-50/50 p-5 rounded-2xl border border-orange-200/50 shadow-sm">
           <h4 className="font-bold font-display text-orange-800 mb-2 flex items-center gap-2">🍽️ {language === 'tl' ? 'Kailangan ang Pag-aayuno' : 'Fasting Required'}</h4>
           <p className="text-sm font-body text-orange-900 leading-relaxed">
             {language === 'tl' 
-              ? `Kailangan mong mag-ayuno ng ${content.fastingRequirement} bago ang test na ito. Tubig lamang ang karaniwang pinapayagan.`
-              : `You must fast for ${content.fastingRequirement} before this test. Only water is typically allowed during fasting.`}
+              ? `Kailangan mong mag-ayuno ng ${content.fastingRequired} bago ang test na ito. Tubig lamang ang karaniwang pinapayagan.`
+              : `You must fast for ${content.fastingRequired} before this test. Only water is typically allowed during fasting.`}
           </p>
         </div>
       )}
@@ -112,8 +112,26 @@ export default function TestGuides() {
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
   const [language, setLanguage] = useState<'en' | 'tl'>('en');
 
+  const categoryPriority: Record<string, number> = {
+    'Urinalysis': 1,
+    'Blood Test': 2,
+    'Stool Test': 3,
+    'Imaging': 4
+  };
+
+  const dynamicCategories = ['All', ...new Set(testGuides.map(g => g.category))]
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (a === 'All') return -1;
+      if (b === 'All') return 1;
+      const pA = categoryPriority[a] || 999;
+      const pB = categoryPriority[b] || 999;
+      if (pA !== pB) return pA - pB;
+      return a.localeCompare(b);
+    });
+
   const filteredGuides = testGuides.filter(
-    (proc) => proc.name.toLowerCase().includes(searchQuery.toLowerCase())
+    (proc) => proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase())
            && (selectedCategory === 'All' || proc.category === selectedCategory)
   );
 
@@ -194,12 +212,12 @@ export default function TestGuides() {
       </div>
 
       {/* Category Filter Buttons */}
-      <div className="mb-8 flex flex-wrap gap-2 pb-2">
-        {['All', 'Urine', 'Blood', 'Stool', 'Other'].map(cat => (
+      <div className="mb-8 flex flex-wrap gap-2 pb-2 overflow-x-auto no-scrollbar">
+        {dynamicCategories.map(cat => (
           <button
             key={cat}
             onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 snap-start shrink-0 ${
+            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 shrink-0 ${
               selectedCategory === cat 
                 ? 'bg-[#427cf2] text-white shadow-md shadow-[#427cf2]/20 border border-transparent' 
                 : 'bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface-variant)] border border-[var(--color-surface-container-highest)]'
@@ -211,10 +229,10 @@ export default function TestGuides() {
       </div>
 
       {filteredGuides.length === 0 ? (
-        <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this hospital.</p>
+        <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this criteria.</p>
       ) : (
         <div className="space-y-10">
-          {['Urine', 'Blood', 'Stool', 'Other'].map((cat) => {
+          {dynamicCategories.filter(c => c !== 'All').map((cat) => {
             const categoryGuides = filteredGuides.filter(g => g.category === cat);
             if (categoryGuides.length === 0) return null;
             return (
@@ -229,21 +247,21 @@ export default function TestGuides() {
                     >
                       {guide.imageUrl && (
                         <div className="h-32 bg-gray-100 shrink-0 relative overflow-hidden group">
-                          <img src={guide.imageUrl} alt={guide.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 absolute inset-0 z-0" />
+                          <img src={guide.imageUrl} alt={guide.procedureName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 absolute inset-0 z-0" />
                           <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(guide.category)} pointer-events-none mix-blend-multiply`}></div>
                         </div>
                       )}
                       <div className="p-6 flex-grow flex flex-col">
                         <div className="flex justify-between items-start mb-3">
-                          <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)] leading-tight">{guide.name}</h3>
+                          <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)] leading-tight">{guide.procedureName}</h3>
                         </div>
                         <p className="text-sm font-body leading-relaxed text-[var(--color-on-surface-variant)] whitespace-pre-wrap mb-5">
                           {guide.description}
                         </p>
                         <div className="flex flex-wrap gap-2 mt-auto pt-2">
-                          {guide.fastingRequirement && (
+                          {guide.fastingRequired && (
                             <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm shrink-0">
-                              {guide.fastingRequirement}
+                              {guide.fastingRequired}
                             </span>
                           )}
                           <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(guide.category)} border border-transparent shadow-sm shrink-0`}>
@@ -268,7 +286,7 @@ export default function TestGuides() {
             {/* Modal Header Hero */}
             {selectedGuide.imageUrl && (
               <div className="h-24 relative shrink-0">
-                <img src={selectedGuide.imageUrl} alt={selectedGuide.name} className="w-full h-full object-cover" />
+                <img src={selectedGuide.imageUrl} alt={selectedGuide.procedureName} className="w-full h-full object-cover" />
                 <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(selectedGuide.category)} mix-blend-multiply`}></div>
                 
                 <button 
@@ -283,11 +301,11 @@ export default function TestGuides() {
             {/* Modal Content */}
             <div className="flex flex-col flex-grow overflow-hidden">
               <div className="p-6 pb-0 shrink-0">
-                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.name}</h2>
+                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.procedureName}</h2>
                 <div className="flex flex-wrap gap-2 mb-6">
-                  {selectedGuide.fastingRequirement && (
+                  {selectedGuide.fastingRequired && (
                     <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
-                      {selectedGuide.fastingRequirement}
+                      {selectedGuide.fastingRequired}
                     </span>
                   )}
                   <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>

@@ -14,16 +14,17 @@ export interface Hospital {
 
 export interface TestGuide {
   id: string;
-  name: string;
+  procedureName: string; // Renamed from name
   category: string;
   description: string;
-  fastingRequirement?: string;
+  fastingRequired?: string; // Renamed from fastingRequirement
+  duration?: number;
   imageUrl?: string;
   defaultInstructions?: string;
-  preparations: any[];
+  preparationSteps: any[]; // Renamed from preparations
   guidelines: any;
   translations?: any;
-  hospitalId?: string;
+  hospital?: string; // Renamed from hospitalId
   status?: string;
 }
 
@@ -56,6 +57,8 @@ interface AppContextType {
   setSelectedHospitalId: (id: string | null) => void;
   hospitals: Hospital[];
   testGuides: TestGuide[];
+  globalTestGuides: TestGuide[];
+  patients: any[];
   stats: Stat | null;
   activity: Activity[];
   broadcasts: Broadcast[];
@@ -71,6 +74,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [globalTestGuides, setGlobalTestGuides] = useState<TestGuide[]>([]);
   const [testGuides, setTestGuides] = useState<TestGuide[]>([]);
   const [overrides, setOverrides] = useState<any[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
   const [stats, setStats] = useState<Stat | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
@@ -100,8 +104,41 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     // 2. Listen to Global Test Guides
-    const guidesUnsubscribe = onSnapshot(query(collection(db, 'testGuides'), orderBy('name')), (snapshot) => {
-      const guideData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as TestGuide));
+    // We remove the Firestore orderBy to prevent query failures on documents missing the field.
+    // We sort in memory and normalize the data structure for backwards compatibility.
+    const guidesUnsubscribe = onSnapshot(collection(db, 'testGuides'), (snapshot) => {
+      const guideData = snapshot.docs.map(snap => {
+        const data = snap.data() as any;
+        
+        // Deep normalization for translations
+        const normalizedTranslations = { ...data.translations };
+        if (normalizedTranslations.tl) {
+          normalizedTranslations.tl = {
+            ...normalizedTranslations.tl,
+            procedureName: normalizedTranslations.tl.procedureName || normalizedTranslations.tl.name || data.procedureName || data.name || '',
+            description: normalizedTranslations.tl.description || data.description || '',
+            preparationSteps: normalizedTranslations.tl.preparationSteps || normalizedTranslations.tl.preparations || [],
+            guidelines: normalizedTranslations.tl.guidelines || data.guidelines || { dos: [], donts: [] }
+          };
+        }
+
+        return {
+          id: snap.id,
+          // Normalization logic: Fallback to old keys if new ones are missing
+          procedureName: data.procedureName || data.name || 'Unnamed Procedure',
+          category: data.category || 'Other',
+          description: data.description || '',
+          fastingRequired: data.fastingRequired || data.fastingRequirement || '',
+          duration: data.duration || 15,
+          preparationSteps: data.preparationSteps || data.preparations || [],
+          hospital: data.hospital || data.hospitalId || '',
+          status: data.status || 'Active',
+          imageUrl: data.imageUrl || '',
+          guidelines: data.guidelines || { dos: [], donts: [] },
+          translations: normalizedTranslations
+        } as TestGuide;
+      }).sort((a, b) => a.procedureName.localeCompare(b.procedureName));
+      
       setGlobalTestGuides(guideData);
     });
 
@@ -111,10 +148,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setBroadcasts(broadcastData);
     });
 
+    // 2.6 Listen to Users (Patients)
+    const usersUnsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
+      const userData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const patientsOnly = userData.filter((u: any) => u.role === 'patient');
+      setPatients(patientsOnly);
+    });
+
     return () => {
       hospitalsUnsubscribe();
       guidesUnsubscribe();
       broadcastsUnsubscribe();
+      usersUnsubscribe();
     }
   }, []);
 
@@ -188,6 +233,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setSelectedHospitalId, 
       hospitals, 
       testGuides,
+      globalTestGuides,
+      patients,
       stats,
       activity,
       broadcasts,
