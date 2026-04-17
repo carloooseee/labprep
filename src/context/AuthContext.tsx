@@ -10,6 +10,11 @@ interface UserProfile {
   displayName?: string;
   hospitalId?: string;
   preferredLanguage?: string;
+  phone?: string;
+  address?: string;
+  dateOfBirth?: string;
+  gender?: 'Male' | 'Female' | 'Other' | string;
+  status?: string;
 }
 
 interface AuthContextType {

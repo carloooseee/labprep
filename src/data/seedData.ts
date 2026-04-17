@@ -310,7 +310,12 @@ export const initialUsers = [
     email: 'nash@soriano.com',
     role: 'patient',
     hospitalId: 'h1',
-    preferredLanguage: 'en'
+    preferredLanguage: 'en',
+    phone: '+63 912 345 6789',
+    address: 'Brgy. San Jose, Pasig City',
+    dateOfBirth: '1992-05-15',
+    gender: 'Male',
+    status: 'Active'
   },
   {
     uid: 'patient_rizelle',
@@ -318,7 +323,12 @@ export const initialUsers = [
     email: 'rizelle@vergara.com',
     role: 'patient',
     hospitalId: 'h1',
-    preferredLanguage: 'en'
+    preferredLanguage: 'en',
+    phone: '+63 923 456 7890',
+    address: 'Bicutan, Parañaque City',
+    dateOfBirth: '1995-11-20',
+    gender: 'Female',
+    status: 'Active'
   },
   {
     uid: 'patient_rich',
@@ -326,7 +336,12 @@ export const initialUsers = [
     email: 'rich@villaflores.com',
     role: 'patient',
     hospitalId: 'h1',
-    preferredLanguage: 'en'
+    preferredLanguage: 'en',
+    phone: '+63 934 567 8901',
+    address: 'Taft Ave, Manila',
+    dateOfBirth: '1988-08-08',
+    gender: 'Male',
+    status: 'Active'
   }
 ];
 
