@@ -16,8 +16,8 @@ export default function Hospitals() {
     const query = searchQuery.toLowerCase();
     const matchesSearch = (
       hospital.name.toLowerCase().includes(query) ||
-      (hospital.location && typeof hospital.location === 'string' && (hospital.location as string).toLowerCase().includes(query)) ||
-      (hospital.contact && hospital.contact.toLowerCase().includes(query))
+      (hospital.address && hospital.address.toLowerCase().includes(query)) ||
+      (hospital.contactNumber && hospital.contactNumber.toLowerCase().includes(query))
     );
     
     const matchesStatus = statusFilter === 'All Status' || hospital.status === statusFilter;
@@ -28,9 +28,16 @@ export default function Hospitals() {
   const handleSave = async (data: any) => {
     try {
       if (editingHospital) {
-        await setDoc(doc(db, 'hospitals', editingHospital.id), data, { merge: true });
+        await setDoc(doc(db, 'hospitals', editingHospital.id), {
+          ...data,
+          procedureName: data.name // Always sync procedureName with name as requested
+        }, { merge: true });
       } else {
-        const docRef = await addDoc(collection(db, 'hospitals'), data);
+        const hospitalData = {
+          ...data,
+          procedureName: data.name
+        };
+        const docRef = await addDoc(collection(db, 'hospitals'), hospitalData);
         await setDoc(docRef, { id: docRef.id }, { merge: true });
       }
       setIsModalOpen(false);
@@ -118,26 +125,24 @@ export default function Hospitals() {
                       {hospital.status}
                     </span>
                   </div>
-          <div className="flex flex-col sm:flex-row sm:gap-6 mt-1.5 overflow-hidden">
                     <div className="flex items-center text-sm text-gray-500 truncate">
                       <MapPinIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                      {typeof hospital.location === 'string' ? hospital.location : hospital.address}
+                      {hospital.address}
                     </div>
                     <div className="flex items-center text-sm text-gray-500 mt-1 sm:mt-0 shrink-0">
                       <PhoneIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                      {hospital.contact || 'No contact'}
+                      {hospital.contactNumber || 'No contact'}
                     </div>
                   </div>
-                </div>
+                </li>
+              ))
+            ) : (
+              <li className="p-12 text-center text-gray-500 italic">
+                No hospitals found matching your current filters.
               </li>
-            ))
-          ) : (
-            <li className="p-12 text-center text-gray-500 italic">
-              No hospitals found matching your current filters.
-            </li>
-          )}
-        </ul>
-      </div>
+            )}
+          </ul>
+        </div>
 
       <Modal 
         isOpen={isModalOpen} 
@@ -182,9 +187,9 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void, onSave: (data: any) => void, initialData?: any }) {
   const [formData, setFormData] = useState(initialData || {
     name: '',
+    address: '',
+    contactNumber: '',
     location: '',
-    contact: '',
-    email: '',
     status: 'Active'
   });
 
@@ -212,38 +217,38 @@ function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void
           <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input 
             type="text" 
-            value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
             placeholder="Complete physical address"
             className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
             required
           />
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Location</label>
+        <div className="relative">
+          <MapPinIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <input 
+            type="text" 
+            value={formData.location}
+            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            placeholder="e.g. 14.5995, 120.9842"
+            className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
+            required
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Contact Number</label>
           <div className="relative">
             <PhoneIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <input 
               type="text" 
-              value={formData.contact}
-              onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+              value={formData.contactNumber}
+              onChange={(e) => setFormData({ ...formData, contactNumber: e.target.value })}
               placeholder="+63 900..."
-              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
-              required
-            />
-          </div>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Email Address</label>
-          <div className="relative">
-            <EnvelopeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <input 
-              type="email" 
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="clinic@hospital.com"
               className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
               required
             />

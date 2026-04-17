@@ -6,10 +6,12 @@ import { collection, onSnapshot, query, orderBy, where, doc, limit } from 'fireb
 export interface Hospital {
   id: string;
   name: string;
+  procedureName?: string;
   address: string;
-  contact?: string;
+  contactNumber?: string;
+  contact?: string; // Keep for compatibility if needed
   status: string;
-  location?: { _lat: number; _long: number };
+  location?: string;
 }
 
 export interface TestGuide {

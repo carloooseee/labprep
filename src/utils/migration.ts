@@ -34,8 +34,13 @@ export const seedFirestore = async () => {
     for (const hospital of hospitals) {
       const hospitalRef = doc(db, 'hospitals', hospital.id);
       batch.set(hospitalRef, {
-        ...hospital,
-        location: new GeoPoint(hospital.location._lat, hospital.location._long)
+        name: hospital.name,
+        procedureName: hospital.name,
+        address: hospital.address,
+        contactNumber: hospital.contact,
+        location: hospital.location ? `${hospital.location._lat}, ${hospital.location._long}` : '',
+        status: hospital.status,
+        id: hospital.id
       });
     }
 
