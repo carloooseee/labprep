@@ -95,7 +95,7 @@ export default function Notifications() {
     }
 
     const testProc = testGuides.find(p => p.id === selectedTestId);
-    const testName = testProc ? testProc.name : 'Lab Test';
+    const testName = testProc ? (testProc.procedureName || testProc.name) : 'Lab Test';
 
     const d = new Date(reminderDateTime);
     const bodyText = message || `Time to prepare for your ${testName}.`;
@@ -313,7 +313,7 @@ export default function Notifications() {
                   onChange={(e) => setSelectedTestId(e.target.value)}
                 >
                   {testGuides.map(p => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                    <option key={p.id} value={p.id}>{p.procedureName || p.name}</option>
                   ))}
                 </select>
               </div>
