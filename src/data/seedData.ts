@@ -1,16 +1,18 @@
 export const hospitals = [
   {
     id: 'h1',
-    procedureName: 'General Hospital Memorial',
+    name: 'General Hospital Memorial',
     address: '123 Medical Way',
-    contactNumber: '555-0101',
+    contact: '555-0101',
+    status: 'Active',
     location: { _lat: 14.5995, _long: 120.9842 } // Manila area
   },
   {
     id: 'h2',
-    procedureName: 'Westside Clinic',
+    name: 'Westside Clinic',
     address: '456 Care Blvd',
-    contactNumber: '555-0202',
+    contact: '555-0202',
+    status: 'Active',
     location: { _lat: 14.5547, _long: 121.0244 } // Makati area
   }
 ];

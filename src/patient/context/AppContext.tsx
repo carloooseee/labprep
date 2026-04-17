@@ -14,6 +14,7 @@ export interface Hospital {
 
 export interface TestGuide {
   id: string;
+  name?: string;
   procedureName: string; // Renamed from name
   category: string;
   description: string;

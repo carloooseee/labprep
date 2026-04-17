@@ -1,4 +1,4 @@
-import { EnvelopeIcon, PhoneIcon, IdentificationIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
+import { EnvelopeIcon, IdentificationIcon, ArrowLeftOnRectangleIcon } from '@heroicons/react/24/outline';
 import { UserCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../../context/AuthContext';
 

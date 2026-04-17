@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, doc, writeBatch, GeoPoint, Timestamp, getDocs, deleteDoc } from 'firebase/firestore';
+import { collection, doc, writeBatch, GeoPoint, Timestamp, getDocs } from 'firebase/firestore';
 import { hospitals, testGuides, initialUsers, hospitalOverrides, stats, activity, broadcasts } from '../data/seedData';
 
 /**
@@ -35,7 +35,6 @@ export const seedFirestore = async () => {
       const hospitalRef = doc(db, 'hospitals', hospital.id);
       batch.set(hospitalRef, {
         ...hospital,
-        name: hospital.procedureName || hospital.name, // Support both keys
         location: new GeoPoint(hospital.location._lat, hospital.location._long)
       });
     }

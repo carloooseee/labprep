@@ -11,7 +11,7 @@ import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase';
-import { collection, addDoc, onSnapshot, query, where, orderBy, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, deleteDoc, doc, Timestamp } from 'firebase/firestore';
 
 interface Reminder {
   id: string;

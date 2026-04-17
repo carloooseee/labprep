@@ -7,8 +7,6 @@ import {
   BuildingOfficeIcon,
   TagIcon,
   XMarkIcon,
-  ClockIcon,
-  InformationCircleIcon,
   EllipsisVerticalIcon,
   ShieldCheckIcon,
   TrashIcon,
