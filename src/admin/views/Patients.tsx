@@ -127,13 +127,15 @@ export default function Patients() {
                       )}
                     </h3>
                     <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase w-fit ${
-                      patient.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-200' :
+                      (patient.status === 'Active' || !patient.status) ? 'bg-green-50 text-green-700 border border-green-200' :
                       patient.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                      patient.status === 'Inactive' ? 'bg-red-50 text-red-700 border border-red-200' :
                       'bg-gray-50 text-gray-700 border border-gray-200'
                     }`}>
                       <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                        patient.status === 'Active' ? 'bg-green-500' :
+                        (patient.status === 'Active' || !patient.status) ? 'bg-green-500' :
                         patient.status === 'Pending' ? 'bg-amber-500' :
+                        patient.status === 'Inactive' ? 'bg-red-500' :
                         'bg-gray-500'
                       }`} />
                       {patient.status || 'Active'}

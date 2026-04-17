@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db } from '../firebase';
 import { onAuthStateChanged, type User } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
 interface UserProfile {
   uid: string;
@@ -38,38 +38,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let profileUnsubscribe: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       
-      if (currentUser) {
-        // Fetch profile from Firestore
-        const userRef = doc(db, 'users', currentUser.uid);
-        const userSnap = await getDoc(userRef);
+      // Clear previous profile listener if it exists
+      if (profileUnsubscribe) {
+        profileUnsubscribe();
+        profileUnsubscribe = null;
+      }
 
-        if (userSnap.exists()) {
-          setProfile(userSnap.data() as UserProfile);
-        } else {
-          // Profile Sync: Create profile if it doesn't exist
-          console.log("No profile found for UID", currentUser.uid, ". Syncing based on email...");
-          const newProfile: UserProfile = {
-            uid: currentUser.uid,
-            email: currentUser.email || '',
-            role: getInitialRole(currentUser.email || ''),
-            displayName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
-            hospitalId: 'h1', // Default for now
-            preferredLanguage: 'en'
-          };
-          
-          await setDoc(userRef, newProfile);
-          setProfile(newProfile);
-        }
+      if (currentUser) {
+        // Fetch/Listen to profile from Firestore
+        const userRef = doc(db, 'users', currentUser.uid);
+        
+        profileUnsubscribe = onSnapshot(userRef, async (userSnap) => {
+          if (userSnap.exists()) {
+            setProfile(userSnap.data() as UserProfile);
+          } else {
+            // Profile Sync: Create profile if it doesn't exist (one-time check)
+            console.log("No profile found for UID", currentUser.uid, ". Syncing based on email...");
+            const newProfile: UserProfile = {
+              uid: currentUser.uid,
+              email: currentUser.email || '',
+              role: getInitialRole(currentUser.email || ''),
+              displayName: currentUser.displayName || currentUser.email?.split('@')[0] || 'User',
+              hospitalId: 'h1', // Default for now
+              preferredLanguage: 'en'
+            };
+            
+            await setDoc(userRef, newProfile);
+            // setProfile is not needed here as onSnapshot will trigger again
+          }
+          setLoading(false);
+        });
       } else {
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (profileUnsubscribe) profileUnsubscribe();
+    };
   }, []);
 
   const handleSignOut = async () => {
