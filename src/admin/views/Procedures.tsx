@@ -286,7 +286,10 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     procedureName: '',
     category: categories[0] || 'Blood Test',
     description: '',
+    imageUrl: '',
+    defaultInstructions: '',
     preparationSteps: [],
+    guidelines: { dos: [], donts: [] },
     fastingRequired: '',
     duration: 15,
     status: 'Active'
@@ -309,6 +312,40 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     const newSteps = [...formData.preparationSteps];
     newSteps[index] = { ...newSteps[index], [field]: value };
     setFormData({ ...formData, preparationSteps: newSteps });
+  };
+
+  const addGuideline = (type: 'dos' | 'donts') => {
+    setFormData({
+      ...formData,
+      guidelines: {
+        ...formData.guidelines,
+        [type]: [...(formData.guidelines?.[type] || []), { icon: '📌', text: '' }]
+      }
+    });
+  };
+
+  const removeGuideline = (type: 'dos' | 'donts', index: number) => {
+    const newItems = [...(formData.guidelines?.[type] || [])];
+    newItems.splice(index, 1);
+    setFormData({
+      ...formData,
+      guidelines: {
+        ...formData.guidelines,
+        [type]: newItems
+      }
+    });
+  };
+
+  const updateGuideline = (type: 'dos' | 'donts', index: number, field: string, value: string) => {
+    const newItems = [...(formData.guidelines?.[type] || [])];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setFormData({
+      ...formData,
+      guidelines: {
+        ...formData.guidelines,
+        [type]: newItems
+      }
+    });
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -356,6 +393,28 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       </div>
 
       <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Image URL</label>
+        <input 
+          type="text" 
+          value={formData.imageUrl || ''}
+          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
+          placeholder="https://example.com/image.jpg"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Default Instructions</label>
+        <textarea 
+          rows={2}
+          value={formData.defaultInstructions || ''}
+          onChange={(e) => setFormData({ ...formData, defaultInstructions: e.target.value })}
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none"
+          placeholder="Standard instructions for the patient..."
+        />
+      </div>
+
+      <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">Preparation Steps</label>
           <button type="button" onClick={addStep} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center">
@@ -371,6 +430,46 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
                 <input type="text" value={step.description} onChange={(e) => updateStep(idx, 'description', e.target.value)} placeholder="Instructions" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" />
               </div>
               <button type="button" onClick={() => removeStep(idx)} className="text-gray-400 hover:text-red-500"><XMarkIcon className="w-4 h-4" /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700">Testing Guidelines (What to Do)</label>
+          <button type="button" onClick={() => addGuideline('dos')} className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center">
+            <PlusIcon className="w-3 h-3 mr-1" /> Add Do
+          </button>
+        </div>
+        <div className="space-y-3">
+          {(formData.guidelines?.dos || []).map((item: any, idx: number) => (
+            <div key={idx} className="flex gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
+              <input type="text" value={item.icon} onChange={(e) => updateGuideline('dos', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <div className="flex-1">
+                <input type="text" value={item.text} onChange={(e) => updateGuideline('dos', idx, 'text', e.target.value)} placeholder="What to do" className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" />
+              </div>
+              <button type="button" onClick={() => removeGuideline('dos', idx)} className="text-gray-400 hover:text-red-500 flex items-center"><XMarkIcon className="w-4 h-4" /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700">Testing Guidelines (To Avoid)</label>
+          <button type="button" onClick={() => addGuideline('donts')} className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 flex items-center">
+            <PlusIcon className="w-3 h-3 mr-1" /> Add Don't
+          </button>
+        </div>
+        <div className="space-y-3">
+          {(formData.guidelines?.donts || []).map((item: any, idx: number) => (
+            <div key={idx} className="flex gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100/50">
+              <input type="text" value={item.icon} onChange={(e) => updateGuideline('donts', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <div className="flex-1">
+                <input type="text" value={item.text} onChange={(e) => updateGuideline('donts', idx, 'text', e.target.value)} placeholder="What to avoid" className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" />
+              </div>
+              <button type="button" onClick={() => removeGuideline('donts', idx)} className="text-gray-400 hover:text-red-500 flex items-center"><XMarkIcon className="w-4 h-4" /></button>
             </div>
           ))}
         </div>
