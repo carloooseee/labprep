@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, EnvelopeIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';
 import { doc, setDoc, addDoc, collection } from 'firebase/firestore';

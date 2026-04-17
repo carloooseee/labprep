@@ -1,5 +1,5 @@
 import { db } from '../firebase';
-import { collection, doc, writeBatch, GeoPoint, Timestamp, getDocs } from 'firebase/firestore';
+import { collection, doc, writeBatch, Timestamp, getDocs } from 'firebase/firestore';
 import { hospitals, testGuides, initialUsers, hospitalOverrides, stats, activity, broadcasts } from '../data/seedData';
 
 /**

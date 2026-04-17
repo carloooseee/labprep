@@ -9,8 +9,7 @@ import {
   PlusIcon,
   XMarkIcon,
   MapPinIcon,
-  CalendarIcon,
-  UserGroupIcon
+  CalendarIcon
 } from '@heroicons/react/24/outline';
 import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';

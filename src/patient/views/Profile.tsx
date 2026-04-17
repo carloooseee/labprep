@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  EnvelopeIcon, 
-  IdentificationIcon, 
+  EnvelopeIcon,
   ArrowLeftOnRectangleIcon,
   PhoneIcon,
   MapPinIcon,
@@ -105,7 +104,7 @@ export default function Profile() {
           label="Phone Number" 
           value={isEditing ? formData?.phone : profile.phone || 'No phone set'} 
           isEditing={isEditing}
-          onChange={(val) => setFormData({...formData, phone: val})}
+          onChange={(val: any) => setFormData({...formData, phone: val})}
           type="text"
           placeholder="+63 9xx..."
         />
@@ -115,7 +114,7 @@ export default function Profile() {
           label="Home Address" 
           value={isEditing ? formData?.address : profile.address || 'No address set'} 
           isEditing={isEditing}
-          onChange={(val) => setFormData({...formData, address: val})}
+          onChange={(val: any) => setFormData({...formData, address: val})}
           type="textarea"
           placeholder="Complete address"
         />
@@ -126,7 +125,7 @@ export default function Profile() {
             label="Date of Birth" 
             value={isEditing ? formData?.dateOfBirth : profile.dateOfBirth || 'Not set'} 
             isEditing={isEditing}
-            onChange={(val) => setFormData({...formData, dateOfBirth: val})}
+            onChange={(val: any) => setFormData({...formData, dateOfBirth: val})}
             type="date"
           />
           <ProfileField 
@@ -134,7 +133,7 @@ export default function Profile() {
             label="Gender" 
             value={isEditing ? formData?.gender : profile.gender || 'Not set'} 
             isEditing={isEditing}
-            onChange={(val) => setFormData({...formData, gender: val})}
+            onChange={(val: any) => setFormData({...formData, gender: val})}
             type="select"
             options={['Male', 'Female', 'Other']}
           />
