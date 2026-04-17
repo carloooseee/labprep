@@ -79,8 +79,27 @@ export default function Notifications() {
   }, [testGuides]);
 
   useEffect(() => {
-    // Request permission on mount
-    LocalNotifications.requestPermissions();
+    // Request permission and setup channels on mount
+    const setupNotifications = async () => {
+      try {
+        const perms = await LocalNotifications.requestPermissions();
+        if (perms.display === 'granted') {
+          // Create channel for Android (required for importance/sound)
+          await LocalNotifications.createChannel({
+            id: 'reminders',
+            name: 'Medical Reminders',
+            description: 'Alerts for lab test preparations',
+            importance: 5, // High importance
+            visibility: 1,
+            sound: 'beep.wav', // Fallback to default if not found
+            vibration: true,
+          });
+        }
+      } catch (e) {
+        console.error("Notification setup error:", e);
+      }
+    };
+    setupNotifications();
   }, []);
 
   const scheduleReminder = async () => {
@@ -106,10 +125,13 @@ export default function Notifications() {
       await LocalNotifications.schedule({
         notifications: [
           {
-            title: `Prep: ${testName} (${reminderType})`,
+            title: `Prep Alert: ${testName}`,
             body: bodyText,
             id: safeId,
             schedule: { at: d },
+            channelId: 'reminders', // Connect to the high-importance channel
+            smallIcon: 'ic_stat_name', // Common convention for Android icons
+            extra: { testId: selectedTestId }
           },
         ],
       });
@@ -134,6 +156,27 @@ export default function Notifications() {
     } catch (error) {
       console.error("Error scheduling reminder:", error);
       alert("Failed to save reminder.");
+    }
+  };
+
+  // Helper for user to test if notifications are working on their APK
+  const testNotification = async () => {
+    const testTime = new Date(Date.now() + 5000); // 5 seconds from now
+    try {
+      await LocalNotifications.schedule({
+        notifications: [
+          {
+            title: "🔔 Test Notification",
+            body: "Your LabPrep reminders are correctly configured!",
+            id: 999,
+            schedule: { at: testTime },
+            channelId: 'reminders',
+          }
+        ]
+      });
+      alert("Test scheduled for 5 seconds from now. You can close the app to see it hit.");
+    } catch (e) {
+      alert("Test failed. Check permissions.");
     }
   };
 
@@ -206,6 +249,15 @@ export default function Notifications() {
             <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${remindersEnabled ? 'translate-x-[24px]' : 'translate-x-[4px]'}`} />
           </button>
         </div>
+        
+        {/* Test Notification Utility */}
+        <button 
+          onClick={testNotification}
+          className="mt-4 flex items-center justify-center space-x-2 w-full py-2.5 border border-dashed border-gray-300 rounded-xl text-gray-500 text-xs font-bold hover:bg-gray-50 transition-colors"
+        >
+          <BellAlertIconOutline className="w-4 h-4" />
+          <span>Test Notification System (5s)</span>
+        </button>
       </div>
 
       <button
