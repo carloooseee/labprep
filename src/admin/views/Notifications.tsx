@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { PaperAirplaneIcon, BellAlertIcon, CheckCircleIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { PaperAirplaneIcon, BellAlertIcon, CheckCircleIcon, ArrowPathIcon, TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { db } from '../../firebase';
-import { collection, addDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 
 export default function Notifications() {
@@ -11,6 +11,7 @@ export default function Notifications() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'broadcasts'), orderBy('date', 'desc'));
@@ -29,21 +30,62 @@ export default function Notifications() {
     }
     setSending(true);
     try {
-      await addDoc(collection(db, 'broadcasts'), {
-        title,
-        message,
-        recipients: target,
-        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-        status: 'Sent'
-      });
+      if (editingId) {
+        await updateDoc(doc(db, 'broadcasts', editingId), {
+          title,
+          message,
+          recipients: target
+        });
+        alert("Broadcast updated successfully!");
+        setEditingId(null);
+      } else {
+        await addDoc(collection(db, 'broadcasts'), {
+          title,
+          message,
+          recipients: target,
+          date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+          status: 'Sent'
+        });
+        alert("Broadcast sent successfully!");
+      }
       setTitle('');
       setMessage('');
-      alert("Broadcast sent successfully!");
+      setTarget('All Users');
     } catch (error) {
-      console.error("Error sending broadcast:", error);
-      alert("Failed to send broadcast.");
+      console.error("Error saving broadcast:", error);
+      alert("Failed to save broadcast.");
     } finally {
       setSending(false);
+    }
+  };
+
+  const handleEdit = (broadcast: any) => {
+    setEditingId(broadcast.id);
+    setTitle(broadcast.title);
+    setMessage(broadcast.message);
+    setTarget(broadcast.recipients);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setTitle('');
+    setMessage('');
+    setTarget('All Users');
+  };
+
+  const handleDelete = async (id: string) => {
+    // Try to delete directly, bypassing prompt in case the environment suppresses window prompts.
+    console.log("Attempting to delete broadcast with ID:", id);
+    try {
+      const docRef = doc(db, 'broadcasts', id);
+      await deleteDoc(docRef);
+      console.log("Broadcast deleted successfully");
+      if (editingId === id) {
+        cancelEdit();
+      }
+    } catch (error) {
+      console.error("Error deleting broadcast:", error);
+      alert("Failed to delete broadcast: " + (error instanceof Error ? error.message : "Unknown error"));
     }
   };
 
@@ -68,9 +110,19 @@ export default function Notifications() {
         
         {/* Compose Notification */}
         <div className="lg:col-span-1 bg-white rounded-2xl shadow-sm border border-[#e5e9eb] p-6 h-fit">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-            <PaperAirplaneIcon className="w-5 h-5 mr-2 text-blue-500" />
-            New Broadcast
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center justify-between">
+            <span className="flex items-center">
+              {editingId ? <PencilIcon className="w-5 h-5 mr-2 text-blue-500" /> : <PaperAirplaneIcon className="w-5 h-5 mr-2 text-blue-500" />}
+              {editingId ? 'Edit Broadcast' : 'New Broadcast'}
+            </span>
+            {editingId && (
+              <button 
+                onClick={cancelEdit}
+                className="text-sm text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                Cancel
+              </button>
+            )}
           </h3>
           <div className="space-y-4">
             <div>
@@ -111,7 +163,7 @@ export default function Notifications() {
               className={`w-full ${sending ? 'bg-gray-400' : 'bg-blue-600 hover:bg-blue-700'} text-white font-bold py-3 rounded-xl transition-colors shadow-sm flex justify-center items-center`}
             >
               {sending ? <ArrowPathIcon className="w-5 h-5 animate-spin mr-2" /> : null}
-              <span>{sending ? 'Sending...' : 'Send Now'}</span>
+              <span>{sending ? (editingId ? 'Updating...' : 'Sending...') : (editingId ? 'Save Changes' : 'Send Now')}</span>
             </button>
           </div>
         </div>
@@ -126,8 +178,36 @@ export default function Notifications() {
             {broadcasts.map((broadcast) => (
               <div key={broadcast.id} className="p-4 rounded-xl border border-gray-100 hover:border-blue-100 hover:bg-blue-50/30 transition-colors animate-in slide-in-from-right-4 duration-300">
                 <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-bold text-gray-900">{broadcast.title}</h4>
-                  <span className="text-xs text-gray-400 font-medium">{broadcast.date}</span>
+                  <div>
+                    <h4 className="font-bold text-gray-900">{broadcast.title}</h4>
+                    <span className="text-xs text-gray-400 font-medium">{broadcast.date}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <button 
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleEdit(broadcast);
+                      }}
+                      className="p-2 bg-blue-50 hover:bg-blue-100 text-blue-500 rounded-lg transition-all shadow-sm hover:shadow active:scale-95"
+                      title="Edit Notification"
+                    >
+                      <PencilIcon className="w-5 h-5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDelete(broadcast.id);
+                      }}
+                      className="p-2 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-all shadow-sm hover:shadow active:scale-95"
+                      title="Delete Notification"
+                    >
+                      <TrashIcon className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
                 <p className="text-sm text-gray-600 mb-3 leading-relaxed">{broadcast.message}</p>
                 <div className="flex items-center justify-between text-[10px] font-bold tracking-wider uppercase">

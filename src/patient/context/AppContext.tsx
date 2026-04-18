@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { db } from '../../firebase';
 import { collection, onSnapshot, query, orderBy, where, doc, limit } from 'firebase/firestore';
+import { LocalNotifications } from '@capacitor/local-notifications';
 
 export interface Hospital {
   id: string;
@@ -146,9 +147,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
 
     // 2.5 Listen to Broadcasts
+    let isInitialBroadcastLoad = true;
     const broadcastsUnsubscribe = onSnapshot(query(collection(db, 'broadcasts'), orderBy('date', 'desc')), (snapshot) => {
       const broadcastData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Broadcast));
       setBroadcasts(broadcastData);
+
+      if (!isInitialBroadcastLoad) {
+        snapshot.docChanges().forEach(change => {
+          if (change.type === 'added') {
+            const data = change.doc.data() as Broadcast;
+            LocalNotifications.schedule({
+              notifications: [
+                {
+                  title: `📢 ${data.title || 'New Announcement'}`,
+                  body: data.message || 'You have a new broadcast message.',
+                  id: Math.floor(Math.random() * 1000000),
+                  channelId: 'reminders',
+                  smallIcon: 'ic_stat_name'
+                }
+              ]
+            }).catch(e => console.error('Local Notification auto-trigger error:', e));
+          }
+        });
+      }
+      isInitialBroadcastLoad = false;
     });
 
     // 2.6 Listen to Users (Patients)
