@@ -7,7 +7,7 @@ import {
   UserIcon, 
   LockClosedIcon, 
   EnvelopeIcon, 
-  ShieldCheckIcon,
+  BeakerIcon,
   ChevronLeftIcon,
   EyeIcon,
   EyeSlashIcon
@@ -102,12 +102,19 @@ export default function Login() {
 
   if (view === 'welcome') {
     return (
-      <div className="min-h-screen bg-[#3b82f6] flex flex-col items-center justify-between p-10">
-        <div className="flex-1 flex flex-col items-center justify-center text-center">
+      <div className="min-h-screen bg-[#3b82f6] flex flex-col items-center justify-between p-10 relative overflow-hidden">
+        {/* Fluid Background Effect */}
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        
+        <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
           <div className="w-24 h-24 mb-10 relative">
             <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-25"></div>
-            <div className="relative w-full h-full bg-white rounded-full flex items-center justify-center shadow-2xl">
-              <ShieldCheckIcon className="w-12 h-12 text-[#3b82f6]" />
+            <div className="relative w-full h-full animate-pop">
+              <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-2xl animate-float">
+                <BeakerIcon className="w-12 h-12 text-[#3b82f6]" />
+              </div>
             </div>
           </div>
           
@@ -143,6 +150,10 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="bg-[#3b82f6] h-64 relative overflow-hidden rounded-b-[4rem] shadow-lg shrink-0">
+        {/* Subtle Fluid Effect in Header */}
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob"></div>
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-2000"></div>
+        
         <button 
           onClick={() => setView('welcome')}
           className="absolute top-8 left-8 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md active:scale-90 transition-all z-20"
@@ -151,12 +162,14 @@ export default function Login() {
         </button>
         
         <div className="absolute inset-0 flex items-center justify-center opacity-10">
-          <ShieldCheckIcon className="w-64 h-64 text-white" />
+          <BeakerIcon className="w-64 h-64 text-white animate-float" />
         </div>
         
         <div className="relative h-full flex items-center justify-center pt-8">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white/20">
-            <ShieldCheckIcon className="w-10 h-10 text-[#3b82f6]" />
+          <div className="animate-pop">
+            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white/20 animate-float">
+              <BeakerIcon className="w-10 h-10 text-[#3b82f6]" />
+            </div>
           </div>
         </div>
       </div>
