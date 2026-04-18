@@ -102,11 +102,11 @@ export default function Login() {
 
   if (view === 'welcome') {
     return (
-      <div className="min-h-screen bg-[#3b82f6] flex flex-col items-center justify-between p-10 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 flex flex-col items-center justify-between p-10 relative overflow-hidden">
         {/* Fluid Background Effect */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob pointer-events-none"></div>
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000 pointer-events-none"></div>
         
         <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
           <div className="w-24 h-24 mb-10 relative">
@@ -126,7 +126,7 @@ export default function Login() {
           </p>
         </div>
 
-        <div className="w-full max-w-sm space-y-4">
+        <div className="w-full max-w-sm space-y-4 relative z-10">
           <button 
             onClick={() => setView('signup')}
             className="w-full py-4 bg-white text-[#3b82f6] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all"
@@ -149,10 +149,10 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-[#3b82f6] h-64 relative overflow-hidden rounded-b-[4rem] shadow-lg shrink-0">
+      <div className="bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 h-64 relative overflow-hidden rounded-b-[4rem] shadow-lg shrink-0">
         {/* Subtle Fluid Effect in Header */}
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob"></div>
-        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-2000"></div>
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob pointer-events-none"></div>
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-2000 pointer-events-none"></div>
         
         <button 
           onClick={() => setView('welcome')}
