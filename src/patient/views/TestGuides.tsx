@@ -6,9 +6,9 @@ import { Link } from 'react-router-dom';
 
 const getCategoryColor = (category: string) => {
   switch (category) {
-    case 'Urine': return 'bg-orange-50 text-orange-600';
-    case 'Blood': return 'bg-rose-50 text-rose-600';
-    case 'Stool': return 'bg-amber-100 text-amber-800';
+    case 'Urinalysis': return 'bg-orange-50 text-orange-600';
+    case 'Serological Test': return 'bg-rose-50 text-rose-600';
+    case 'Stool Test': return 'bg-amber-100 text-amber-800';
     case 'Blood Chemistry': return 'bg-violet-50 text-violet-600';
     case 'Hematology': return 'bg-teal-50 text-teal-600';
     default: return 'bg-gray-100 text-gray-600';
@@ -17,17 +17,17 @@ const getCategoryColor = (category: string) => {
 
 const getCategoryOverlayColor = (category: string) => {
   switch (category) {
-    case 'Urine': return 'from-orange-500/40 to-orange-600/10';
-    case 'Blood': return 'from-rose-500/40 to-rose-600/10';
-    case 'Stool': return 'from-amber-700/40 to-amber-800/10';
+    case 'Urinalysis': return 'from-orange-500/40 to-orange-600/10';
+    case 'Serological Test': return 'from-rose-500/40 to-rose-600/10';
+    case 'Stool Test': return 'from-amber-700/40 to-amber-800/10';
     case 'Blood Chemistry': return 'from-violet-500/40 to-violet-600/10';
     case 'Hematology': return 'from-teal-500/40 to-teal-600/10';
     default: return 'from-gray-500/40 to-gray-600/10';
   }
 };
 
-const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines', language: 'en' | 'tl' }) => {
-  const content = language === 'tl' && guide.translations?.tl ? guide.translations.tl : guide;
+const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines' }) => {
+  const content = guide;
   
   if (activeTab === 'Preparations') {
     return (
@@ -37,7 +37,7 @@ const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide,
         </p>
         <div>
           <h3 className="font-bold font-display text-lg mb-4 text-[var(--color-on-surface)]">
-            {language === 'tl' ? 'Mga Hakbang sa Paghahanda' : 'Preparation Steps'}
+            Preparation Steps
           </h3>
           <div className="relative border-l-2 border-[#e5e9eb] ml-4 space-y-8 pb-4">
             {content.preparationSteps?.map((step: any, idx: number) => (
@@ -67,7 +67,7 @@ const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide,
         <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/50 shadow-sm">
           <h4 className="font-bold font-display text-emerald-800 mb-4 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-            {language === 'tl' ? 'Dapat Gawin' : 'What to Do'}
+            What to Do
           </h4>
           <ul className="space-y-3 text-sm font-body text-emerald-900 leading-relaxed">
             {content.guidelines?.dos?.map((item: any, idx: number) => (
@@ -82,7 +82,7 @@ const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide,
         <div className="bg-red-50/50 p-5 rounded-2xl border border-red-100/50 shadow-sm">
           <h4 className="font-bold font-display text-red-800 mb-4 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-400"></span>
-            {language === 'tl' ? 'Huwag Gawin' : 'What to Avoid'}
+            What to Avoid
           </h4>
           <ul className="space-y-3 text-sm font-body text-red-900 leading-relaxed">
             {content.guidelines?.donts?.map((item: any, idx: number) => (
@@ -96,11 +96,9 @@ const GenericGuideContent = ({ guide, activeTab, language }: { guide: TestGuide,
 
       {content.fastingRequired && (
         <div className="bg-orange-50/50 p-5 rounded-2xl border border-orange-200/50 shadow-sm">
-          <h4 className="font-bold font-display text-orange-800 mb-2 flex items-center gap-2">🍽️ {language === 'tl' ? 'Kailangan ang Pag-aayuno' : 'Fasting Required'}</h4>
+          <h4 className="font-bold font-display text-orange-800 mb-2 flex items-center gap-2">🍽️ Fasting Required</h4>
           <p className="text-sm font-body text-orange-900 leading-relaxed">
-            {language === 'tl' 
-              ? `Kailangan mong mag-ayuno ng ${content.fastingRequired} bago ang test na ito. Tubig lamang ang karaniwang pinapayagan.`
-              : `You must fast for ${content.fastingRequired} before this test. Only water is typically allowed during fasting.`}
+            You must fast for {content.fastingRequired} before this test. Only water is typically allowed during fasting.
           </p>
         </div>
       )}
@@ -114,12 +112,11 @@ export default function TestGuides() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
-  const [language, setLanguage] = useState<'en' | 'tl'>('en');
 
   const categoryPriority: Record<string, number> = {
     'Hematology': 1,
     'Blood Chemistry': 2,
-    'Blood Test': 3,
+    'Serological Test': 3,
     'Urinalysis': 4,
     'Stool Test': 5,
     'Imaging': 6
@@ -229,7 +226,7 @@ export default function TestGuides() {
                 : 'bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface-variant)] border border-[var(--color-surface-container-highest)]'
             }`}
           >
-            {cat === 'All' ? 'All Tests' : (cat.toLowerCase().includes('test') || cat.toLowerCase().includes('rule') ? cat : `${cat} Test`)}
+            {cat === 'All' ? 'All Tests' : cat}
           </button>
         ))}
       </div>
@@ -285,79 +282,60 @@ export default function TestGuides() {
       )}
 
       {selectedGuide && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => setSelectedGuide(null)}></div>
-          <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
+          {/* Full Screen Header Hero */}
+          <div className="h-64 relative shrink-0">
+            {selectedGuide.imageUrl ? (
+              <img src={selectedGuide.imageUrl} alt={selectedGuide.procedureName} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-200" />
+            )}
+            <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(selectedGuide.category)} mix-blend-multiply`}></div>
             
-            {/* Modal Header Hero */}
-            {selectedGuide.imageUrl && (
-              <div className="h-24 relative shrink-0">
-                <img src={selectedGuide.imageUrl} alt={selectedGuide.procedureName} className="w-full h-full object-cover" />
-                <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(selectedGuide.category)} mix-blend-multiply`}></div>
-                
+            <button 
+              onClick={() => setSelectedGuide(null)} 
+              className="absolute top-6 left-6 z-20 w-10 h-10 bg-black/30 hover:bg-black/50 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors border border-white/20 shadow-sm"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+          </div>
+          
+          {/* Main Content Area */}
+          <div className="flex flex-col flex-grow bg-white -mt-8 relative z-20 rounded-t-[2rem] overflow-hidden">
+            <div className="p-8 pb-4 shrink-0 shadow-sm">
+              <h2 className="text-3xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.procedureName}</h2>
+              <div className="flex flex-wrap gap-2 mb-6">
+                {selectedGuide.fastingRequired && (
+                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
+                    {selectedGuide.fastingRequired}
+                  </span>
+                )}
+                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
+                  {selectedGuide.category}
+                </span>
+              </div>
+              
+              {/* Segmented Tab Control */}
+              <div className="flex bg-[var(--color-surface-container-highest)] p-1 rounded-xl mb-4 shadow-inner">
                 <button 
-                  onClick={() => setSelectedGuide(null)} 
-                  className="absolute top-4 right-4 z-20 w-9 h-9 bg-black/20 hover:bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white transition-colors border border-white/20 shadow-sm"
+                  className={`flex-1 py-3 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Preparations' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setActiveTab('Preparations')}
                 >
-                  <XMarkIcon className="w-5 h-5" />
+                  Preparations
+                </button>
+                <button 
+                  className={`flex-1 py-3 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Guidelines' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
+                  onClick={() => setActiveTab('Guidelines')}
+                >
+                  Guidelines
                 </button>
               </div>
-            )}
-            
-            {/* Modal Content */}
-            <div className="flex flex-col flex-grow overflow-hidden">
-              <div className="p-6 pb-0 shrink-0">
-                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.procedureName}</h2>
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {selectedGuide.fastingRequired && (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
-                      {selectedGuide.fastingRequired}
-                    </span>
-                  )}
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
-                    {selectedGuide.category}
-                  </span>
-                </div>
-                
-                {/* Segmented Tab Control */}
-                <div className="flex bg-[var(--color-surface-container-highest)] p-1 rounded-xl mb-6 shadow-inner">
-                  <button 
-                    className={`flex-1 py-2 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Preparations' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
-                    onClick={() => setActiveTab('Preparations')}
-                  >
-                    Preparations
-                  </button>
-                  <button 
-                    className={`flex-1 py-2 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Guidelines' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
-                    onClick={() => setActiveTab('Guidelines')}
-                  >
-                    Guidelines
-                  </button>
-                </div>
-              </div>
-
-              {/* Dynamic Scrollable Content */}
-              <div className="p-6 pt-0 overflow-y-auto">
-                <GenericGuideContent guide={selectedGuide} activeTab={activeTab} language={language} />
-              </div>
             </div>
 
-            {/* Language Toggle */}
-            <div className="p-4 bg-gray-50 border-t border-gray-100 flex justify-center gap-4">
-              <button 
-                onClick={() => setLanguage('en')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'en' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
-              >
-                English
-              </button>
-              <button 
-                onClick={() => setLanguage('tl')}
-                className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${language === 'tl' ? 'bg-blue-600 text-white' : 'bg-white text-gray-500 border border-gray-200'}`}
-              >
-                Tagalog
-              </button>
+            {/* Dynamic Scrollable Content */}
+            <div className="p-8 pt-4 overflow-y-auto pb-24">
+              <GenericGuideContent guide={selectedGuide} activeTab={activeTab} />
             </div>
-
           </div>
         </div>
       )}

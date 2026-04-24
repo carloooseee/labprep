@@ -31,9 +31,11 @@ export default function Procedures() {
   // Derive dynamic categories from data
   const categoryPriority: Record<string, number> = {
     'Urinalysis': 1,
-    'Blood Test': 2,
+    'Serological Test': 2,
     'Stool Test': 3,
-    'Imaging': 4
+    'Blood Chemistry': 4,
+    'Hematology': 5,
+    'Imaging': 6
   };
 
   const dynamicCategories = ['Choose categories', ...new Set(testGuides.map(p => p.category))]

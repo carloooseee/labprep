@@ -5,15 +5,13 @@ import { useAppContext } from '../../patient/context/AppContext';
 import { Link } from 'react-router-dom';
 import { 
   UsersIcon, 
-  ClipboardDocumentCheckIcon, 
   BuildingOfficeIcon, 
   BellIcon,
-  CalendarDaysIcon,
   ChevronRightIcon
 } from '@heroicons/react/24/outline';
 
 export default function Dashboard() {
-  const { stats, activity, hospitals, patients, selectedHospitalId, setSelectedHospitalId } = useAppContext();
+  const { stats, activity, hospitals, patients } = useAppContext();
 
   const displayStats = [
     { name: 'Total Patients', value: patients.length.toString(), icon: UsersIcon, link: '/admin/patients' },

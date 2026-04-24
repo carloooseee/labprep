@@ -8,7 +8,7 @@ import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
 export default function Hospitals() {
   const { hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All Status');
+  const [statusFilter] = useState('All Status');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingHospital, setEditingHospital] = useState<any>(null);
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from './firebase';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from 'firebase/auth';
 import { useAuth } from './context/AuthContext';
 import { 
   UserIcon, 
@@ -10,7 +10,9 @@ import {
   BeakerIcon,
   ChevronLeftIcon,
   EyeIcon,
-  EyeSlashIcon
+  EyeSlashIcon,
+  DocumentTextIcon,
+  BellAlertIcon
 } from '@heroicons/react/24/outline';
 
 type AuthView = 'welcome' | 'signin' | 'signup';
@@ -24,6 +26,8 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [carouselStep, setCarouselStep] = useState(0);
   
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -50,14 +54,35 @@ export default function Login() {
     setError('');
 
     try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
       console.error("Login error:", err);
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
         setError('Invalid email or password.');
       } else {
         setError('Failed to sign in. Please try again.');
       }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      setError('Please enter your email address to reset password.');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      await sendPasswordResetEmail(auth, email);
+      setError('Password reset email sent. Please check your inbox.');
+    } catch (err: any) {
+      console.error("Reset password error:", err);
+      setError('Failed to send reset email. Verify your email address.');
     } finally {
       setLoading(false);
     }
@@ -101,37 +126,72 @@ export default function Login() {
   };
 
   if (view === 'welcome') {
+    const slides = [
+      {
+        icon: <BeakerIcon className="w-12 h-12 text-[#3b82f6]" />,
+        title: "Welcome to LabPrep",
+        desc: "Your premium health preparation companion. Simple, secure, and reliable."
+      },
+      {
+        icon: <DocumentTextIcon className="w-12 h-12 text-[#3b82f6]" />,
+        title: "Know Your Tests",
+        desc: "Get clear instructions on how to prepare for your specific laboratory procedures."
+      },
+      {
+        icon: <BellAlertIcon className="w-12 h-12 text-[#3b82f6]" />,
+        title: "Stay Notified",
+        desc: "Receive timely reminders for fasting and hospital visits directly to your device."
+      }
+    ];
+
+    const currentSlide = slides[carouselStep];
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 flex flex-col items-center justify-between p-10 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 flex flex-col items-center justify-between p-10 relative overflow-hidden transition-all duration-500">
         {/* Fluid Background Effect */}
         <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob pointer-events-none"></div>
         <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000 pointer-events-none"></div>
         
-        <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10">
-          <div className="w-24 h-24 mb-10 relative">
+        <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10 w-full max-w-sm">
+          <div key={`icon-${carouselStep}`} className="w-24 h-24 mb-10 relative animate-in zoom-in duration-500">
             <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-25"></div>
             <div className="relative w-full h-full animate-pop">
               <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-2xl animate-float">
-                <BeakerIcon className="w-12 h-12 text-[#3b82f6]" />
+                {currentSlide.icon}
               </div>
             </div>
           </div>
           
-          <h1 className="text-4xl font-display font-black text-white mb-4 tracking-tight">
-            Welcome to LabPrep
+          <h1 key={`title-${carouselStep}`} className="text-4xl font-display font-black text-white mb-4 tracking-tight animate-in slide-in-from-right-4 fade-in duration-500">
+            {currentSlide.title}
           </h1>
-          <p className="text-blue-100 text-lg max-w-xs font-body leading-relaxed">
-            Your premium health preparation companion. Simple, secure, and reliable.
+          <p key={`desc-${carouselStep}`} className="text-blue-100 text-lg max-w-xs font-body leading-relaxed animate-in slide-in-from-right-4 fade-in duration-700">
+            {currentSlide.desc}
           </p>
+
+          <div className="flex space-x-3 mt-12 mb-8">
+            {slides.map((_, idx) => (
+              <div 
+                key={idx} 
+                className={`h-2 rounded-full transition-all duration-300 ${idx === carouselStep ? 'w-8 bg-white' : 'w-2 bg-white/40'}`}
+              ></div>
+            ))}
+          </div>
         </div>
 
         <div className="w-full max-w-sm space-y-4 relative z-10">
           <button 
-            onClick={() => setView('signup')}
+            onClick={() => {
+              if (carouselStep < slides.length - 1) {
+                setCarouselStep(prev => prev + 1);
+              } else {
+                setView('signup');
+              }
+            }}
             className="w-full py-4 bg-white text-[#3b82f6] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all"
           >
-            Sign Up
+            {carouselStep < slides.length - 1 ? 'Next' : 'Get Started'}
           </button>
           <div className="text-center pt-2">
             <p className="text-blue-100/60 text-xs font-bold uppercase tracking-widest mb-1">Already a member?</p>
@@ -252,11 +312,13 @@ export default function Login() {
 
             {view === 'signin' && (
               <div className="flex items-center justify-between px-2">
-                <label className="flex items-center space-x-2 cursor-pointer group">
-                  <div className="w-4 h-4 rounded border-2 border-gray-200 group-hover:border-[#3b82f6] transition-colors bg-white"></div>
+                <label className="flex items-center space-x-2 cursor-pointer group" onClick={() => setRememberMe(!rememberMe)}>
+                  <div className={`w-4 h-4 rounded border-2 transition-colors flex items-center justify-center ${rememberMe ? 'bg-[#3b82f6] border-[#3b82f6]' : 'bg-white border-gray-200 group-hover:border-[#3b82f6]'}`}>
+                    {rememberMe && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
+                  </div>
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Remember me</span>
                 </label>
-                <button type="button" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-[#3b82f6]">Forgot Password?</button>
+                <button type="button" onClick={handleForgotPassword} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-[#3b82f6]">Forgot Password?</button>
               </div>
             )}
 
