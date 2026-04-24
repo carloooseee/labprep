@@ -1,9 +1,9 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #0050d4;
+  --color-primary: #417af0;
   --color-primary-container: #7b9cff;
-  --color-secondary: #006947;
+  --color-secondary: #27c463;
   --color-secondary-container: #69f6b8;
   --color-tertiary: #6a37d4;
   
@@ -38,7 +38,7 @@ body {
 }
 
 .gradient-primary {
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+  background: linear-gradient(to bottom, #417af0, #27c463);
 }
 
 /* Hide scrollbar globally but keep scrolling functionality */

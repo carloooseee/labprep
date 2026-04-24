@@ -30,7 +30,6 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [carouselStep, setCarouselStep] = useState(0);
   
   const { profile } = useAuth();
   const navigate = useNavigate();
@@ -144,76 +143,64 @@ export default function Login() {
     }
   };
 
+  const TestTubeIcon = ({ className }: { className?: string }) => (
+    <svg 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke="currentColor" 
+      strokeWidth="2" 
+      strokeLinecap="round" 
+      strokeLinejoin="round" 
+      className={className}
+    >
+      <path d="M9 2h6" />
+      <path d="M10 2v17.5a2.5 2.5 0 0 0 5 0V2" />
+      <path d="M10 14h5" />
+    </svg>
+  );
+
   if (view === 'welcome') {
-    const slides = [
-      {
-        icon: <BeakerIcon className="w-12 h-12 text-[#3b82f6]" />,
-        title: "Welcome to LabPrep",
-        desc: "Your premium health preparation companion. Simple, secure, and reliable."
-      },
-      {
-        icon: <DocumentTextIcon className="w-12 h-12 text-[#3b82f6]" />,
-        title: "Know Your Tests",
-        desc: "Get clear instructions on how to prepare for your specific laboratory procedures."
-      },
-      {
-        icon: <BellAlertIcon className="w-12 h-12 text-[#3b82f6]" />,
-        title: "Stay Notified",
-        desc: "Receive timely reminders for fasting and hospital visits directly to your device."
-      }
-    ];
-
-    const currentSlide = slides[carouselStep];
-
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 flex flex-col items-center justify-between p-10 relative overflow-hidden transition-all duration-500">
-        {/* Fluid Background Effect */}
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob pointer-events-none"></div>
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000 pointer-events-none"></div>
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000 pointer-events-none"></div>
-        
+      <div className="min-h-screen bg-gradient-to-b from-[#417af0] to-[#27c463] flex flex-col items-center justify-center p-10 relative overflow-hidden">
         <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10 w-full max-w-sm">
-          <div key={`icon-${carouselStep}`} className="w-24 h-24 mb-10 relative animate-in zoom-in duration-500">
-            <div className="absolute inset-0 bg-white/20 rounded-full animate-ping opacity-25"></div>
-            <div className="relative w-full h-full animate-pop">
-              <div className="w-full h-full bg-white rounded-full flex items-center justify-center shadow-2xl animate-float">
-                {currentSlide.icon}
+          <div className="mb-10 relative animate-in zoom-in duration-700">
+            <div className="relative animate-float">
+              <div className="relative w-32 h-32 flex items-center justify-center">
+                <TestTubeIcon className="w-24 h-24 text-white" />
+                <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center p-1 border-2 border-[#27c463]">
+                  <div className="w-full h-full bg-[#27c463]/10 rounded-lg flex items-center justify-center border-2 border-[#27c463]">
+                    <svg className="w-6 h-6 text-[#27c463]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
+                    </svg>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
-          <h1 key={`title-${carouselStep}`} className="text-4xl font-display font-black text-white mb-4 tracking-tight animate-in slide-in-from-right-4 fade-in duration-500">
-            {currentSlide.title}
+          <h1 className="text-5xl font-display font-black text-white tracking-tight mb-2 animate-in slide-in-from-bottom-4 duration-700">
+            LabPrep
           </h1>
-          <p key={`desc-${carouselStep}`} className="text-blue-100 text-lg max-w-xs font-body leading-relaxed animate-in slide-in-from-right-4 fade-in duration-700">
-            {currentSlide.desc}
+          <p className="text-xl font-bold tracking-widest text-white animate-in slide-in-from-bottom-4 duration-1000">
+            Prepare Right. Test Right.
           </p>
 
-          <div className="flex space-x-3 mt-12 mb-8">
-            {slides.map((_, idx) => (
-              <div 
-                key={idx} 
-                className={`h-2 rounded-full transition-all duration-300 ${idx === carouselStep ? 'w-8 bg-white' : 'w-2 bg-white/40'}`}
-              ></div>
-            ))}
+          <div className="flex space-x-3 mt-20 animate-pulse">
+            <div className="h-3 w-12 bg-white rounded-full shadow-lg shadow-white/20"></div>
+            <div className="h-3 w-3 bg-white/40 rounded-full"></div>
+            <div className="h-3 w-3 bg-white/40 rounded-full"></div>
           </div>
         </div>
 
-        <div className="w-full max-w-sm space-y-4 relative z-10">
+        <div className="w-full max-w-sm space-y-4 relative z-10 animate-in slide-in-from-bottom-8 duration-1000">
           <button 
-            onClick={() => {
-              if (carouselStep < slides.length - 1) {
-                setCarouselStep(prev => prev + 1);
-              } else {
-                setView('signup');
-              }
-            }}
-            className="w-full py-4 bg-white text-[#3b82f6] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all"
+            onClick={() => setView('signup')}
+            className="w-full py-4 bg-white text-[#417af0] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all"
           >
-            {carouselStep < slides.length - 1 ? 'Next' : 'Get Started'}
+            Get Started
           </button>
           <div className="text-center pt-2">
-            <p className="text-blue-100/60 text-xs font-bold uppercase tracking-widest mb-1">Already a member?</p>
+            <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Already a member?</p>
             <button 
               onClick={() => setView('signin')}
               className="text-white font-black text-base hover:underline"
@@ -227,64 +214,53 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <div className="bg-gradient-to-br from-blue-700 via-blue-500 to-blue-400 h-64 relative overflow-hidden rounded-b-[4rem] shadow-lg shrink-0">
-        {/* Subtle Fluid Effect in Header */}
-        <div className="absolute -top-10 -left-10 w-40 h-40 bg-blue-400 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob pointer-events-none"></div>
-        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-300 rounded-full mix-blend-multiply filter blur-2xl opacity-40 animate-blob animation-delay-2000 pointer-events-none"></div>
-        
+    <div className="min-h-screen bg-gradient-to-b from-[#417af0] to-[#27c463] flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Background blobs for depth */}
+      <div className="absolute top-0 -left-10 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-0 -right-10 w-64 h-64 bg-black/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div className="w-full max-w-sm relative z-10">
         <button 
           onClick={() => setView('welcome')}
-          className="absolute top-8 left-8 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white backdrop-blur-md active:scale-90 transition-all z-20"
+          className="mb-8 w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-white backdrop-blur-lg border border-white/30 active:scale-90 transition-all"
         >
-          <ChevronLeftIcon className="w-5 h-5" />
+          <ChevronLeftIcon className="w-6 h-6" />
         </button>
-        
-        <div className="absolute inset-0 flex items-center justify-center opacity-10">
-          <BeakerIcon className="w-64 h-64 text-white animate-float" />
-        </div>
-        
-        <div className="relative h-full flex items-center justify-center pt-8">
-          <div className="animate-pop">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-xl border-4 border-white/20 animate-float">
-              <BeakerIcon className="w-10 h-10 text-[#3b82f6]" />
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div className="flex-1 flex flex-col items-center px-6 -mt-12 pb-12 overflow-y-auto">
-        <div className="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl shadow-blue-500/5 p-8 md:p-10 border border-gray-100 relative z-10">
+        <div className="bg-white rounded-[3rem] shadow-2xl shadow-black/20 p-8 md:p-10 border border-gray-100 animate-in zoom-in-95 duration-500">
           <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <TestTubeIcon className="w-8 h-8 text-[#417af0]" />
+            </div>
             <h2 className="text-3xl font-display font-black text-gray-900 tracking-tight">
               {view === 'signin' ? 'Sign In Now' : 'Create Account'}
             </h2>
-            <p className="text-gray-400 text-sm mt-2 font-medium">Please enter your details to continue</p>
+            <p className="text-gray-400 text-sm mt-2 font-medium font-body">Please enter your details to continue</p>
           </div>
 
           {error && (
             <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 animate-in fade-in slide-in-from-top-2 duration-300">
               <ExclamationCircleIcon className="w-5 h-5 shrink-0" />
-              <p className="text-xs font-bold uppercase tracking-wider">{error}</p>
+              <p className="text-xs font-bold uppercase tracking-wider font-body">{error}</p>
             </div>
           )}
 
           {success && (
             <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center space-x-3 text-emerald-600 animate-in fade-in slide-in-from-top-2 duration-300">
               <CheckCircleIcon className="w-5 h-5 shrink-0" />
-              <p className="text-xs font-bold uppercase tracking-wider">{success}</p>
+              <p className="text-xs font-bold uppercase tracking-wider font-body">{success}</p>
             </div>
           )}
 
-          <form onSubmit={view === 'signin' ? handleLogin : handleSignUp} className="space-y-5">
+          <form onSubmit={view === 'signin' ? handleLogin : handleSignUp} className="space-y-4">
             {view === 'signup' && (
               <div className="relative">
-                <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3b82f6]" />
+                <UserIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#417af0]" />
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
+                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#417af0] transition-all outline-none font-bold font-body"
                   placeholder="Full Name"
                   required
                 />
@@ -292,12 +268,12 @@ export default function Login() {
             )}
 
             <div className="relative">
-              <EnvelopeIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3b82f6]" />
+              <EnvelopeIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#417af0]" />
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
+                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#417af0] transition-all outline-none font-bold font-body"
                   placeholder="Email Address"
                   required
                   autoComplete="email"
@@ -306,12 +282,12 @@ export default function Login() {
             </div>
 
             <div className="relative">
-              <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3b82f6]" />
+              <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#417af0]" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-14 pr-14 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
+                  className="w-full pl-14 pr-14 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#417af0] transition-all outline-none font-bold font-body"
                   placeholder="Password"
                   required
                   autoComplete={view === 'signin' ? "current-password" : "new-password"}
@@ -319,7 +295,7 @@ export default function Login() {
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#3b82f6] transition-colors"
+                className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#417af0] transition-colors"
               >
                 {showPassword ? <EyeSlashIcon className="w-5 h-5" /> : <EyeIcon className="w-5 h-5" />}
               </button>
@@ -327,12 +303,12 @@ export default function Login() {
 
             {view === 'signup' && (
               <div className="relative">
-                <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3b82f6]" />
+                <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#417af0]" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
+                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#417af0] transition-all outline-none font-bold font-body"
                   placeholder="Repeat Password"
                   required
                   autoComplete="new-password"
@@ -343,22 +319,22 @@ export default function Login() {
             {view === 'signin' && (
               <div className="flex items-center justify-between px-2">
                 <label className="flex items-center space-x-2 cursor-pointer group" onClick={() => setRememberMe(!rememberMe)}>
-                  <div className={`w-4 h-4 rounded border-2 transition-colors flex items-center justify-center ${rememberMe ? 'bg-[#3b82f6] border-[#3b82f6]' : 'bg-white border-gray-200 group-hover:border-[#3b82f6]'}`}>
+                  <div className={`w-4 h-4 rounded border-2 transition-colors flex items-center justify-center ${rememberMe ? 'bg-[#417af0] border-[#417af0]' : 'bg-white border-gray-200 group-hover:border-[#417af0]'}`}>
                     {rememberMe && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" /></svg>}
                   </div>
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Remember me</span>
+                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest font-body">Remember me</span>
                 </label>
-                <button type="button" onClick={handleForgotPassword} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-[#3b82f6]">Forgot Password?</button>
+                <button type="button" onClick={handleForgotPassword} className="text-[10px] font-bold text-gray-400 uppercase tracking-widest hover:text-[#417af0] font-body">Forgot Password?</button>
               </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all transform active:scale-95 shadow-xl shadow-blue-500/10 ${
+              className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all transform active:scale-95 shadow-xl shadow-blue-500/10 font-body ${
                 loading 
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                  : 'bg-[#3b82f6] text-white hover:bg-blue-600'
+                  : 'bg-[#417af0] text-white hover:bg-blue-600'
               }`}
             >
               {loading ? (
@@ -371,15 +347,16 @@ export default function Login() {
           </form>
 
           <div className="mt-10 text-center">
-            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest font-body">
               {view === 'signin' ? "Don't have an account?" : "Already have an account?"}
             </p>
             <button 
               onClick={() => {
                 setView(view === 'signin' ? 'signup' : 'signin');
                 setError('');
+                setSuccess('');
               }}
-              className="mt-2 text-[#3b82f6] font-black text-sm hover:underline"
+              className="mt-2 text-[#417af0] font-black text-sm hover:underline font-display"
             >
               {view === 'signin' ? 'Sign Up from here' : 'Sign In from here'}
             </button>
