@@ -15,21 +15,7 @@ export default function HospitalPicker() {
   }
 
   return (
-    <div className="p-6 pb-24">
-      <header className="mb-10 flex justify-between items-center gap-4">
-        <div>
-          <h1 className="text-2xl font-extrabold font-display text-[var(--color-primary)] tracking-tight mb-1">LabPrep</h1>
-          <p className="text-xs font-body text-[var(--color-on-surface-variant)] font-semibold uppercase tracking-widest">Prepare Right. Test Right.</p>
-        </div>
-        <div className="flex space-x-3 shrink-0">
-          <Link to="/patient/hospitals" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
-            <BuildingOfficeIcon className="w-6 h-6 text-[var(--color-primary)]" />
-          </Link>
-          <Link to="/patient/notifications" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
-            <BellAlertIcon className="w-6 h-6 text-emerald-600" />
-          </Link>
-        </div>
-      </header>
+    <div className="p-6 pb-24 pt-4">
 
       {/* Hero Card */}
       <div className="bg-gradient-to-r from-[#427cf2] to-[#5340e0] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">

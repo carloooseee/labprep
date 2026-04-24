@@ -130,29 +130,9 @@ export default function Home() {
 
   return (
     <div className="pt-8 pb-24 relative overflow-hidden">
-      {/* Top Background Decoration */}
-      <div className="absolute top-[-50px] left-0 right-0 h-64 gradient-primary opacity-5 transform -skew-y-3 z-0" />
 
-      <div className="relative z-10 px-6">
-        <header className="mb-10 flex justify-between items-center gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[var(--color-primary)] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-              <TestTubeIcon className="w-6 h-6 text-white" />
-            </div>
-            <div>
-              <h1 className="text-xl font-extrabold font-display text-gray-900 tracking-tight">LabPrep</h1>
-              <p className="text-[10px] font-body text-[var(--color-on-surface-variant)] font-bold uppercase tracking-wider">Prepare Right. Test Right.</p>
-            </div>
-          </div>
-          <div className="flex space-x-3 shrink-0">
-            <Link to="/patient/hospitals" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
-              <BuildingOfficeIcon className="w-6 h-6 text-[var(--color-primary)]" />
-            </Link>
-            <Link to="/patient/notifications" className="w-12 h-12 rounded-full bg-white flex items-center justify-center border border-[#e5e9eb] shadow-sm hover:scale-105 transition-transform">
-              <BellAlertIcon className="w-6 h-6 text-emerald-600" />
-            </Link>
-          </div>
-        </header>
+
+      <div className="relative z-10 px-6 pt-2">
 
         {/* Hero Card Carousel */}
         <div 
