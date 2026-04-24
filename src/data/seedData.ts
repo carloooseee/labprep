@@ -308,7 +308,7 @@ export const testGuides = [
     category: 'Hematology',
     description: 'Measures your red cells, white cells, and platelets. Silent partner of accurate results.',
     status: 'Active',
-    imageUrl: 'https://images.unsplash.com/photo-1582719508461-905c673771fd?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.ctfassets.net/4f3rgqwzdznj/01mInT7wKiz3nm147wWwp0/9bcb511703708f114400b35906fec7ae/closeup_patient_blood_drawn_1366739379.jpg',
     preparationSteps: [
       { icon: '🥛', title: 'Hydration', description: 'Drink plenty of water. Well-hydrated veins are easier to access and reduce clotted sample risk.', timing: 'Ongoing' }
     ],
@@ -496,7 +496,7 @@ export const testGuides = [
     category: 'Hematology',
     description: 'Determines your blood group and Rh factor.',
     status: 'Active',
-    imageUrl: 'https://images.unsplash.com/photo-1615461066841-6116ecaaba3a?auto=format&fit=crop&q=80&w=800',
+    imageUrl: 'https://images.ctfassets.net/4f3rgqwzdznj/01mInT7wKiz3nm147wWwp0/9bcb511703708f114400b35906fec7ae/closeup_patient_blood_drawn_1366739379.jpg',
     preparationSteps: [
       { icon: '🆔', title: 'ID Verification', description: 'State and spell your full name and date of birth multiple times for verification.', timing: 'During test' },
       { icon: '🏥', title: 'History', description: 'Inform staff if you had a blood transfusion or bone marrow transplant in the last 3 months.', timing: 'Pre-test' }

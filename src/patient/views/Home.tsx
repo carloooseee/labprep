@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { 
@@ -33,6 +34,39 @@ export default function Home() {
       if (pA !== pB) return pA - pB;
       return a.localeCompare(b);
     });
+
+  const heroSlides = [
+    {
+      title: "Welcome to LabPrep",
+      subtitle: greeting,
+      description: "Your premium health preparation companion.",
+      icon: <SparklesIcon className="w-24 h-24" />,
+      gradient: "from-[#417af0] to-[#27c463]"
+    },
+    {
+      title: "Easy Preparation",
+      subtitle: "Step-by-Step",
+      description: "Follow clear instructions for your laboratory tests.",
+      icon: <DocumentTextIcon className="w-24 h-24" />,
+      gradient: "from-[#6366f1] to-[#a855f7]"
+    },
+    {
+      title: "Smart Reminders",
+      subtitle: "Stay Notified",
+      description: "Get notified about fasting times and schedules.",
+      icon: <BellAlertIcon className="w-24 h-24" />,
+      gradient: "from-[#f59e0b] to-[#ef4444]"
+    }
+  ];
+
+  const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentHeroSlide((prev) => (prev + 1) % heroSlides.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [heroSlides.length]);
   return (
     <div className="pt-8 pb-24 relative overflow-hidden">
       {/* Top Background Decoration */}
@@ -54,15 +88,31 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Hero Card */}
-        <div className="bg-gradient-to-r from-[#417af0] to-[#27c463] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-20"><SparklesIcon className="w-24 h-24" /></div>
+        {/* Hero Card Carousel */}
+        <div className={`bg-gradient-to-r ${heroSlides[currentHeroSlide].gradient} rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden transition-all duration-700`}>
+          <div key={`icon-${currentHeroSlide}`} className="absolute top-0 right-0 p-4 opacity-20 animate-in zoom-in duration-700">
+            {heroSlides[currentHeroSlide].icon}
+          </div>
           <div className="relative z-10">
-            <span className="text-xs font-bold uppercase tracking-wider backdrop-blur-md">{greeting}</span>
-            <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Welcome</h2>
-            <div className="flex items-center mt-6 space-x-2">
-              <span className="font-body text-sm font-medium">Ready to prepare for your next test?</span>
+            <span key={`sub-${currentHeroSlide}`} className="text-xs font-bold uppercase tracking-wider backdrop-blur-md animate-in slide-in-from-bottom-2 duration-500 block">
+              {heroSlides[currentHeroSlide].subtitle}
+            </span>
+            <h2 key={`title-${currentHeroSlide}`} className="text-3xl font-display font-bold mt-4 leading-tight animate-in slide-in-from-bottom-3 duration-700">
+              {heroSlides[currentHeroSlide].title}
+            </h2>
+            <div key={`desc-${currentHeroSlide}`} className="flex items-center mt-6 space-x-2 animate-in slide-in-from-bottom-4 duration-1000">
+              <span className="font-body text-sm font-medium">{heroSlides[currentHeroSlide].description}</span>
             </div>
+          </div>
+          
+          {/* Carousel Indicators */}
+          <div className="absolute bottom-6 right-8 flex space-x-2">
+            {heroSlides.map((_, idx) => (
+              <div 
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentHeroSlide ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
+              />
+            ))}
           </div>
         </div>
 
