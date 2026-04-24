@@ -67,7 +67,7 @@ export default function Patients() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb]">
         <div className="flex-1">
           <h2 className="text-2xl font-display font-semibold text-gray-900">Patients</h2>
-          <p className="text-gray-500 mt-1">View and manage registered patients and their medical profiles.</p>
+          <p className="text-gray-500 mt-1">view and manage registered patients nalang</p>
           
           <div className="mt-6 relative max-w-xl">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -82,16 +82,7 @@ export default function Patients() {
         </div>
         
         <div className="flex items-center space-x-3 shrink-0">
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-sm hover:bg-gray-50"
-          >
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Pending</option>
-            <option>Inactive</option>
-          </select>
+
 
           <button 
             onClick={() => { setEditingPatient(null); setIsModalOpen(true); }}
@@ -109,8 +100,7 @@ export default function Patients() {
             filteredPatients.map((patient) => (
               <li 
                 key={patient.id} 
-                className="p-6 hover:bg-gray-50 transition-colors flex items-start space-x-4 cursor-pointer group"
-                onClick={() => { setEditingPatient(patient); setIsModalOpen(true); }}
+                className="p-6 flex items-start space-x-4 group"
               >
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl shrink-0 group-hover:bg-blue-100 transition-colors">
                   <UserIcon className="w-6 h-6" />
@@ -125,20 +115,7 @@ export default function Patients() {
                         </span>
                       )}
                     </h3>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase w-fit ${
-                      (patient.status === 'Active' || !patient.status) ? 'bg-green-50 text-green-700 border border-green-200' :
-                      patient.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                      patient.status === 'Inactive' ? 'bg-red-50 text-red-700 border border-red-200' :
-                      'bg-gray-50 text-gray-700 border border-gray-200'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                        (patient.status === 'Active' || !patient.status) ? 'bg-green-500' :
-                        patient.status === 'Pending' ? 'bg-amber-500' :
-                        patient.status === 'Inactive' ? 'bg-red-500' :
-                        'bg-gray-500'
-                      }`} />
-                      {patient.status || 'Active'}
-                    </span>
+
                   </div>
                   
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6 mt-2">

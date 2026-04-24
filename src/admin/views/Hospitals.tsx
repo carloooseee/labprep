@@ -76,16 +76,7 @@ export default function Hospitals() {
         </div>
         
         <div className="flex items-center space-x-3 shrink-0">
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-medium text-gray-700 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer shadow-sm hover:bg-gray-50"
-          >
-            <option>All Status</option>
-            <option>Active</option>
-            <option>Pending</option>
-            <option>Disabled</option>
-          </select>
+
 
           <button 
             onClick={() => setIsModalOpen(true)}
@@ -112,18 +103,7 @@ export default function Hospitals() {
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                     <h3 className="font-semibold text-gray-900 text-lg truncate">{hospital.name}</h3>
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase w-fit ${
-                      hospital.status === 'Active' ? 'bg-green-50 text-green-700 border border-green-200' :
-                      hospital.status === 'Pending' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                      'bg-red-50 text-red-700 border border-red-200'
-                    }`}>
-                      <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
-                        hospital.status === 'Active' ? 'bg-green-500' :
-                        hospital.status === 'Pending' ? 'bg-amber-500' :
-                        'bg-red-500'
-                      }`} />
-                      {hospital.status}
-                    </span>
+
                   </div>
                     <div className="flex items-center text-sm text-gray-500 truncate">
                       <MapPinIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />

@@ -21,7 +21,7 @@ import { doc, setDoc, deleteDoc, collection, addDoc } from 'firebase/firestore';
 export default function Procedures() {
   const { testGuides, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('All Categories');
+  const [categoryFilter, setCategoryFilter] = useState('Choose categories');
   const [hospitalFilter, setHospitalFilter] = useState('All Hospitals');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
@@ -36,11 +36,11 @@ export default function Procedures() {
     'Imaging': 4
   };
 
-  const dynamicCategories = ['All Categories', ...new Set(testGuides.map(p => p.category))]
+  const dynamicCategories = ['Choose categories', ...new Set(testGuides.map(p => p.category))]
     .filter(Boolean)
     .sort((a, b) => {
-      if (a === 'All Categories') return -1;
-      if (b === 'All Categories') return 1;
+      if (a === 'Choose categories') return -1;
+      if (b === 'Choose categories') return 1;
       const pA = categoryPriority[a] || 999;
       const pB = categoryPriority[b] || 999;
       if (pA !== pB) return pA - pB;
@@ -53,7 +53,7 @@ export default function Procedures() {
     const descMatch = (proc.description || '').toLowerCase().includes(query);
     const matchesSearch = nameMatch || descMatch;
     
-    const matchesCategory = categoryFilter === 'All Categories' || proc.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'Choose categories' || proc.category === categoryFilter;
     const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospital === hospitalFilter;
     
     return matchesSearch && matchesCategory && matchesHospital;
@@ -145,18 +145,49 @@ export default function Procedures() {
         </div>
       </div>
 
-      {/* Procedure List */}
-      <div className="bg-white rounded-2xl shadow-sm border border-[#e5e9eb] overflow-hidden">
-        <ul className="divide-y divide-gray-100">
-          {filteredProcedures.length === 0 ? (
-            <li className="p-12 text-center text-gray-500 italic">No procedures found matching your current filters.</li>
-          ) : (
-            filteredProcedures.map((proc: any) => (
-              <li key={proc.id} className="relative p-6 hover:bg-gray-50 transition-colors flex items-start space-x-6 group">
-                <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 group-hover:bg-indigo-100 transition-colors">
-                  <BeakerIcon className="w-8 h-8" />
+      {/* Procedure Categories Grid OR Procedure List */}
+      {categoryFilter === 'Choose categories' ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {dynamicCategories.filter(c => c !== 'Choose categories').map(category => {
+            const procCount = testGuides.filter((p: any) => p.category === category && (hospitalFilter === 'All Hospitals' || p.hospital === hospitalFilter)).length;
+            return (
+              <div 
+                key={category} 
+                onClick={() => setCategoryFilter(category)}
+                className="bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb] hover:shadow-md hover:border-blue-200 transition-all cursor-pointer group flex flex-col items-center text-center space-y-4"
+              >
+                <div className="p-4 bg-blue-50 text-blue-600 rounded-2xl group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                  <TagIcon className="w-8 h-8" />
                 </div>
-                <div className="flex-1 min-w-0">
+                <div>
+                  <h3 className="font-display font-semibold text-lg text-gray-900">{category}</h3>
+                  <p className="text-sm text-gray-500 mt-1">{procCount} {procCount === 1 ? 'Procedure' : 'Procedures'}</p>
+                </div>
+              </div>
+            );
+          })}
+          {dynamicCategories.length <= 1 && (
+            <div className="col-span-full p-12 text-center text-gray-500 italic bg-white rounded-2xl border border-[#e5e9eb]">
+              No categories found. Add procedures to create categories.
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl shadow-sm border border-[#e5e9eb] overflow-hidden">
+          <ul className="divide-y divide-gray-100">
+            {filteredProcedures.length === 0 ? (
+              <li className="p-12 text-center text-gray-500 italic">No procedures found matching your current filters.</li>
+            ) : (
+              filteredProcedures.map((proc: any) => (
+                <li key={proc.id} className="relative p-6 hover:bg-gray-50 transition-colors flex items-start space-x-6 group">
+                  <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 group-hover:bg-indigo-100 transition-colors flex items-center justify-center overflow-hidden">
+                    {proc.imageUrl ? (
+                      <img src={proc.imageUrl} alt={proc.procedureName} className="w-10 h-10 object-contain" />
+                    ) : (
+                      <BeakerIcon className="w-8 h-8" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <div className="pr-12">
                       <h3 className="font-semibold text-gray-900 text-xl leading-tight">{proc.procedureName}</h3>
@@ -226,8 +257,9 @@ export default function Procedures() {
               </li>
             ))
           )}
-        </ul>
-      </div>
+          </ul>
+        </div>
+      )}
 
       {/* Modals */}
       <Modal 
@@ -291,7 +323,6 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     preparationSteps: [],
     guidelines: { dos: [], donts: [] },
     fastingRequired: '',
-    duration: 15,
     status: 'Active'
   });
 
@@ -475,14 +506,10 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Fasting Required</label>
           <input type="text" value={formData.fastingRequired} onChange={(e) => setFormData({ ...formData, fastingRequired: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Duration (min)</label>
-          <input type="number" value={formData.duration} onChange={(e) => setFormData({ ...formData, duration: parseInt(e.target.value) || 15 })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
         </div>
       </div>
 
@@ -501,8 +528,12 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
   return (
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
-        <div className="p-4 bg-indigo-50 text-indigo-600 rounded-2xl">
-          <BeakerIcon className="w-10 h-10" />
+        <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center overflow-hidden">
+          {procedure.imageUrl ? (
+            <img src={procedure.imageUrl} alt={procedure.procedureName} className="w-10 h-10 object-contain" />
+          ) : (
+            <BeakerIcon className="w-10 h-10" />
+          )}
         </div>
         <div>
           <h4 className="text-2xl font-bold text-gray-900">{procedure.procedureName}</h4>
@@ -513,7 +544,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 text-xs font-semibold">
+      <div className="grid grid-cols-3 gap-4 text-xs font-semibold">
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
           <div className="text-[10px] text-gray-400 uppercase mb-1">Category</div>
           <div>{procedure.category}</div>
@@ -525,10 +556,6 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
           <div className="text-[10px] text-gray-400 uppercase mb-1">Fasting</div>
           <div>{procedure.fastingRequired || 'None'}</div>
-        </div>
-        <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
-          <div className="text-[10px] text-gray-400 uppercase mb-1">Duration</div>
-          <div>{procedure.duration} min</div>
         </div>
       </div>
 

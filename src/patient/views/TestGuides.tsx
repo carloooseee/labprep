@@ -9,6 +9,8 @@ const getCategoryColor = (category: string) => {
     case 'Urine': return 'bg-orange-50 text-orange-600';
     case 'Blood': return 'bg-rose-50 text-rose-600';
     case 'Stool': return 'bg-amber-100 text-amber-800';
+    case 'Blood Chemistry': return 'bg-violet-50 text-violet-600';
+    case 'Hematology': return 'bg-teal-50 text-teal-600';
     default: return 'bg-gray-100 text-gray-600';
   }
 };
@@ -18,6 +20,8 @@ const getCategoryOverlayColor = (category: string) => {
     case 'Urine': return 'from-orange-500/40 to-orange-600/10';
     case 'Blood': return 'from-rose-500/40 to-rose-600/10';
     case 'Stool': return 'from-amber-700/40 to-amber-800/10';
+    case 'Blood Chemistry': return 'from-violet-500/40 to-violet-600/10';
+    case 'Hematology': return 'from-teal-500/40 to-teal-600/10';
     default: return 'from-gray-500/40 to-gray-600/10';
   }
 };
@@ -113,10 +117,12 @@ export default function TestGuides() {
   const [language, setLanguage] = useState<'en' | 'tl'>('en');
 
   const categoryPriority: Record<string, number> = {
-    'Urinalysis': 1,
-    'Blood Test': 2,
-    'Stool Test': 3,
-    'Imaging': 4
+    'Hematology': 1,
+    'Blood Chemistry': 2,
+    'Blood Test': 3,
+    'Urinalysis': 4,
+    'Stool Test': 5,
+    'Imaging': 6
   };
 
   const dynamicCategories = ['All', ...new Set(testGuides.map(g => g.category))]
@@ -223,7 +229,7 @@ export default function TestGuides() {
                 : 'bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface-variant)] border border-[var(--color-surface-container-highest)]'
             }`}
           >
-            {cat === 'All' ? 'All Tests' : `${cat} Test`}
+            {cat === 'All' ? 'All Tests' : (cat.toLowerCase().includes('test') || cat.toLowerCase().includes('rule') ? cat : `${cat} Test`)}
           </button>
         ))}
       </div>
