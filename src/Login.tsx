@@ -12,7 +12,9 @@ import {
   EyeIcon,
   EyeSlashIcon,
   DocumentTextIcon,
-  BellAlertIcon
+  BellAlertIcon,
+  ExclamationCircleIcon,
+  CheckCircleIcon
 } from '@heroicons/react/24/outline';
 
 type AuthView = 'welcome' | 'signin' | 'signup';
@@ -24,6 +26,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -31,6 +34,15 @@ export default function Login() {
   
   const { profile } = useAuth();
   const navigate = useNavigate();
+
+  // Load remembered email
+  useEffect(() => {
+    const rememberedEmail = localStorage.getItem('labprep_remembered_email');
+    if (rememberedEmail) {
+      setEmail(rememberedEmail);
+      setRememberMe(true);
+    }
+  }, []);
 
   // Handle redirection once profile is loaded
   useEffect(() => {
@@ -54,6 +66,11 @@ export default function Login() {
     setError('');
 
     try {
+      if (rememberMe) {
+        localStorage.setItem('labprep_remembered_email', email);
+      } else {
+        localStorage.removeItem('labprep_remembered_email');
+      }
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (err: any) {
@@ -71,15 +88,17 @@ export default function Login() {
   const handleForgotPassword = async () => {
     if (!email) {
       setError('Please enter your email address to reset password.');
+      setSuccess('');
       return;
     }
     
     setLoading(true);
     setError('');
+    setSuccess('');
     
     try {
       await sendPasswordResetEmail(auth, email);
-      setError('Password reset email sent. Please check your inbox.');
+      setSuccess('Password reset email sent. Please check your inbox.');
     } catch (err: any) {
       console.error("Reset password error:", err);
       setError('Failed to send reset email. Verify your email address.');
@@ -244,9 +263,16 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="mb-8 p-4 bg-red-50 border border-red-100 text-red-600 rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center animate-in zoom-in-95 duration-200">
-              <span className="w-2 h-2 bg-red-500 rounded-full mr-3 shrink-0"></span>
-              {error}
+            <div className="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 animate-in fade-in slide-in-from-top-2 duration-300">
+              <ExclamationCircleIcon className="w-5 h-5 shrink-0" />
+              <p className="text-xs font-bold uppercase tracking-wider">{error}</p>
+            </div>
+          )}
+
+          {success && (
+            <div className="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center space-x-3 text-emerald-600 animate-in fade-in slide-in-from-top-2 duration-300">
+              <CheckCircleIcon className="w-5 h-5 shrink-0" />
+              <p className="text-xs font-bold uppercase tracking-wider">{success}</p>
             </div>
           )}
 
@@ -267,26 +293,29 @@ export default function Login() {
 
             <div className="relative">
               <EnvelopeIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3b82f6]" />
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
-                placeholder="Email Address"
-                required
-              />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
+                  placeholder="Email Address"
+                  required
+                  autoComplete="email"
+                  inputMode="email"
+                />
             </div>
 
             <div className="relative">
               <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-[#3b82f6]" />
-              <input
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full pl-14 pr-14 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
-                placeholder="Password"
-                required
-              />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full pl-14 pr-14 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
+                  placeholder="Password"
+                  required
+                  autoComplete={view === 'signin' ? "current-password" : "new-password"}
+                />
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -306,6 +335,7 @@ export default function Login() {
                   className="w-full pl-14 pr-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent text-gray-900 text-sm focus:bg-white focus:border-[#3b82f6] transition-all outline-none font-bold"
                   placeholder="Repeat Password"
                   required
+                  autoComplete="new-password"
                 />
               </div>
             )}
