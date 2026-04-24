@@ -41,25 +41,68 @@ export default function Home() {
       subtitle: greeting,
       description: "Your premium health preparation companion.",
       icon: <SparklesIcon className="w-24 h-24" />,
-      gradient: "from-[#417af0] to-[#27c463]"
+      gradient: "from-[#417af0] to-[#27c463]",
+      link: null
     },
     {
       title: "Easy Preparation",
       subtitle: "Step-by-Step",
       description: "Follow clear instructions for your laboratory tests.",
       icon: <DocumentTextIcon className="w-24 h-24" />,
-      gradient: "from-[#6366f1] to-[#a855f7]"
+      gradient: "from-[#6366f1] to-[#a855f7]",
+      link: "/patient/test-guides"
     },
     {
       title: "Smart Reminders",
       subtitle: "Stay Notified",
       description: "Get notified about fasting times and schedules.",
       icon: <BellAlertIcon className="w-24 h-24" />,
-      gradient: "from-[#f59e0b] to-[#ef4444]"
+      gradient: "from-[#f59e0b] to-[#ef4444]",
+      link: "/patient/notifications"
+    },
+    {
+      title: "Personalize Profile",
+      subtitle: "Your Identity",
+      description: "Keep your health information up to date for better care.",
+      icon: <UserIcon className="w-24 h-24" />,
+      gradient: "from-[#3b82f6] to-[#60a5fa]",
+      link: "/patient/profile"
+    },
+    {
+      title: "Find Hospitals",
+      subtitle: "Medical Centers",
+      description: "Locate accredited diagnostic centers near your location.",
+      icon: <BuildingOfficeIcon className="w-24 h-24" />,
+      gradient: "from-[#10b981] to-[#34d399]",
+      link: "/patient/hospitals"
     }
   ];
 
   const [currentHeroSlide, setCurrentHeroSlide] = useState(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
+  const minSwipeDistance = 50;
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > minSwipeDistance;
+    const isRightSwipe = distance < -minSwipeDistance;
+    
+    if (isLeftSwipe) {
+      setCurrentHeroSlide((prev) => (prev + 1) % heroSlides.length);
+    } else if (isRightSwipe) {
+      setCurrentHeroSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -67,6 +110,7 @@ export default function Home() {
     }, 5000);
     return () => clearInterval(timer);
   }, [heroSlides.length]);
+
   return (
     <div className="pt-8 pb-24 relative overflow-hidden">
       {/* Top Background Decoration */}
@@ -89,27 +133,41 @@ export default function Home() {
         </header>
 
         {/* Hero Card Carousel */}
-        <div className={`bg-gradient-to-r ${heroSlides[currentHeroSlide].gradient} rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden transition-all duration-700`}>
+        <div 
+          className={`bg-gradient-to-r ${heroSlides[currentHeroSlide].gradient} rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden transition-all duration-700 h-[210px] flex flex-col justify-center`}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
+          {heroSlides[currentHeroSlide].link ? (
+            <Link to={heroSlides[currentHeroSlide].link!} className="absolute inset-0 z-20"></Link>
+          ) : null}
+          
           <div key={`icon-${currentHeroSlide}`} className="absolute top-0 right-0 p-4 opacity-20 animate-in zoom-in duration-700">
             {heroSlides[currentHeroSlide].icon}
           </div>
-          <div className="relative z-10">
+          <div className="relative z-10 pointer-events-none">
             <span key={`sub-${currentHeroSlide}`} className="text-xs font-bold uppercase tracking-wider backdrop-blur-md animate-in slide-in-from-bottom-2 duration-500 block">
               {heroSlides[currentHeroSlide].subtitle}
             </span>
             <h2 key={`title-${currentHeroSlide}`} className="text-3xl font-display font-bold mt-4 leading-tight animate-in slide-in-from-bottom-3 duration-700">
               {heroSlides[currentHeroSlide].title}
             </h2>
-            <div key={`desc-${currentHeroSlide}`} className="flex items-center mt-6 space-x-2 animate-in slide-in-from-bottom-4 duration-1000">
-              <span className="font-body text-sm font-medium">{heroSlides[currentHeroSlide].description}</span>
+            <div key={`desc-${currentHeroSlide}`} className="flex items-center mt-4 space-x-2 animate-in slide-in-from-bottom-4 duration-1000">
+              <span className="font-body text-sm font-medium opacity-90">{heroSlides[currentHeroSlide].description}</span>
             </div>
           </div>
           
           {/* Carousel Indicators */}
-          <div className="absolute bottom-6 right-8 flex space-x-2">
+          <div className="absolute bottom-6 right-8 flex space-x-2 z-30">
             {heroSlides.map((_, idx) => (
-              <div 
+              <button 
                 key={idx}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setCurrentHeroSlide(idx);
+                }}
                 className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentHeroSlide ? 'w-6 bg-white' : 'w-1.5 bg-white/40'}`}
               />
             ))}
