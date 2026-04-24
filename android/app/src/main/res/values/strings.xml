@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">lab-prep</string>
-    <string name="title_activity_main">lab-prep</string>
+    <string name="app_name">LabPrep</string>
+    <string name="title_activity_main">LabPrep</string>
     <string name="package_name">com.labprep.app</string>
     <string name="custom_url_scheme">com.labprep.app</string>
 </resources>
