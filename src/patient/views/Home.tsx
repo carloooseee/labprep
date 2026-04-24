@@ -8,25 +8,8 @@ import {
   UserIcon,
   DocumentTextIcon,
   ChevronRightIcon,
-  TagIcon,
-  BeakerIcon
+  TagIcon
 } from '@heroicons/react/24/solid';
-
-const TestTubeIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M9 2h6" />
-    <path d="M10 2v17.5a2.5 2.5 0 0 0 5 0V2" />
-    <path d="M10 14h5" />
-  </svg>
-);
 
 export default function Home() {
   const { testGuides } = useAppContext();

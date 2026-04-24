@@ -6,8 +6,7 @@ import {
   TrashIcon,
   SpeakerWaveIcon 
 } from '@heroicons/react/24/outline';
-import { BuildingOfficeIcon, BellAlertIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
-import { Link } from 'react-router-dom';
+import { BellAlertIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase';

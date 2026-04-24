@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { DocumentTextIcon, BuildingOfficeIcon, BellAlertIcon, XMarkIcon } from '@heroicons/react/24/solid';
-import { Link } from 'react-router-dom';
+import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
 
 const getCategoryColor = (category: string) => {
   switch (category) {

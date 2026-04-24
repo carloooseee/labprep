@@ -24,6 +24,10 @@ android {
     }
 }
 
+tasks.register("unitTestClasses") {
+    dependsOn("assembleUnitTest")
+}
+
 repositories {
     flatDir{
         dirs '../capacitor-cordova-android-plugins/src/main/libs', 'libs'

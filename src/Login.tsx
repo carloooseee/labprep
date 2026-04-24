@@ -7,12 +7,9 @@ import {
   UserIcon, 
   LockClosedIcon, 
   EnvelopeIcon, 
-  BeakerIcon,
   ChevronLeftIcon,
   EyeIcon,
   EyeSlashIcon,
-  DocumentTextIcon,
-  BellAlertIcon,
   ExclamationCircleIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';

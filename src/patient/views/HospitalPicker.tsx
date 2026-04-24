@@ -1,7 +1,6 @@
 import { useAppContext } from '../context/AppContext';
 import { MapPinIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { BuildingOfficeIcon, BellAlertIcon } from '@heroicons/react/24/solid';
-import { Link } from 'react-router-dom';
+import { BuildingOfficeIcon } from '@heroicons/react/24/solid';
 
 export default function HospitalPicker() {
   const { hospitals, loading } = useAppContext();
