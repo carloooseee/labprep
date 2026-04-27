@@ -105,6 +105,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setSelectedHospitalId(hospitalData[0].id);
       }
       setLoading(false);
+    }, (error) => {
+      console.error("Error fetching hospitals:", error);
+      setLoading(false);
     });
 
     // 2. Listen to Global Test Guides
@@ -144,6 +147,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }).sort((a, b) => a.procedureName.localeCompare(b.procedureName));
       
       setGlobalTestGuides(guideData);
+    }, (error) => {
+      console.error("Error fetching global test guides:", error);
     });
 
     // 2.5 Listen to Broadcasts
@@ -171,6 +176,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         });
       }
       isInitialBroadcastLoad = false;
+    }, (error) => {
+      console.error("Error fetching broadcasts:", error);
     });
 
     // 2.6 Listen to Users (Patients)
@@ -178,6 +185,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const userData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const patientsOnly = userData.filter((u: any) => u.role === 'patient');
       setPatients(patientsOnly);
+    }, (error) => {
+      console.error("Error fetching users:", error);
     });
 
     return () => {
@@ -200,6 +209,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const overridesUnsubscribe = onSnapshot(overridesQuery, (snapshot) => {
       const overrideData = snapshot.docs.map(doc => doc.data());
       setOverrides(overrideData);
+    }, (error) => {
+      console.error("Error fetching overrides:", error);
     });
 
     return () => overridesUnsubscribe();
@@ -225,6 +236,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         setStats(null);
       }
+    }, (error) => {
+      console.error("Error fetching stats:", error);
     });
 
     return () => statsUnsubscribe();
@@ -247,6 +260,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...doc.data() 
       } as Activity));
       setActivity(activityData);
+    }, (error) => {
+      console.error("Error fetching activity:", error);
     });
 
     return () => activityUnsubscribe();
