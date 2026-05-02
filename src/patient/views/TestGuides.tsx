@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mp4';
+import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
 
 const getCategoryColor = (category: string) => {
   switch (category) {
@@ -266,16 +268,28 @@ export default function TestGuides() {
         </div>
       )}
 
-      {selectedGuide && (
+      {selectedGuide && (() => {
+        const isUrineVideo = selectedGuide.procedureName.toLowerCase().includes('24') && selectedGuide.procedureName.toLowerCase().includes('urine');
+        const isStoolVideo = selectedGuide.procedureName.toLowerCase().includes('stool');
+        const hasVideo = isUrineVideo || isStoolVideo;
+
+        return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
           {/* Full Screen Header Hero */}
-          <div className="h-64 relative shrink-0">
-            {selectedGuide.imageUrl ? (
+          <div className="h-64 relative shrink-0 bg-black">
+            {isUrineVideo ? (
+              <video src={urineVideo} controls playsInline className="w-full h-full object-contain" />
+            ) : isStoolVideo ? (
+              <video src={stoolVideo} controls playsInline className="w-full h-full object-contain" />
+            ) : selectedGuide.imageUrl ? (
               <img src={selectedGuide.imageUrl} alt={selectedGuide.procedureName} className="w-full h-full object-cover" />
             ) : (
               <div className="w-full h-full bg-gray-200" />
             )}
-            <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(selectedGuide.category)} mix-blend-multiply`}></div>
+            
+            {!hasVideo && (
+              <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(selectedGuide.category)} mix-blend-multiply pointer-events-none`}></div>
+            )}
             
             <button 
               onClick={() => setSelectedGuide(null)} 
@@ -286,7 +300,7 @@ export default function TestGuides() {
           </div>
           
           {/* Main Content Area */}
-          <div className="flex flex-col flex-grow bg-white -mt-8 relative z-20 rounded-t-[2rem] overflow-hidden">
+          <div className={`flex flex-col flex-grow bg-white relative z-20 overflow-hidden ${hasVideo ? '' : '-mt-8 rounded-t-[2rem]'}`}>
             <div className="p-8 pb-4 shrink-0 shadow-sm">
               <h2 className="text-3xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.procedureName}</h2>
               <div className="flex flex-wrap gap-2 mb-6">
@@ -323,7 +337,8 @@ export default function TestGuides() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
 
     </div>
   );
