@@ -6,6 +6,13 @@ import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mp4';
 import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
 
+// Fallback Images
+import urinalysisImg from '../../assets/test-guides/urinalysis.png';
+import bloodTestImg from '../../assets/test-guides/blood_test.png';
+import stoolTestImg from '../../assets/test-guides/stool_test.png';
+import imagingImg from '../../assets/test-guides/imaging.png';
+import genericImg from '../../assets/test-guides/generic.png';
+
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'Urinalysis': return 'bg-orange-50 text-orange-600';
@@ -26,6 +33,55 @@ const getCategoryOverlayColor = (category: string) => {
     case 'Hematology': return 'from-teal-500/40 to-teal-600/10';
     default: return 'from-gray-500/40 to-gray-600/10';
   }
+};
+
+const getFallbackImage = (category: string) => {
+  switch (category) {
+    case 'Urinalysis': return urinalysisImg;
+    case 'Stool Test': return stoolTestImg;
+    case 'Hematology':
+    case 'Blood Chemistry':
+    case 'Serological Test': return bloodTestImg;
+    case 'Imaging': return imagingImg;
+    default: return genericImg;
+  }
+};
+
+const SafeImage = ({ src, alt, category, className }: { src?: string, alt: string, category: string, className?: string }) => {
+  const [imgSrc, setImgSrc] = useState(src || getFallbackImage(category));
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (src) {
+      setImgSrc(src);
+      setHasError(false);
+      setLoading(true);
+    }
+  }, [src]);
+
+  return (
+    <div className={`relative overflow-hidden ${className}`}>
+      {loading && (
+        <div className="absolute inset-0 z-10 bg-gray-200 animate-pulse flex items-center justify-center">
+          <div className="w-10 h-10 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={`w-full h-full object-cover transition-opacity duration-500 ${loading ? 'opacity-0' : 'opacity-100'}`}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          if (!hasError) {
+            setImgSrc(getFallbackImage(category));
+            setHasError(true);
+            setLoading(false);
+          }
+        }}
+      />
+    </div>
+  );
 };
 
 const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines' }) => {
@@ -245,12 +301,15 @@ export default function TestGuides() {
                       onClick={() => { setSelectedGuide(guide); setActiveTab('Preparations'); }}
                       className="bg-[var(--color-surface-container-lowest)] rounded-2xl border border-[#e5e9eb] shadow-sm overflow-hidden flex flex-col cursor-pointer transition-transform duration-200 active:scale-[0.98] hover:shadow-md"
                     >
-                      {guide.imageUrl && (
-                        <div className="h-32 bg-gray-100 shrink-0 relative overflow-hidden group">
-                          <img src={guide.imageUrl} alt={guide.procedureName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 absolute inset-0 z-0" />
-                          <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(guide.category)} pointer-events-none mix-blend-multiply`}></div>
-                        </div>
-                      )}
+                      <div className="h-32 bg-gray-100 shrink-0 relative overflow-hidden group">
+                        <SafeImage 
+                          src={guide.imageUrl} 
+                          alt={guide.procedureName} 
+                          category={guide.category} 
+                          className="w-full h-full transition-transform duration-700 group-hover:scale-110 absolute inset-0 z-0" 
+                        />
+                        <div className={`absolute inset-0 z-10 bg-gradient-to-br ${getCategoryOverlayColor(guide.category)} pointer-events-none mix-blend-multiply`}></div>
+                      </div>
                       <div className="p-6 flex-grow flex flex-col">
                         <div className="flex justify-between items-start mb-3">
                           <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)] leading-tight">{guide.procedureName}</h3>
@@ -291,10 +350,13 @@ export default function TestGuides() {
               <video src={urineVideo} controls playsInline className="w-full h-full object-contain" />
             ) : isStoolVideo ? (
               <video src={stoolVideo} controls playsInline className="w-full h-full object-contain" />
-            ) : selectedGuide.imageUrl ? (
-              <img src={selectedGuide.imageUrl} alt={selectedGuide.procedureName} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full bg-gray-200" />
+              <SafeImage 
+                src={selectedGuide.imageUrl} 
+                alt={selectedGuide.procedureName} 
+                category={selectedGuide.category} 
+                className="w-full h-full" 
+              />
             )}
             
             {!hasVideo && (

@@ -18,6 +18,65 @@ import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';
 import { doc, setDoc, deleteDoc, collection, addDoc } from 'firebase/firestore';
 
+// Fallback Images
+import urinalysisImg from '../../assets/test-guides/urinalysis.png';
+import bloodTestImg from '../../assets/test-guides/blood_test.png';
+import stoolTestImg from '../../assets/test-guides/stool_test.png';
+import imagingImg from '../../assets/test-guides/imaging.png';
+import genericImg from '../../assets/test-guides/generic.png';
+
+const getFallbackImage = (category: string) => {
+  switch (category) {
+    case 'Urinalysis': return urinalysisImg;
+    case 'Stool Test': return stoolTestImg;
+    case 'Hematology':
+    case 'Blood Chemistry':
+    case 'Serological Test': return bloodTestImg;
+    case 'Imaging': return imagingImg;
+    default: return genericImg;
+  }
+};
+
+const SafeImage = ({ src, alt, category, className }: { src?: string, alt: string, category: string, className?: string }) => {
+  const [imgSrc, setImgSrc] = useState(src || getFallbackImage(category));
+  const [loading, setLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    if (src) {
+      setImgSrc(src);
+      setHasError(false);
+      setLoading(true);
+    } else {
+      setImgSrc(getFallbackImage(category));
+      setLoading(false);
+    }
+  }, [src, category]);
+
+  return (
+    <div className={`relative overflow-hidden ${className}`}>
+      {loading && (
+        <div className="absolute inset-0 z-10 bg-gray-100 animate-pulse flex items-center justify-center">
+          <div className="w-5 h-5 border-2 border-gray-200 border-t-indigo-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+      <img
+        src={imgSrc}
+        alt={alt}
+        className={`w-full h-full object-contain transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}
+        onLoad={() => setLoading(false)}
+        onError={() => {
+          if (!hasError) {
+            setImgSrc(getFallbackImage(category));
+            setHasError(true);
+            setLoading(false);
+          }
+        }}
+      />
+    </div>
+  );
+};
+
 export default function Procedures() {
   const { testGuides, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
@@ -183,11 +242,12 @@ export default function Procedures() {
               filteredProcedures.map((proc: any) => (
                 <li key={proc.id} className="relative p-6 hover:bg-gray-50 transition-colors flex items-start space-x-6 group">
                   <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl shrink-0 group-hover:bg-indigo-100 transition-colors flex items-center justify-center overflow-hidden">
-                    {proc.imageUrl ? (
-                      <img src={proc.imageUrl} alt={proc.procedureName} className="w-10 h-10 object-contain" />
-                    ) : (
-                      <BeakerIcon className="w-8 h-8" />
-                    )}
+                    <SafeImage 
+                      src={proc.imageUrl} 
+                      alt={proc.procedureName} 
+                      category={proc.category} 
+                      className="w-10 h-10" 
+                    />
                   </div>
                   <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
@@ -531,11 +591,12 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
     <div className="space-y-6">
       <div className="flex items-center space-x-4">
         <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center overflow-hidden">
-          {procedure.imageUrl ? (
-            <img src={procedure.imageUrl} alt={procedure.procedureName} className="w-10 h-10 object-contain" />
-          ) : (
-            <BeakerIcon className="w-10 h-10" />
-          )}
+          <SafeImage 
+            src={procedure.imageUrl} 
+            alt={procedure.procedureName} 
+            category={procedure.category} 
+            className="w-10 h-10" 
+          />
         </div>
         <div>
           <h4 className="text-2xl font-bold text-gray-900">{procedure.procedureName}</h4>
