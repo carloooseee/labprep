@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { 
   PlusIcon, 
-  BeakerIcon, 
   MagnifyingGlassIcon, 
   BuildingOfficeIcon,
   TagIcon,
