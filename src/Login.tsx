@@ -182,11 +182,7 @@ export default function Login() {
             Prepare Right. Test Right.
           </p>
 
-          <div className="flex space-x-3 mt-20 animate-pulse">
-            <div className="h-3 w-12 bg-white rounded-full shadow-lg shadow-white/20"></div>
-            <div className="h-3 w-3 bg-white/40 rounded-full"></div>
-            <div className="h-3 w-3 bg-white/40 rounded-full"></div>
-          </div>
+
         </div>
 
         <div className="w-full max-w-sm space-y-4 relative z-10 animate-in slide-in-from-bottom-8 duration-1000">
