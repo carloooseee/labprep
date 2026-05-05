@@ -214,7 +214,7 @@ export default function Home() {
             return (
               <Link 
                 key={category}
-                to="/patient/test-guides" 
+                to={`/patient/test-guides?category=${encodeURIComponent(category)}`}
                 className="bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] transition-transform active:scale-95 flex flex-col h-full items-center text-center justify-center space-y-3"
               >
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">

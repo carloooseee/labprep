@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
@@ -110,9 +111,18 @@ const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab
 export default function TestGuides() {
   const { selectedHospitalId, setSelectedHospitalId, hospitals, testGuides, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [searchParams] = useSearchParams();
+  const initialCategory = searchParams.get('category') || 'All';
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
+
+  useEffect(() => {
+    const cat = searchParams.get('category');
+    if (cat) {
+      setSelectedCategory(cat);
+    }
+  }, [searchParams]);
 
   const categoryPriority: Record<string, number> = {
     'Hematology': 1,
@@ -276,7 +286,7 @@ export default function TestGuides() {
         return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
           {/* Full Screen Header Hero */}
-          <div className="h-64 relative shrink-0 bg-black">
+          <div className="aspect-video w-full max-h-[35vh] relative shrink-0 bg-black">
             {isUrineVideo ? (
               <video src={urineVideo} controls playsInline className="w-full h-full object-contain" />
             ) : isStoolVideo ? (
@@ -300,22 +310,22 @@ export default function TestGuides() {
           </div>
           
           {/* Main Content Area */}
-          <div className={`flex flex-col flex-grow bg-white relative z-20 overflow-hidden ${hasVideo ? '' : '-mt-8 rounded-t-[2rem]'}`}>
-            <div className="p-8 pb-4 shrink-0 shadow-sm">
-              <h2 className="text-3xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-4">{selectedGuide.procedureName}</h2>
-              <div className="flex flex-wrap gap-2 mb-6">
+          <div className={`flex flex-col flex-grow bg-white relative z-20 overflow-hidden ${hasVideo ? '' : '-mt-6 rounded-t-[2rem]'}`}>
+            <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
+              <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-2">{selectedGuide.procedureName}</h2>
+              <div className="flex flex-wrap gap-2 mb-4">
                 {selectedGuide.fastingRequired && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
+                  <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
                     {selectedGuide.fastingRequired}
                   </span>
                 )}
-                <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
+                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
                   {selectedGuide.category}
                 </span>
               </div>
               
               {/* Segmented Tab Control */}
-              <div className="flex bg-[var(--color-surface-container-highest)] p-1 rounded-xl mb-4 shadow-inner">
+              <div className="flex bg-[var(--color-surface-container-highest)] p-1 rounded-xl shadow-inner">
                 <button 
                   className={`flex-1 py-3 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Preparations' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
                   onClick={() => setActiveTab('Preparations')}
@@ -332,7 +342,7 @@ export default function TestGuides() {
             </div>
 
             {/* Dynamic Scrollable Content */}
-            <div className="p-8 pt-4 overflow-y-auto pb-24">
+            <div className="p-5 pt-4 overflow-y-auto pb-24 h-full">
               <GenericGuideContent guide={selectedGuide} activeTab={activeTab} />
             </div>
           </div>

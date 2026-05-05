@@ -90,8 +90,8 @@ export default function Notifications() {
             description: 'Alerts for lab test preparations',
             importance: 5, // High importance
             visibility: 1,
-            sound: 'beep.wav', // Fallback to default if not found
             vibration: true,
+            // Removed specific sound file to ensure it uses system default if asset is missing
           });
         }
       } catch (e) {
@@ -100,6 +100,37 @@ export default function Notifications() {
     };
     setupNotifications();
   }, []);
+
+  // Function to provide immediate vibration and sound feedback
+  const playNotificationFeedback = () => {
+    try {
+      // 1. Vibration
+      if (navigator.vibrate) {
+        navigator.vibrate([100, 50, 100]); // Short pulse pattern
+      }
+
+      // 2. Sound (Generated using Web Audio API to avoid external assets)
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      oscillator.type = 'sine';
+      // Pleasant double beep (880Hz -> 1320Hz)
+      oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+      oscillator.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.1);
+      
+      gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+
+      oscillator.start();
+      oscillator.stop(audioCtx.currentTime + 0.3);
+    } catch (e) {
+      console.warn("Feedback audio/haptics failed:", e);
+    }
+  };
 
   const scheduleReminder = async () => {
     if (!remindersEnabled) {
@@ -147,6 +178,7 @@ export default function Notifications() {
       });
 
       setIsModalOpen(false);
+      playNotificationFeedback(); // Immediate feedback on success
 
       // Reset Form
       setMessage('');
@@ -173,6 +205,7 @@ export default function Notifications() {
           }
         ]
       });
+      playNotificationFeedback(); // Immediate feedback
       alert("Test scheduled for 5 seconds from now. You can close the app to see it hit.");
     } catch (e) {
       alert("Test failed. Check permissions.");
