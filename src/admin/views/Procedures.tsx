@@ -87,6 +87,7 @@ export default function Procedures() {
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
   const [editingProcedure, setEditingProcedure] = useState<any>(null);
   const [viewingProcedure, setViewingProcedure] = useState<any>(null);
+  const [procedureToDelete, setProcedureToDelete] = useState<any>(null);
 
   // Derive dynamic categories from data
   const categoryPriority: Record<string, number> = {
@@ -122,9 +123,12 @@ export default function Procedures() {
   });
 
   const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this procedure?')) {
+    try {
       await deleteDoc(doc(db, 'testGuides', id));
-      setActiveActionId(null);
+      setProcedureToDelete(null);
+    } catch (error) {
+      console.error("Error deleting procedure:", error);
+      alert("Failed to delete procedure. You might not have permission.");
     }
   };
 
@@ -305,7 +309,7 @@ export default function Procedures() {
                             </button>
                             <div className="my-1 border-t border-gray-100" />
                             <button 
-                              onClick={() => handleDelete(proc.id)}
+                              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setProcedureToDelete(proc); setActiveActionId(null); }}
                               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center font-medium"
                             >
                               <TrashIcon className="w-4 h-4 mr-3" />
@@ -348,6 +352,31 @@ export default function Procedures() {
           procedure={viewingProcedure} 
           onClose={() => setViewingProcedure(null)} 
         />
+      </Modal>
+      <Modal 
+        isOpen={!!procedureToDelete} 
+        onClose={() => setProcedureToDelete(null)} 
+        title="Confirm Deletion"
+      >
+        <div className="space-y-4">
+          <p className="text-gray-600">
+            Are you sure you want to delete <span className="font-bold text-gray-900">{procedureToDelete?.procedureName}</span>? This action cannot be undone.
+          </p>
+          <div className="flex justify-end space-x-3 pt-4 mt-6 border-t border-gray-100">
+            <button 
+              onClick={() => setProcedureToDelete(null)}
+              className="px-6 py-2.5 border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={() => handleDelete(procedureToDelete.id)}
+              className="px-6 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-sm"
+            >
+              Yes, Delete
+            </button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
