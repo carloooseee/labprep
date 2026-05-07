@@ -436,17 +436,26 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // Check file size (e.g., limit to 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert("This image is quite large and might take a long time to upload. Please consider a smaller image (under 5MB).");
+    }
+
     try {
       setUploadingImage(true);
-      const storageRef = ref(storage, `procedures/${Date.now()}_${file.name}`);
+      const storageRef = ref(storage, `procedures/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`);
       const snapshot = await uploadBytes(storageRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
-      setFormData({ ...formData, imageUrl: downloadURL });
+      
+      // Use functional state update to prevent stale closure overwriting user's typing
+      setFormData(prev => ({ ...prev, imageUrl: downloadURL }));
     } catch (error) {
       console.error("Error uploading image:", error);
-      alert("Failed to upload image. Please try again.");
+      alert("Failed to upload image. Please check your internet connection and try again.");
     } finally {
       setUploadingImage(false);
+      // Reset input so the user can select the same file again if they want to
+      e.target.value = '';
     }
   };
 
@@ -544,6 +553,40 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
             required={isEN}
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">Category</label>
+          <div className="relative">
+            <TagIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            <input 
+              type="text" 
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+              className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+              placeholder="Type a category name (e.g., Blood Test)"
+              required
+            />
+          </div>
+          {/* Quick Suggestions */}
+          <div className="mt-3 flex flex-wrap gap-2">
+            {categories.filter(c => c && c !== 'Choose laboratory test' && c !== 'Choose categories').map(c => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setFormData({ ...formData, category: c })}
+                className={`px-3 py-1.5 text-xs font-bold rounded-lg border transition-all ${
+                  formData.category === c 
+                    ? 'bg-blue-600 text-white border-blue-600 shadow-sm' 
+                    : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:border-gray-300'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
