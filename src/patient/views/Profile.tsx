@@ -16,10 +16,18 @@ import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase';
 import { doc, setDoc } from 'firebase/firestore';
 
+interface ProfileFormData {
+  displayName: string;
+  phone: string;
+  address: string;
+  dateOfBirth: string;
+  gender: string;
+}
+
 export default function Profile() {
   const { profile, signOut } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState<any>(null);
+  const [formData, setFormData] = useState<ProfileFormData | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -104,7 +112,7 @@ export default function Profile() {
           label="Phone Number" 
           value={isEditing ? formData?.phone : profile.phone || 'No phone set'} 
           isEditing={isEditing}
-          onChange={(val: any) => setFormData({...formData, phone: val})}
+          onChange={(val: string) => setFormData(formData ? {...formData, phone: val} : null)}
           type="text"
           placeholder="+63 9xx..."
         />
@@ -114,7 +122,7 @@ export default function Profile() {
           label="Home Address" 
           value={isEditing ? formData?.address : profile.address || 'No address set'} 
           isEditing={isEditing}
-          onChange={(val: any) => setFormData({...formData, address: val})}
+          onChange={(val: string) => setFormData(formData ? {...formData, address: val} : null)}
           type="textarea"
           placeholder="Complete address"
         />
@@ -125,7 +133,7 @@ export default function Profile() {
             label="Date of Birth" 
             value={isEditing ? formData?.dateOfBirth : profile.dateOfBirth || 'Not set'} 
             isEditing={isEditing}
-            onChange={(val: any) => setFormData({...formData, dateOfBirth: val})}
+            onChange={(val: string) => setFormData(formData ? {...formData, dateOfBirth: val} : null)}
             type="date"
           />
           <ProfileField 
@@ -133,7 +141,7 @@ export default function Profile() {
             label="Gender" 
             value={isEditing ? formData?.gender : profile.gender || 'Not set'} 
             isEditing={isEditing}
-            onChange={(val: any) => setFormData({...formData, gender: val})}
+            onChange={(val: string) => setFormData(formData ? {...formData, gender: val} : null)}
             type="select"
             options={['Male', 'Female', 'Other']}
           />
@@ -180,7 +188,18 @@ export default function Profile() {
   );
 }
 
-function ProfileField({ icon, label, value, isEditing, onChange, type, placeholder, options }: any) {
+function ProfileField({
+  icon, label, value, isEditing, onChange, type, placeholder, options
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  isEditing: boolean;
+  onChange: (val: string) => void;
+  type: string;
+  placeholder?: string;
+  options?: string[];
+}) {
   return (
     <div className="bg-[var(--color-surface-container-lowest)] p-5 rounded-2xl border border-[#e5e9eb] flex items-center shadow-sm">
       <div className="w-10 h-10 bg-[var(--color-surface-container)] rounded-full flex items-center justify-center mr-4 shrink-0">

@@ -69,9 +69,10 @@ export default function Login() {
       }
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Login error:", err);
-      if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+      const code = (err as { code?: string }).code;
+      if (code === 'auth/user-not-found' || code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
         setError('Invalid email or password.');
       } else {
         setError('Failed to sign in. Please try again.');
@@ -95,7 +96,7 @@ export default function Login() {
     try {
       await sendPasswordResetEmail(auth, email);
       setSuccess('Password reset email sent. Please check your inbox.');
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Reset password error:", err);
       setError('Failed to send reset email. Verify your email address.');
     } finally {
@@ -126,11 +127,12 @@ export default function Login() {
       await updateProfile(userCredential.user, {
         displayName: name
       });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Registration error:", err);
-      if (err.code === 'auth/email-already-in-use') {
+      const code = (err as { code?: string }).code;
+      if (code === 'auth/email-already-in-use') {
         setError('Email already in use.');
-      } else if (err.code === 'auth/invalid-email') {
+      } else if (code === 'auth/invalid-email') {
         setError('Invalid email address.');
       } else {
         setError('Failed to create account.');

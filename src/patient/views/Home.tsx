@@ -210,7 +210,7 @@ export default function Home() {
         
         <div className="grid grid-cols-2 gap-3 pb-2">
           {dynamicCategories.map(category => {
-            const procCount = testGuides.filter((p: any) => p.category === category).length;
+            const procCount = testGuides.filter(p => p.category === category).length;
             return (
               <Link 
                 key={category}

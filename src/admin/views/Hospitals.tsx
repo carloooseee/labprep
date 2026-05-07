@@ -1,16 +1,25 @@
 import { useState } from 'react';
-import { PlusIcon, BuildingOffice2Icon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
+import { PlusIcon, BuildingLibraryIcon, MapPinIcon, PhoneIcon, MagnifyingGlassIcon, XMarkIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';
 import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
 
+
+interface HospitalData {
+  name: string;
+  address: string;
+  contactNumber?: string;
+  location?: string;
+  status: string;
+  id?: string;
+}
 
 export default function Hospitals() {
   const { hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter] = useState('All Status');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingHospital, setEditingHospital] = useState<any>(null);
+  const [editingHospital, setEditingHospital] = useState<HospitalData | null>(null);
 
   const filteredHospitals = hospitals.filter((hospital) => {
     const query = searchQuery.toLowerCase();
@@ -25,7 +34,7 @@ export default function Hospitals() {
     return matchesSearch && matchesStatus;
   });
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: HospitalData) => {
     try {
       if (editingHospital) {
         await setDoc(doc(db, 'hospitals', editingHospital.id), {
@@ -98,7 +107,7 @@ export default function Hospitals() {
                 onClick={() => { setEditingHospital(hospital); setIsModalOpen(true); }}
               >
                 <div className="p-3 bg-blue-50 text-blue-600 rounded-xl shrink-0">
-                  <BuildingOffice2Icon className="w-6 h-6" />
+                  <BuildingLibraryIcon className="w-6 h-6" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
@@ -164,7 +173,7 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
   );
 }
 
-function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void, onSave: (data: any) => void, initialData?: any }) {
+function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void, onSave: (data: HospitalData) => void, initialData?: HospitalData | null }) {
   const [formData, setFormData] = useState(initialData || {
     name: '',
     address: '',

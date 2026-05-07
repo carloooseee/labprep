@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { db } from '../../firebase';
@@ -18,17 +19,22 @@ export interface Hospital {
 export interface TestGuide {
   id: string;
   name?: string;
-  procedureName: string; // Renamed from name
+  procedureName: string;
+  procedureNameFilipino?: string;
   category: string;
   description: string;
-  fastingRequired?: string; // Renamed from fastingRequirement
+  descriptionFilipino?: string;
+  fastingRequired?: string;
+  fastingRequiredFilipino?: string;
   duration?: number;
   imageUrl?: string;
   defaultInstructions?: string;
-  preparationSteps: any[]; // Renamed from preparations
-  guidelines: any;
-  translations?: any;
-  hospital?: string; // Renamed from hospitalId
+  preparationSteps: { icon: string; title: string; description: string; timing?: string }[];
+  preparationStepsFilipino?: { icon: string; title: string; description: string; timing?: string }[];
+  guidelines: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[] };
+  guidelinesFilipino?: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[] };
+  translations?: Record<string, unknown>;
+  hospital?: string;
   status?: string;
 }
 
@@ -44,7 +50,7 @@ export interface Activity {
   hospitalId: string;
   user: string;
   action: string;
-  timestamp: any;
+  timestamp: { seconds: number; nanoseconds: number } | null;
 }
 
 export interface Broadcast {
@@ -62,7 +68,7 @@ interface AppContextType {
   hospitals: Hospital[];
   testGuides: TestGuide[];
   globalTestGuides: TestGuide[];
-  patients: any[];
+  patients: Record<string, unknown>[];
   stats: Stat | null;
   activity: Activity[];
   broadcasts: Broadcast[];
@@ -77,20 +83,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
   const [globalTestGuides, setGlobalTestGuides] = useState<TestGuide[]>([]);
   const [testGuides, setTestGuides] = useState<TestGuide[]>([]);
-  const [overrides, setOverrides] = useState<any[]>([]);
-  const [patients, setPatients] = useState<any[]>([]);
+  const [overrides, setOverrides] = useState<Record<string, unknown>[]>([]);
+  const [patients, setPatients] = useState<Record<string, unknown>[]>([]);
   const [stats, setStats] = useState<Stat | null>(null);
   const [activity, setActivity] = useState<Activity[]>([]);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Helper for deep merging overrides (simple version for the schema)
-  const mergeOverrides = (guide: TestGuide, overrideObj: any) => {
+  const mergeOverrides = (guide: TestGuide, overrideObj: Record<string, any> | undefined) => {
     if (!overrideObj) return guide;
-    const merged = { ...guide, ...overrideObj };
+    const merged = { ...guide, ...overrideObj } as TestGuide;
     // Handle nested structures if they exist in overrides (e.g., guidelines)
     if (guide.guidelines && overrideObj.guidelines) {
-      merged.guidelines = { ...guide.guidelines, ...overrideObj.guidelines };
+      merged.guidelines = { ...guide.guidelines, ...(overrideObj.guidelines as Record<string, any>) };
     }
     return merged;
   };
@@ -115,17 +121,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // We sort in memory and normalize the data structure for backwards compatibility.
     const guidesUnsubscribe = onSnapshot(collection(db, 'testGuides'), (snapshot) => {
       const guideData = snapshot.docs.map(snap => {
-        const data = snap.data() as any;
+        const data = snap.data() as Record<string, unknown>;
         
         // Deep normalization for translations
-        const normalizedTranslations = { ...data.translations };
-        if (normalizedTranslations.tl) {
+        const normalizedTranslations = { ...(data.translations as Record<string, unknown> | undefined) };
+        if (normalizedTranslations.tl && typeof normalizedTranslations.tl === 'object') {
+          const tl = normalizedTranslations.tl as Record<string, unknown>;
           normalizedTranslations.tl = {
-            ...normalizedTranslations.tl,
-            procedureName: normalizedTranslations.tl.procedureName || normalizedTranslations.tl.name || data.procedureName || data.name || '',
-            description: normalizedTranslations.tl.description || data.description || '',
-            preparationSteps: normalizedTranslations.tl.preparationSteps || normalizedTranslations.tl.preparations || [],
-            guidelines: normalizedTranslations.tl.guidelines || data.guidelines || { dos: [], donts: [] }
+            ...tl,
+            procedureName: (tl.procedureName || tl.name || data.procedureName || data.name || '') as string,
+            description: (tl.description || data.description || '') as string,
+            preparationSteps: (tl.preparationSteps || tl.preparations || []) as unknown[],
+            guidelines: (tl.guidelines || data.guidelines || { dos: [], donts: [] }) as Record<string, unknown>
           };
         }
 
@@ -182,8 +189,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
     // 2.6 Listen to Users (Patients)
     const usersUnsubscribe = onSnapshot(collection(db, 'users'), (snapshot) => {
-      const userData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      const patientsOnly = userData.filter((u: any) => u.role === 'patient');
+      const userData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      const patientsOnly = userData.filter((u: Record<string, unknown>) => u.role === 'patient');
       setPatients(patientsOnly);
     }, (error) => {
       console.error("Error fetching users:", error);
@@ -222,6 +229,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const override = overrides.find(o => o.testGuideId === guide.id);
       return mergeOverrides(guide, override?.overrides);
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTestGuides(mergedGuides);
   }, [globalTestGuides, overrides]);
 

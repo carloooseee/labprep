@@ -4,8 +4,17 @@ import { db } from '../../firebase';
 import { collection, addDoc, onSnapshot, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 
+interface Broadcast {
+  id: string;
+  title: string;
+  message: string;
+  recipients: string;
+  date: string;
+  status: string;
+}
+
 export default function Notifications() {
-  const [broadcasts, setBroadcasts] = useState<any[]>([]);
+  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
   const [loading, setLoading] = useState(true);
   const [target, setTarget] = useState('All Users');
   const [title, setTitle] = useState('');

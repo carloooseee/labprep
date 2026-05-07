@@ -15,12 +15,29 @@ import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';
 import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
 
+interface PatientData {
+  displayName?: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  contact?: string;
+  address?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  hospitalId?: string;
+  status?: string;
+  role?: string;
+  id?: string;
+  uid?: string;
+  [key: string]: unknown;
+}
+
 export default function Patients() {
   const { patients, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter] = useState('All Status');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingPatient, setEditingPatient] = useState<any>(null);
+  const [editingPatient, setEditingPatient] = useState<PatientData | null>(null);
 
   if (loading) {
     return (
@@ -30,7 +47,7 @@ export default function Patients() {
     );
   }
 
-  const handleSave = async (data: any) => {
+  const handleSave = async (data: PatientData) => {
     try {
       if (editingPatient) {
         await setDoc(doc(db, 'users', editingPatient.id), data, { merge: true });
@@ -50,7 +67,7 @@ export default function Patients() {
     }
   };
 
-  const filteredPatients = patients.filter((patient) => {
+  const filteredPatients = (patients as PatientData[]).filter((patient) => {
     const query = searchQuery.toLowerCase();
     const nameMatch = (patient.displayName || patient.name || '').toLowerCase().includes(query);
     const emailMatch = (patient.email || '').toLowerCase().includes(query);
@@ -187,7 +204,14 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
   );
 }
 
-function AddPatientForm({ onClose, onSave, initialData, hospitals }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[] }) {
+function AddPatientForm({
+  onClose, onSave, initialData, hospitals
+}: {
+  onClose: () => void;
+  onSave: (data: PatientData) => void;
+  initialData?: PatientData | null;
+  hospitals: { id: string; name: string }[];
+}) {
   const [formData, setFormData] = useState(initialData || {
     displayName: '',
     email: '',

@@ -1,4 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { App as CapApp } from '@capacitor/app';
 import { AppProvider } from './patient/context/AppContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
@@ -41,11 +43,36 @@ function ProtectedRoute({ children, role }: { children: React.ReactNode, role?: 
   return <>{children}</>;
 }
 
+// Hardware back button handler (Android)
+function HardwareBackButton() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const handler = CapApp.addListener('backButton', () => {
+      // Home screens — exit the app
+      const exitPaths = ['/patient/home', '/admin/dashboard', '/login'];
+      if (exitPaths.includes(location.pathname)) {
+        CapApp.exitApp();
+      } else {
+        navigate(-1);
+      }
+    });
+
+    return () => {
+      handler.then(h => h.remove());
+    };
+  }, [navigate, location.pathname]);
+
+  return null;
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <AppProvider>
         <BrowserRouter>
+          <HardwareBackButton />
           <Routes>
             {/* Default Redirect to Login */}
             <Route path="/" element={<Navigate to="/login" replace />} />

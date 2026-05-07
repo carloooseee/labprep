@@ -4,13 +4,14 @@ import {
   BellAlertIcon as BellAlertIconOutline, 
   XMarkIcon, 
   TrashIcon,
-  SpeakerWaveIcon 
+  SpeakerWaveIcon,
+  PencilIcon
 } from '@heroicons/react/24/outline';
 import { BellAlertIcon, CheckCircleIcon } from '@heroicons/react/24/solid';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { db } from '../../firebase';
-import { collection, addDoc, onSnapshot, query, where, deleteDoc, doc, Timestamp } from 'firebase/firestore';
+import { collection, addDoc, onSnapshot, query, where, deleteDoc, doc, Timestamp, updateDoc } from 'firebase/firestore';
 
 interface Reminder {
   id: string;
@@ -35,6 +36,7 @@ export default function Notifications() {
   const [reminderType, setReminderType] = useState('Fasting');
   const [reminderDateTime, setReminderDateTime] = useState('');
   const [message, setMessage] = useState('');
+  const [editingReminderId, setEditingReminderId] = useState<string | null>(null);
 
   // 1. Fetch persistent reminders and sync with state
   useEffect(() => {
@@ -73,8 +75,10 @@ export default function Notifications() {
 
   useEffect(() => {
     if (testGuides.length > 0 && !selectedTestId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedTestId(testGuides[0].id);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [testGuides]);
 
   useEffect(() => {
@@ -110,7 +114,7 @@ export default function Notifications() {
       }
 
       // 2. Sound (Generated using Web Audio API to avoid external assets)
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       const oscillator = audioCtx.createOscillator();
       const gainNode = audioCtx.createGain();
 
@@ -208,6 +212,7 @@ export default function Notifications() {
       playNotificationFeedback(); // Immediate feedback
       alert("Test scheduled for 5 seconds from now. You can close the app to see it hit.");
     } catch (e) {
+      console.error(e);
       alert("Test failed. Check permissions.");
     }
   };
@@ -217,6 +222,44 @@ export default function Notifications() {
       await deleteDoc(doc(db, 'reminders', id));
     } catch (error) {
       console.error("Error deleting reminder:", error);
+    }
+  };
+
+  const handleEditReminder = (notif: Reminder & { message?: string; scheduledAt?: { seconds: number } }) => {
+    setEditingReminderId(notif.id);
+    setMessage(notif.message || notif.body || '');
+    if (notif.scheduledAt?.seconds) {
+      const d = new Date(notif.scheduledAt.seconds * 1000);
+      const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+      setReminderDateTime(local.toISOString().slice(0, 16));
+    } else {
+      setReminderDateTime('');
+    }
+    setIsModalOpen(true);
+  };
+
+  const scheduleOrUpdateReminder = async () => {
+    if (editingReminderId) {
+      // UPDATE existing reminder
+      if (!reminderDateTime) { alert('Please set a reminder date/time.'); return; }
+      const d = new Date(reminderDateTime);
+      try {
+        await updateDoc(doc(db, 'reminders', editingReminderId), {
+          message: message,
+          body: message,
+          scheduledAt: Timestamp.fromDate(d)
+        });
+        setIsModalOpen(false);
+        setEditingReminderId(null);
+        setMessage('');
+        setReminderDateTime('');
+        playNotificationFeedback();
+      } catch (err) {
+        console.error('Error updating reminder:', err);
+        alert('Failed to update reminder.');
+      }
+    } else {
+      scheduleReminder();
     }
   };
 
@@ -284,6 +327,9 @@ export default function Notifications() {
             alert('Please enable reminders in settings first.');
             return;
           }
+          setEditingReminderId(null);
+          setMessage('');
+          setReminderDateTime('');
           setIsModalOpen(true);
         }}
         className="w-full bg-gradient-to-r from-[#fe9a00] to-[#ff3000] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff3000]/20 active:scale-95 transition-all hover:shadow-xl hover:-translate-y-0.5"
@@ -321,12 +367,20 @@ export default function Notifications() {
                   }`}>{notif.title}</h4>
                   
                   {notif.type === 'reminder' && (
-                    <button 
-                      onClick={() => deleteReminder(notif.id)}
-                      className="text-gray-400 hover:text-red-500 transition-colors p-1"
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </button>
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => handleEditReminder(notif as Reminder & { message?: string; scheduledAt?: { seconds: number } })}
+                        className="text-gray-400 hover:text-blue-500 transition-colors p-1"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => deleteReminder(notif.id)}
+                        className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
                 </div>
                 <p className={`text-xs mt-1.5 font-body leading-relaxed ${
@@ -367,7 +421,9 @@ export default function Notifications() {
           <div className="relative w-full max-w-md bg-white rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in fade-in zoom-in-95 duration-200">
             
             <div className="flex justify-between items-center p-6 border-b border-[#e5e9eb] shrink-0">
-              <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight">Add New Reminder</h2>
+              <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight">
+                {editingReminderId ? 'Edit Reminder' : 'Add New Reminder'}
+              </h2>
               <button onClick={() => setIsModalOpen(false)} className="w-9 h-9 rounded-full bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors flex items-center justify-center shrink-0">
                 <XMarkIcon className="w-5 h-5" />
               </button>
@@ -440,16 +496,16 @@ export default function Notifications() {
 
             <div className="p-6 border-t border-[#e5e9eb] shrink-0 mt-auto flex gap-3 bg-white">
               <button 
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => { setIsModalOpen(false); setEditingReminderId(null); }}
                 className="flex-1 bg-white border-2 border-gray-100 text-gray-400 font-bold py-4 rounded-xl hover:bg-gray-50 active:scale-95 transition-all"
               >
                 Cancel
               </button>
               <button 
-                onClick={scheduleReminder}
+                onClick={scheduleOrUpdateReminder}
                 className="flex-1 bg-gradient-to-r from-[#fe9a00] to-[#ff3000] text-white font-bold py-4 rounded-xl shadow-lg shadow-[#ff3000]/20 active:scale-95 transition-all"
               >
-                Save
+                {editingReminderId ? 'Update' : 'Save'}
               </button>
             </div>
 

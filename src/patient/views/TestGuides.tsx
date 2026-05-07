@@ -54,8 +54,11 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
 
   useEffect(() => {
     if (src) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setImgSrc(src);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasError(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
     }
   }, [src]);
@@ -84,21 +87,28 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
   );
 };
 
-const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines' }) => {
-  const content = guide;
-  
+const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines', lang: 'EN' | 'PH' }) => {
+  const tl = (guide.translations?.tl ?? {}) as {
+    description?: string;
+    preparationSteps?: TestGuide['preparationSteps'];
+    guidelines?: TestGuide['guidelines'];
+  };
+  const description = lang === 'EN' ? guide.description : (tl.description || guide.description);
+  const preparationSteps = lang === 'EN' ? (guide.preparationSteps || []) : (tl.preparationSteps?.length ? tl.preparationSteps : (guide.preparationSteps || []));
+  const guidelines = lang === 'EN' ? guide.guidelines : ((tl.guidelines?.dos?.length || tl.guidelines?.donts?.length) ? tl.guidelines : guide.guidelines);
+  const fastingRequired = lang === 'EN' ? guide.fastingRequired : (guide.fastingRequiredFilipino || guide.fastingRequired);
   if (activeTab === 'Preparations') {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
         <p className="text-[15px] font-body leading-relaxed text-[var(--color-on-surface-variant)] border-b border-[#e5e9eb] pb-6">
-          {content.description}
+          {description}
         </p>
         <div>
           <h3 className="font-bold font-display text-lg mb-4 text-[var(--color-on-surface)]">
             Preparation Steps
           </h3>
           <div className="relative border-l-2 border-[#e5e9eb] ml-4 space-y-8 pb-4">
-            {content.preparationSteps?.map((step: any, idx: number) => (
+            {preparationSteps?.map((step: any, idx: number) => (
               <div key={idx} className="relative pl-6">
                 <div className="absolute -left-[17px] top-0 w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center text-lg border-[3px] border-white shadow-sm ring-1 ring-[#e5e9eb]">
                   {step.icon}
@@ -128,7 +138,7 @@ const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab
             What to Do
           </h4>
           <ul className="space-y-3 text-sm font-body text-emerald-900 leading-relaxed">
-            {content.guidelines?.dos?.map((item: any, idx: number) => (
+            {guidelines?.dos?.map((item: any, idx: number) => (
               <li key={idx} className="flex items-start gap-2.5">
                 <span className="shrink-0 text-base">{item.icon}</span> {item.text}
               </li>
@@ -143,7 +153,7 @@ const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab
             What to Avoid
           </h4>
           <ul className="space-y-3 text-sm font-body text-red-900 leading-relaxed">
-            {content.guidelines?.donts?.map((item: any, idx: number) => (
+            {guidelines?.donts?.map((item: any, idx: number) => (
               <li key={idx} className="flex items-start gap-2.5">
                 <span className="shrink-0 text-base">{item.icon}</span> {item.text}
               </li>
@@ -152,11 +162,11 @@ const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab
         </div>
       </div>
 
-      {content.fastingRequired && (
+      {fastingRequired && (
         <div className="bg-orange-50/50 p-5 rounded-2xl border border-orange-200/50 shadow-sm">
           <h4 className="font-bold font-display text-orange-800 mb-2 flex items-center gap-2">🍽️ Fasting Required</h4>
           <p className="text-sm font-body text-orange-900 leading-relaxed">
-            You must fast for {content.fastingRequired} before this test. Only water is typically allowed during fasting.
+            You must fast for {fastingRequired} before this test. Only water is typically allowed during fasting.
           </p>
         </div>
       )}
@@ -172,10 +182,12 @@ export default function TestGuides() {
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
+  const [lang, setLang] = useState<'EN' | 'PH'>('EN');
 
   useEffect(() => {
     const cat = searchParams.get('category');
     if (cat) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedCategory(cat);
     }
   }, [searchParams]);
@@ -373,12 +385,19 @@ export default function TestGuides() {
           
           {/* Main Content Area */}
           <div className={`flex flex-col flex-grow bg-white relative z-20 overflow-hidden ${hasVideo ? '' : '-mt-6 rounded-t-[2rem]'}`}>
-            <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
-              <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight mb-2">{selectedGuide.procedureName}</h2>
+              <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
+              <div className="flex justify-between items-start mb-2">
+                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight flex-1 mr-2">{lang === 'EN' ? selectedGuide.procedureName : (selectedGuide.procedureNameFilipino || selectedGuide.procedureName)}</h2>
+                {/* EN/PH Language Toggle */}
+                <div className="flex bg-gray-100 p-1 rounded-xl shrink-0">
+                  <button onClick={() => setLang('EN')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'EN' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>EN</button>
+                  <button onClick={() => setLang('PH')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'PH' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>PH</button>
+                </div>
+              </div>
               <div className="flex flex-wrap gap-2 mb-4">
                 {selectedGuide.fastingRequired && (
                   <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
-                    {selectedGuide.fastingRequired}
+                    {lang === 'EN' ? selectedGuide.fastingRequired : (selectedGuide.fastingRequiredFilipino || selectedGuide.fastingRequired)}
                   </span>
                 )}
                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
@@ -405,7 +424,7 @@ export default function TestGuides() {
 
             {/* Dynamic Scrollable Content */}
             <div className="p-5 pt-4 overflow-y-auto pb-24 h-full">
-              <GenericGuideContent guide={selectedGuide} activeTab={activeTab} />
+              <GenericGuideContent guide={selectedGuide} activeTab={activeTab} lang={lang} />
             </div>
           </div>
         </div>

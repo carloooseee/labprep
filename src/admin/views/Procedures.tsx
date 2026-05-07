@@ -11,11 +11,13 @@ import {
   TrashIcon,
   PencilSquareIcon,
   EyeIcon,
-  ArrowPathIcon
+  ArrowPathIcon,
+  ArrowUpTrayIcon
 } from '@heroicons/react/24/outline';
 import { useAppContext } from '../../patient/context/AppContext';
-import { db } from '../../firebase';
+import { db, storage } from '../../firebase';
 import { doc, setDoc, deleteDoc, collection, addDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Fallback Images
 import urinalysisImg from '../../assets/test-guides/urinalysis.png';
@@ -79,7 +81,7 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
 export default function Procedures() {
   const { testGuides, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('Choose categories');
+  const [categoryFilter, setCategoryFilter] = useState('Choose laboratory test');
   const [hospitalFilter, setHospitalFilter] = useState('All Hospitals');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
@@ -96,11 +98,11 @@ export default function Procedures() {
     'Imaging': 6
   };
 
-  const dynamicCategories = ['Choose categories', ...new Set(testGuides.map(p => p.category))]
+  const dynamicCategories = ['Choose laboratory test', ...new Set(testGuides.map(p => p.category))]
     .filter(Boolean)
     .sort((a, b) => {
-      if (a === 'Choose categories') return -1;
-      if (b === 'Choose categories') return 1;
+      if (a === 'Choose laboratory test') return -1;
+      if (b === 'Choose laboratory test') return 1;
       const pA = categoryPriority[a] || 999;
       const pB = categoryPriority[b] || 999;
       if (pA !== pB) return pA - pB;
@@ -113,7 +115,7 @@ export default function Procedures() {
     const descMatch = (proc.description || '').toLowerCase().includes(query);
     const matchesSearch = nameMatch || descMatch;
     
-    const matchesCategory = categoryFilter === 'Choose categories' || proc.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'Choose laboratory test' || proc.category === categoryFilter;
     const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospital === hospitalFilter;
     
     return matchesSearch && matchesCategory && matchesHospital;
@@ -374,67 +376,99 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 }
 
 function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[], categories: string[] }) {
+  const [lang, setLang] = useState<'EN' | 'PH'>('EN');
   const [formData, setFormData] = useState(initialData || {
     hospital: hospitals[0]?.id || '',
     procedureName: '',
+    procedureNameFilipino: '',
     category: categories[0] || 'Blood Test',
     description: '',
+    descriptionFilipino: '',
     imageUrl: '',
     defaultInstructions: '',
     preparationSteps: [],
+    preparationStepsFilipino: [],
     guidelines: { dos: [], donts: [] },
+    guidelinesFilipino: { dos: [], donts: [] },
     fastingRequired: '',
+    fastingRequiredFilipino: '',
     status: 'Active'
   });
+
+  const isEN = lang === 'EN';
+  const activeSteps = isEN ? formData.preparationSteps : (formData.preparationStepsFilipino || []);
+  const activeGuidelines = isEN ? (formData.guidelines || {}) : (formData.guidelinesFilipino || {});
+  const stepsKey = isEN ? 'preparationSteps' : 'preparationStepsFilipino';
+  const guidelinesKey = isEN ? 'guidelines' : 'guidelinesFilipino';
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setUploadingImage(true);
+      const storageRef = ref(storage, `procedures/${Date.now()}_${file.name}`);
+      const snapshot = await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      setFormData({ ...formData, imageUrl: downloadURL });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      alert("Failed to upload image. Please try again.");
+    } finally {
+      setUploadingImage(false);
+    }
+  };
 
   const addStep = () => {
     setFormData({
       ...formData,
-      preparationSteps: [...formData.preparationSteps, { icon: '📝', title: '', description: '' }]
+      [stepsKey]: [...activeSteps, { icon: '📝', title: '', description: '' }]
     });
   };
 
   const removeStep = (index: number) => {
-    const newSteps = [...formData.preparationSteps];
+    const newSteps = [...activeSteps];
     newSteps.splice(index, 1);
-    setFormData({ ...formData, preparationSteps: newSteps });
+    setFormData({ ...formData, [stepsKey]: newSteps });
   };
 
   const updateStep = (index: number, field: string, value: string) => {
-    const newSteps = [...formData.preparationSteps];
+    const newSteps = [...activeSteps];
     newSteps[index] = { ...newSteps[index], [field]: value };
-    setFormData({ ...formData, preparationSteps: newSteps });
+    setFormData({ ...formData, [stepsKey]: newSteps });
   };
 
   const addGuideline = (type: 'dos' | 'donts') => {
     setFormData({
       ...formData,
-      guidelines: {
-        ...formData.guidelines,
-        [type]: [...(formData.guidelines?.[type] || []), { icon: '📌', text: '' }]
+      [guidelinesKey]: {
+        ...activeGuidelines,
+        [type]: [...(activeGuidelines?.[type] || []), { icon: '📌', text: '' }]
       }
     });
   };
 
   const removeGuideline = (type: 'dos' | 'donts', index: number) => {
-    const newItems = [...(formData.guidelines?.[type] || [])];
+    const newItems = [...(activeGuidelines?.[type] || [])];
     newItems.splice(index, 1);
     setFormData({
       ...formData,
-      guidelines: {
-        ...formData.guidelines,
+      [guidelinesKey]: {
+        ...activeGuidelines,
         [type]: newItems
       }
     });
   };
 
   const updateGuideline = (type: 'dos' | 'donts', index: number, field: string, value: string) => {
-    const newItems = [...(formData.guidelines?.[type] || [])];
+    const newItems = [...(activeGuidelines?.[type] || [])];
     newItems[index] = { ...newItems[index], [field]: value };
     setFormData({
       ...formData,
-      guidelines: {
-        ...formData.guidelines,
+      [guidelinesKey]: {
+        ...activeGuidelines,
         [type]: newItems
       }
     });
@@ -447,6 +481,14 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      {/* Language Switcher */}
+      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-200">
+        <span className="text-sm font-bold text-gray-700">Editing Language</span>
+        <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
+          <button type="button" onClick={() => setLang('EN')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${lang === 'EN' ? 'bg-blue-600 text-white shadow' : 'text-gray-500'}`}>🇺🇸 English</button>
+          <button type="button" onClick={() => setLang('PH')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${lang === 'PH' ? 'bg-blue-600 text-white shadow' : 'text-gray-500'}`}>🇵🇭 Filipino</button>
+        </div>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Hospital</label>
@@ -463,36 +505,66 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Procedure Name</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Procedure Name {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          </label>
           <input 
             type="text" 
-            value={formData.procedureName}
-            onChange={(e) => setFormData({ ...formData, procedureName: e.target.value })}
+            value={isEN ? formData.procedureName : (formData.procedureNameFilipino || '')}
+            onChange={(e) => setFormData({ ...formData, [isEN ? 'procedureName' : 'procedureNameFilipino']: e.target.value })}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
-            required
+            required={isEN}
           />
         </div>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+          Description {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+        </label>
         <textarea 
           rows={2}
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          value={isEN ? formData.description : (formData.descriptionFilipino || '')}
+          onChange={(e) => setFormData({ ...formData, [isEN ? 'description' : 'descriptionFilipino']: e.target.value })}
           className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none"
         />
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Image URL</label>
-        <input 
-          type="text" 
-          value={formData.imageUrl || ''}
-          onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
-          placeholder="https://example.com/image.jpg"
-        />
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Procedure Image</label>
+        <div className="flex items-center space-x-4">
+          {formData.imageUrl && (
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 border border-gray-200 shrink-0">
+              <img src={formData.imageUrl} alt="Procedure" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <label className={`flex-1 flex justify-center items-center px-4 py-3 border-2 border-dashed border-gray-300 rounded-xl cursor-pointer hover:bg-gray-50 transition-colors ${uploadingImage ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className="flex items-center space-x-2 text-sm text-gray-600">
+              {uploadingImage ? (
+                <ArrowPathIcon className="w-5 h-5 animate-spin" />
+              ) : (
+                <ArrowUpTrayIcon className="w-5 h-5" />
+              )}
+              <span className="font-medium">{uploadingImage ? 'Uploading...' : 'Upload Image'}</span>
+            </div>
+            <input 
+              type="file" 
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+              disabled={uploadingImage}
+            />
+          </label>
+        </div>
+        {formData.imageUrl && (
+          <button 
+            type="button" 
+            onClick={() => setFormData({ ...formData, imageUrl: '' })}
+            className="text-xs text-red-500 hover:text-red-600 font-medium mt-2"
+          >
+            Remove Image
+          </button>
+        )}
       </div>
 
       <div>
@@ -508,13 +580,15 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium text-gray-700">Preparation Steps</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Preparation Steps {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          </label>
           <button type="button" onClick={addStep} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Step
           </button>
         </div>
         <div className="space-y-3">
-          {formData.preparationSteps.map((step: any, idx: number) => (
+          {activeSteps.map((step: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
               <input type="text" value={step.icon} onChange={(e) => updateStep(idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
               <div className="flex-1 space-y-2">
@@ -529,13 +603,15 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium text-gray-700">Testing Guidelines (What to Do)</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Testing Guidelines – What to Do {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          </label>
           <button type="button" onClick={() => addGuideline('dos')} className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Do
           </button>
         </div>
         <div className="space-y-3">
-          {(formData.guidelines?.dos || []).map((item: any, idx: number) => (
+          {(activeGuidelines.dos || []).map((item: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
               <input type="text" value={item.icon} onChange={(e) => updateGuideline('dos', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
               <div className="flex-1">
@@ -549,13 +625,15 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
       <div>
         <div className="flex justify-between items-center mb-2">
-          <label className="block text-sm font-medium text-gray-700">Testing Guidelines (To Avoid)</label>
+          <label className="block text-sm font-medium text-gray-700">
+            Testing Guidelines – To Avoid {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          </label>
           <button type="button" onClick={() => addGuideline('donts')} className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Don't
           </button>
         </div>
         <div className="space-y-3">
-          {(formData.guidelines?.donts || []).map((item: any, idx: number) => (
+          {(activeGuidelines.donts || []).map((item: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100/50">
               <input type="text" value={item.icon} onChange={(e) => updateGuideline('donts', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
               <div className="flex-1">
@@ -569,8 +647,10 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
       <div className="grid grid-cols-1 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">Fasting Required</label>
-          <input type="text" value={formData.fastingRequired} onChange={(e) => setFormData({ ...formData, fastingRequired: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Fasting Required {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          </label>
+          <input type="text" value={isEN ? formData.fastingRequired : (formData.fastingRequiredFilipino || '')} onChange={(e) => setFormData({ ...formData, [isEN ? 'fastingRequired' : 'fastingRequiredFilipino']: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
         </div>
       </div>
 
@@ -582,7 +662,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
   );
 }
 
-function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () => void }) {
+function ProcedureDetails({ procedure, onClose }: { procedure: import('../../patient/context/AppContext').TestGuide, onClose: () => void }) {
   const { hospitals } = useAppContext();
   if (!procedure) return null;
 
@@ -601,7 +681,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
           <h4 className="text-2xl font-bold text-gray-900">{procedure.procedureName}</h4>
           <div className="flex items-center text-sm text-gray-500 mt-0.5">
             <BuildingOfficeIcon className="w-4 h-4 mr-1.5" />
-            {hospitals.find((h: any) => h.id === procedure.hospital)?.name || 'Global Procedure'}
+            {hospitals.find((h: { id: string; name: string }) => h.id === procedure.hospital)?.name || 'Global Procedure'}
           </div>
         </div>
       </div>
@@ -624,7 +704,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
       <div>
         <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Steps</h5>
         <div className="space-y-2">
-          {procedure.preparationSteps?.map((step: any, idx: number) => (
+          {procedure.preparationSteps?.map((step: { icon: string; title: string; description: string }, idx: number) => (
             <div key={idx} className="flex items-start gap-3 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
               <span className="text-lg shrink-0">{step.icon}</span>
               <div className="flex-1">
@@ -648,7 +728,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
               What to Do
             </h6>
             <ul className="space-y-2">
-              {procedure.guidelines?.dos?.map((item: any, idx: number) => (
+              {procedure.guidelines?.dos?.map((item: { icon: string; text: string }, idx: number) => (
                 <li key={idx} className="flex gap-2 text-[10px] text-emerald-900 leading-tight">
                   <span className="shrink-0">{item.icon}</span> {item.text}
                 </li>
@@ -662,7 +742,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
               To Avoid
             </h6>
             <ul className="space-y-2">
-              {procedure.guidelines?.donts?.map((item: any, idx: number) => (
+              {procedure.guidelines?.donts?.map((item: { icon: string; text: string }, idx: number) => (
                 <li key={idx} className="flex gap-2 text-[10px] text-red-900 leading-tight">
                   <span className="shrink-0">{item.icon}</span> {item.text}
                 </li>

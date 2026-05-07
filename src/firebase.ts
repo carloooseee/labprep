@@ -2,6 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 import { initializeFirestore, persistentLocalCache } from "firebase/firestore";
 import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getStorage } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -21,6 +22,8 @@ const db = initializeFirestore(app, {
   localCache: persistentLocalCache()
 });
 const auth = getAuth(app);
+const storage = getStorage(app);
+
 setPersistence(auth, browserLocalPersistence).catch(console.error);
 
-export { app, analytics, db, auth };
+export { app, analytics, db, auth, storage };
