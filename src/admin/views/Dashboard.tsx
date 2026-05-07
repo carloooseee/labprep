@@ -72,7 +72,7 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-500">{item.action}</p>
                   </div>
                   <span className="text-[10px] text-gray-400 font-medium">
-                    {item.timestamp?.toDate ? item.timestamp.toDate().toLocaleTimeString() : 'Just now'}
+                    {typeof (item.timestamp as any)?.toDate === 'function' ? (item.timestamp as any).toDate().toLocaleTimeString() : 'Just now'}
                   </span>
                 </div>
               ))}

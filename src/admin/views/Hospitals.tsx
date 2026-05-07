@@ -37,7 +37,7 @@ export default function Hospitals() {
   const handleSave = async (data: HospitalData) => {
     try {
       if (editingHospital) {
-        await setDoc(doc(db, 'hospitals', editingHospital.id), {
+        await setDoc(doc(db, 'hospitals', editingHospital.id as string), {
           ...data,
           procedureName: data.name // Always sync procedureName with name as requested
         }, { merge: true });

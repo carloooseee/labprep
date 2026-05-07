@@ -50,7 +50,7 @@ export default function Patients() {
   const handleSave = async (data: PatientData) => {
     try {
       if (editingPatient) {
-        await setDoc(doc(db, 'users', editingPatient.id), data, { merge: true });
+        await setDoc(doc(db, 'users', editingPatient.id as string), data, { merge: true });
       } else {
         const docRef = await addDoc(collection(db, 'users'), {
           ...data,

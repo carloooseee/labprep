@@ -227,7 +227,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const mergedGuides = globalTestGuides.map(guide => {
       const override = overrides.find(o => o.testGuideId === guide.id);
-      return mergeOverrides(guide, override?.overrides);
+      return mergeOverrides(guide, override?.overrides as Record<string, any> | undefined);
     });
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setTestGuides(mergedGuides);

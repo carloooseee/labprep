@@ -78,8 +78,8 @@ export default function Profile() {
         {isEditing ? (
           <input 
             type="text"
-            value={formData.displayName}
-            onChange={(e) => setFormData({...formData, displayName: e.target.value})}
+            value={formData?.displayName || ''}
+            onChange={(e) => setFormData(formData ? {...formData, displayName: e.target.value} : null)}
             className="text-2xl font-extrabold font-display text-center bg-gray-50 border-b-2 border-blue-500 outline-none w-full max-w-xs pb-1"
             placeholder="Your Full Name"
           />
@@ -110,7 +110,7 @@ export default function Profile() {
         <ProfileField 
           icon={<PhoneIcon className="w-5 h-5" />} 
           label="Phone Number" 
-          value={isEditing ? formData?.phone : profile.phone || 'No phone set'} 
+          value={isEditing ? (formData?.phone || '') : (profile.phone || 'No phone set')} 
           isEditing={isEditing}
           onChange={(val: string) => setFormData(formData ? {...formData, phone: val} : null)}
           type="text"
@@ -120,7 +120,7 @@ export default function Profile() {
         <ProfileField 
           icon={<MapPinIcon className="w-5 h-5" />} 
           label="Home Address" 
-          value={isEditing ? formData?.address : profile.address || 'No address set'} 
+          value={isEditing ? (formData?.address || '') : (profile.address || 'No address set')} 
           isEditing={isEditing}
           onChange={(val: string) => setFormData(formData ? {...formData, address: val} : null)}
           type="textarea"
@@ -131,7 +131,7 @@ export default function Profile() {
           <ProfileField 
             icon={<CalendarIcon className="w-5 h-5" />} 
             label="Date of Birth" 
-            value={isEditing ? formData?.dateOfBirth : profile.dateOfBirth || 'Not set'} 
+            value={isEditing ? (formData?.dateOfBirth || '') : (profile.dateOfBirth || 'Not set')} 
             isEditing={isEditing}
             onChange={(val: string) => setFormData(formData ? {...formData, dateOfBirth: val} : null)}
             type="date"
@@ -139,7 +139,7 @@ export default function Profile() {
           <ProfileField 
             icon={<UserIcon className="w-5 h-5" />} 
             label="Gender" 
-            value={isEditing ? formData?.gender : profile.gender || 'Not set'} 
+            value={isEditing ? (formData?.gender || '') : (profile.gender || 'Not set')} 
             isEditing={isEditing}
             onChange={(val: string) => setFormData(formData ? {...formData, gender: val} : null)}
             type="select"
@@ -222,7 +222,7 @@ function ProfileField({
               onChange={(e) => onChange(e.target.value)}
               className="w-full bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-sm font-bold mt-1 outline-none focus:border-blue-500"
             >
-              {options.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
+              {options?.map((opt: string) => <option key={opt} value={opt}>{opt}</option>)}
             </select>
           ) : (
             <input 

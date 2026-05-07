@@ -448,7 +448,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       const downloadURL = await getDownloadURL(snapshot.ref);
       
       // Use functional state update to prevent stale closure overwriting user's typing
-      setFormData(prev => ({ ...prev, imageUrl: downloadURL }));
+      setFormData((prev: any) => ({ ...prev, imageUrl: downloadURL }));
     } catch (error) {
       console.error("Error uploading image:", error);
       alert("Failed to upload image. Please check your internet connection and try again.");

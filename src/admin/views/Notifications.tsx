@@ -25,7 +25,7 @@ export default function Notifications() {
   useEffect(() => {
     const q = query(collection(db, 'broadcasts'), orderBy('date', 'desc'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Broadcast));
       setBroadcasts(data);
       setLoading(false);
     });
