@@ -417,8 +417,8 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     defaultInstructions: '',
     preparationSteps: [],
     preparationStepsFilipino: [],
-    guidelines: { dos: [], donts: [] },
-    guidelinesFilipino: { dos: [], donts: [] },
+    guidelines: { dos: [], donts: [], whatToKnow: [] },
+    guidelinesFilipino: { dos: [], donts: [], whatToKnow: [] },
     fastingRequired: '',
     fastingRequiredFilipino: '',
     status: 'Active'
@@ -478,7 +478,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     setFormData({ ...formData, [stepsKey]: newSteps });
   };
 
-  const addGuideline = (type: 'dos' | 'donts') => {
+  const addGuideline = (type: 'dos' | 'donts' | 'whatToKnow') => {
     setFormData({
       ...formData,
       [guidelinesKey]: {
@@ -488,7 +488,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     });
   };
 
-  const removeGuideline = (type: 'dos' | 'donts', index: number) => {
+  const removeGuideline = (type: 'dos' | 'donts' | 'whatToKnow', index: number) => {
     const newItems = [...(activeGuidelines?.[type] || [])];
     newItems.splice(index, 1);
     setFormData({
@@ -500,7 +500,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     });
   };
 
-  const updateGuideline = (type: 'dos' | 'donts', index: number, field: string, value: string) => {
+  const updateGuideline = (type: 'dos' | 'donts' | 'whatToKnow', index: number, field: string, value: string) => {
     const newItems = [...(activeGuidelines?.[type] || [])];
     newItems[index] = { ...newItems[index], [field]: value };
     setFormData({
@@ -717,6 +717,28 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
         </div>
       </div>
 
+      <div>
+        <div className="flex justify-between items-center mb-2">
+          <label className="block text-sm font-medium text-gray-700">
+            Testing Guidelines – What to Know {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          </label>
+          <button type="button" onClick={() => addGuideline('whatToKnow')} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center">
+            <PlusIcon className="w-3 h-3 mr-1" /> Add Note
+          </button>
+        </div>
+        <div className="space-y-3">
+          {(activeGuidelines.whatToKnow || []).map((item: any, idx: number) => (
+            <div key={idx} className="flex gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+              <input type="text" value={item.icon} onChange={(e) => updateGuideline('whatToKnow', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <div className="flex-1">
+                <input type="text" value={item.text} onChange={(e) => updateGuideline('whatToKnow', idx, 'text', e.target.value)} placeholder="What to know" className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" />
+              </div>
+              <button type="button" onClick={() => removeGuideline('whatToKnow', idx)} className="text-gray-400 hover:text-red-500 flex items-center"><XMarkIcon className="w-4 h-4" /></button>
+            </div>
+          ))}
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
@@ -820,6 +842,20 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
                 </li>
               ))}
               {!procedure.guidelines?.donts?.length && <li className="text-[10px] text-red-600/50 italic">None</li>}
+            </ul>
+          </div>
+          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 col-span-2">
+            <h6 className="text-[10px] font-bold text-blue-800 uppercase mb-2 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+              What to Know
+            </h6>
+            <ul className="space-y-2">
+              {procedure.guidelines?.whatToKnow?.map((item: { icon: string; text: string }, idx: number) => (
+                <li key={idx} className="flex gap-2 text-[10px] text-blue-900 leading-tight">
+                  <span className="shrink-0">{item.icon}</span> {item.text}
+                </li>
+              ))}
+              {!procedure.guidelines?.whatToKnow?.length && <li className="text-[10px] text-blue-600/50 italic">None</li>}
             </ul>
           </div>
         </div>

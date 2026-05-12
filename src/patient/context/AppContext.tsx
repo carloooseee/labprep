@@ -31,8 +31,8 @@ export interface TestGuide {
   defaultInstructions?: string;
   preparationSteps: { icon: string; title: string; description: string; timing?: string }[];
   preparationStepsFilipino?: { icon: string; title: string; description: string; timing?: string }[];
-  guidelines: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[] };
-  guidelinesFilipino?: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[] };
+  guidelines: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[]; whatToKnow?: { icon: string; text: string }[] };
+  guidelinesFilipino?: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[]; whatToKnow?: { icon: string; text: string }[] };
   translations?: Record<string, unknown>;
   hospital?: string;
   status?: string;
@@ -132,7 +132,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
             procedureName: (tl.procedureName || tl.name || data.procedureName || data.name || '') as string,
             description: (tl.description || data.description || '') as string,
             preparationSteps: (tl.preparationSteps || tl.preparations || []) as unknown[],
-            guidelines: (tl.guidelines || data.guidelines || { dos: [], donts: [] }) as Record<string, unknown>
+            guidelines: (tl.guidelines || data.guidelines || { dos: [], donts: [], whatToKnow: [] }) as Record<string, unknown>
           };
         }
 
@@ -148,7 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           hospital: data.hospital || data.hospitalId || '',
           status: data.status || 'Active',
           imageUrl: data.imageUrl || '',
-          guidelines: data.guidelines || { dos: [], donts: [] },
+          guidelines: data.guidelines || { dos: [], donts: [], whatToKnow: [] },
           translations: normalizedTranslations
         } as TestGuide;
       }).sort((a, b) => a.procedureName.localeCompare(b.procedureName));

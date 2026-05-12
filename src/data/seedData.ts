@@ -36,6 +36,9 @@ export const testGuides = [
       ],
       donts: [
         { icon: '🍽️', text: 'Some tests truly require fasting (Blood Sugar, Triglycerides). If you eat, those results will be wrong.' }
+      ],
+      whatToKnow: [
+        { icon: '📋', text: 'Fasting helps establish a baseline for your metabolic health.' }
       ]
     },
     status: 'Active'
@@ -59,6 +62,9 @@ export const testGuides = [
       ],
       donts: [
         { icon: '☕', text: 'Avoid any food, juice, tea with sugar, or coffee with cream.' }
+      ],
+      whatToKnow: [
+        { icon: '🩺', text: 'FBS is a primary screening tool for diabetes.' }
       ]
     }
   },

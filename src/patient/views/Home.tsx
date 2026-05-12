@@ -202,34 +202,7 @@ export default function Home() {
           </Link>
         </div>
 
-        {/* Laboratory Test Categories Section */}
-        <div className="mt-10 mb-4 flex justify-between items-end">
-          <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)]">Laboratory Test Categories</h3>
-          <Link to="/patient/test-guides" className="text-sm font-bold text-[var(--color-primary)]">See all</Link>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-3 pb-2">
-          {dynamicCategories.map(category => {
-            const procCount = testGuides.filter(p => p.category === category).length;
-            return (
-              <Link 
-                key={category}
-                to={`/patient/test-guides?category=${encodeURIComponent(category)}`}
-                className="bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] transition-transform active:scale-95 flex flex-col h-full items-center text-center justify-center space-y-3"
-              >
-                <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
-                  <TagIcon className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold font-display text-gray-800 text-sm leading-tight mb-1">{category}</h4>
-                  <p className="text-[10px] font-body text-[var(--color-on-surface-variant)] uppercase tracking-wider font-bold">
-                    {procCount} {procCount === 1 ? 'Test' : 'Tests'}
-                  </p>
-                </div>
-              </Link>
-            );
-          })}
-        </div>
+        {/* Laboratory Test Categories Section Removed */}
 
       </div>
     </div>
