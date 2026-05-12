@@ -14,6 +14,7 @@ import HospitalPicker from './patient/views/HospitalPicker';
 import TestGuides from './patient/views/TestGuides';
 import Notifications from './patient/views/Notifications';
 import Profile from './patient/views/Profile';
+import GeneralGuidelines from './patient/views/GeneralGuidelines';
 
 // Admin Views
 import AdminLayout from './admin/components/AdminLayout';
@@ -91,6 +92,7 @@ export default function App() {
               <Route path="test-guides" element={<TestGuides />} />
               <Route path="notifications" element={<Notifications />} />
               <Route path="profile" element={<Profile />} />
+              <Route path="general-guidelines" element={<GeneralGuidelines />} />
             </Route>
 
             {/* Admin Application Routes */}

@@ -181,12 +181,12 @@ export default function Home() {
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </Link> */}
           
-          <Link to="/patient/test-guides" className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] border-t-4 border-t-purple-500 hover:scale-[1.01] transition-transform overflow-hidden">
+          <Link to="/patient/hospitals" className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] border-t-4 border-t-purple-500 hover:scale-[1.01] transition-transform overflow-hidden">
             <div className="flex items-center space-x-4">
               <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center">
-                <DocumentTextIcon className="w-6 h-6" />
+                <BuildingOfficeIcon className="w-6 h-6" />
               </div>
-              <span className="font-bold font-display text-gray-800">Test Guides</span>
+              <span className="font-bold font-display text-gray-800">Hospitals</span>
             </div>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </Link>
@@ -197,6 +197,19 @@ export default function Home() {
                 <BellAlertIcon className="w-6 h-6" />
               </div>
               <span className="font-bold font-display text-gray-800">Reminders</span>
+            </div>
+            <ChevronRightIcon className="w-5 h-5 text-gray-400" />
+          </Link>
+          
+          <Link to="/patient/general-guidelines" className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-[#e5e9eb] border-t-4 border-t-blue-500 hover:scale-[1.01] transition-transform overflow-hidden">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
+                <DocumentTextIcon className="w-6 h-6" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-bold font-display text-gray-800 leading-tight">What to do</span>
+                <span className="text-[10px] text-gray-500 font-medium uppercase tracking-wider">general</span>
+              </div>
             </div>
             <ChevronRightIcon className="w-5 h-5 text-gray-400" />
           </Link>

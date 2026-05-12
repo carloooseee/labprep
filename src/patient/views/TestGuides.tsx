@@ -4,7 +4,9 @@ import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { App as CapApp } from '@capacitor/app';
-import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mp4';
+import { db } from '../../firebase';
+import { doc, getDoc } from 'firebase/firestore';
+import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mov';
 import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
 import fecalysiaVideo from '../../assets/fecalysia.mov';
 
@@ -56,11 +58,8 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
 
   useEffect(() => {
     if (src) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setImgSrc(src);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setHasError(false);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLoading(true);
     }
   }, [src]);
@@ -99,6 +98,7 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
   const preparationSteps = lang === 'EN' ? (guide.preparationSteps || []) : (tl.preparationSteps?.length ? tl.preparationSteps : (guide.preparationSteps || []));
   const guidelines = lang === 'EN' ? guide.guidelines : ((tl.guidelines?.dos?.length || tl.guidelines?.donts?.length) ? tl.guidelines : guide.guidelines);
   const fastingRequired = lang === 'EN' ? guide.fastingRequired : (guide.fastingRequiredFilipino || guide.fastingRequired);
+  
   if (activeTab === 'Preparations') {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -116,7 +116,6 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
             videoSrc = urineVideo;
             videoTitle = "Urine Collection Guide";
           } else if (procName.includes('stool') || procName.includes('fecalysis')) {
-            // For stool/fecalysis, we can show both or just one. User specifically asked for fecalysia.
             videoSrc = fecalysiaVideo; 
             videoTitle = "Fecalysis Collection Guide";
           }
@@ -137,7 +136,6 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
                 className="w-full aspect-video outline-none"
                 poster={guide.imageUrl}
               />
-              {/* Optional: Add second video for stool if it's Fecalysis */}
               {procName.includes('stool') && stoolVideo && (
                 <div className="mt-4 p-4 bg-gray-900 border-t border-gray-800">
                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Alternative: Stool Prep Guide</p>
@@ -175,7 +173,6 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300 overflow-x-hidden">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Do's */}
         <div className="bg-emerald-50/50 p-5 rounded-2xl border border-emerald-100/50 shadow-sm">
           <h4 className="font-bold font-display text-emerald-800 mb-4 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
@@ -190,7 +187,6 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
           </ul>
         </div>
 
-        {/* Dont's */}
         <div className="bg-red-50/50 p-5 rounded-2xl border border-red-100/50 shadow-sm">
           <h4 className="font-bold font-display text-red-800 mb-4 flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-red-400"></span>
@@ -206,7 +202,6 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
         </div>
       </div>
       
-      {/* What to Know Section */}
       {guidelines?.whatToKnow && guidelines.whatToKnow.length > 0 && (
         <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100/50 shadow-sm">
           <h4 className="font-bold font-display text-blue-800 mb-4 flex items-center gap-2">
@@ -236,11 +231,31 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
 };
 
 export default function TestGuides() {
-  const { testGuides, loading } = useAppContext();
+  const { testGuides, hospitals, loading } = useAppContext();
+  const [searchParams] = useSearchParams();
+  const hospitalId = searchParams.get('hospitalId');
+  const selectedHospital = hospitals.find(h => h.id === hospitalId);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
   const [lang, setLang] = useState<'EN' | 'PH'>('EN');
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+
+  useEffect(() => {
+    const fetchPricing = async () => {
+      try {
+        const snap = await getDoc(doc(db, 'settings', 'pricing'));
+        if (snap.exists()) {
+          setGlobalPricingUrl(snap.data().url || '');
+        }
+      } catch (err) {
+        console.error("Error fetching global pricing:", err);
+      }
+    };
+    fetchPricing();
+  }, []);
 
   useEffect(() => {
     let handler: any = null;
@@ -315,15 +330,17 @@ export default function TestGuides() {
       </div>
 
       {/* Pricing Button */}
-      <div className="mb-8">
-        <button 
-          onClick={() => { /* Modal to show pricing image goes here later */ }}
-          className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold font-display py-3 px-4 rounded-xl shadow-lg transition-colors flex items-center justify-center space-x-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-          <span>Pricing</span>
-        </button>
-      </div>
+      {globalPricingUrl && (
+        <div className="mb-8">
+          <button 
+            onClick={() => setIsPricingModalOpen(true)}
+            className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold font-display py-3 px-4 rounded-xl shadow-lg transition-colors flex items-center justify-center space-x-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Laboratory Pricing</span>
+          </button>
+        </div>
+      )}
 
       {filteredGuides.length === 0 ? (
         <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this criteria.</p>
@@ -385,7 +402,6 @@ export default function TestGuides() {
 
         return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-10 duration-300">
-          {/* Full Screen Header Hero */}
           <div className="aspect-video w-full max-h-[35vh] relative shrink-0 bg-black">
             {isUrineVideo ? (
               <video src={urineVideo} controls playsInline className="w-full h-full object-contain" />
@@ -412,12 +428,10 @@ export default function TestGuides() {
             </button>
           </div>
           
-          {/* Main Content Area */}
           <div className={`flex flex-col flex-grow bg-white relative z-20 overflow-hidden ${hasVideo ? '' : '-mt-6 rounded-t-[2rem]'}`}>
-              <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
+            <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
               <div className="flex justify-between items-start mb-2">
                 <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight flex-1 mr-2">{lang === 'EN' ? selectedGuide.procedureName : (selectedGuide.procedureNameFilipino || selectedGuide.procedureName)}</h2>
-                {/* EN/PH Language Toggle */}
                 <div className="flex bg-gray-100 p-1 rounded-xl shrink-0">
                   <button onClick={() => setLang('EN')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'EN' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>EN</button>
                   <button onClick={() => setLang('PH')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'PH' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>PH</button>
@@ -434,7 +448,6 @@ export default function TestGuides() {
                 </span>
               </div>
               
-              {/* Segmented Tab Control */}
               <div className="flex bg-[var(--color-surface-container-highest)] p-1 rounded-xl shadow-inner">
                 <button 
                   className={`flex-1 py-3 text-sm font-bold font-body rounded-lg transition-all ${activeTab === 'Preparations' ? 'bg-white text-[var(--color-primary)] shadow border border-gray-100' : 'text-gray-500 hover:text-gray-700'}`}
@@ -451,7 +464,6 @@ export default function TestGuides() {
               </div>
             </div>
 
-            {/* Dynamic Scrollable Content */}
             <div className="p-5 pt-4 overflow-y-auto pb-24 h-full">
               <GenericGuideContent guide={selectedGuide} activeTab={activeTab} lang={lang} />
             </div>
@@ -460,6 +472,32 @@ export default function TestGuides() {
         );
       })()}
 
+      {/* Pricing Modal */}
+      {isPricingModalOpen && globalPricingUrl && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative w-full max-w-4xl max-h-[90vh] bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+            <div className="p-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <h3 className="font-display font-bold text-gray-900">Laboratory Pricing List</h3>
+              <button 
+                onClick={() => setIsPricingModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <XMarkIcon className="w-6 h-6 text-gray-400" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto bg-gray-50 p-4 flex items-center justify-center">
+              <img 
+                src={globalPricingUrl} 
+                alt="Laboratory Pricing"
+                className="max-w-full h-auto rounded-lg shadow-sm"
+              />
+            </div>
+            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-500 font-body">
+              Prices are subject to change without prior notice. Please contact the laboratory directly for confirmation.
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

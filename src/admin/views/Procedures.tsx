@@ -12,11 +12,12 @@ import {
   PencilSquareIcon,
   EyeIcon,
   ArrowPathIcon,
-  ArrowUpTrayIcon
+  ArrowUpTrayIcon,
+  DocumentTextIcon
 } from '@heroicons/react/24/outline';
 import { useAppContext } from '../../patient/context/AppContext';
 import { db, storage } from '../../firebase';
-import { doc, setDoc, deleteDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc, deleteDoc, collection, addDoc, getDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 // Fallback Images
@@ -85,6 +86,17 @@ export default function Procedures() {
   const [hospitalFilter, setHospitalFilter] = useState('All Hospitals');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
+  const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
+  const [isGuidelinesModalOpen, setIsGuidelinesModalOpen] = useState(false);
+  const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+  const [generalGuidelines, setGeneralGuidelines] = useState<any>({
+    rules: '',
+    dos: '',
+    donts: ''
+  });
+  const [isSavingPricing, setIsSavingPricing] = useState(false);
+  const [isSavingGuidelines, setIsSavingGuidelines] = useState(false);
+  const [uploadingPricing, setUploadingPricing] = useState(false);
   const [editingProcedure, setEditingProcedure] = useState<any>(null);
   const [viewingProcedure, setViewingProcedure] = useState<any>(null);
   const [procedureToDelete, setProcedureToDelete] = useState<any>(null);
@@ -99,6 +111,26 @@ export default function Procedures() {
     'Imaging': 6,
     'Other Test': 7
   };
+
+  // Fetch global settings on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const pricingSnap = await getDoc(doc(db, 'settings', 'pricing'));
+        if (pricingSnap.exists()) {
+          setGlobalPricingUrl(pricingSnap.data().url || '');
+        }
+
+        const guidelinesSnap = await getDoc(doc(db, 'settings', 'generalGuidelines'));
+        if (guidelinesSnap.exists()) {
+          setGeneralGuidelines(guidelinesSnap.data());
+        }
+      } catch (err) {
+        console.error("Error fetching settings:", err);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const dynamicCategories = ['Other Test', ...new Set(testGuides.map(p => p.category))]
     .filter(c => c && c !== 'Choose laboratory test' && c !== 'Choose categories' && c !== 'All')
@@ -203,13 +235,29 @@ export default function Procedures() {
             </select>
           </div>
 
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center space-x-2 bg-[#1d2530] hover:bg-black text-white px-8 py-3 rounded-xl transition-all font-medium shadow-sm active:scale-[0.98]"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>Add Procedure</span>
-          </button>
+          <div className="flex flex-wrap gap-3">
+            <button 
+              onClick={() => setIsGuidelinesModalOpen(true)}
+              className="flex items-center justify-center space-x-2 bg-blue-50 text-blue-700 hover:bg-blue-100 px-6 py-3 rounded-xl transition-all font-bold border border-blue-200/50 shadow-sm"
+            >
+              <DocumentTextIcon className="w-5 h-5" />
+              <span>General What to do</span>
+            </button>
+            <button 
+              onClick={() => setIsPricingModalOpen(true)}
+              className="flex items-center justify-center space-x-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-6 py-3 rounded-xl transition-all font-bold border border-emerald-200/50 shadow-sm"
+            >
+              <ShieldCheckIcon className="w-5 h-5" />
+              <span>Pricing Photos</span>
+            </button>
+            <button 
+              onClick={() => { setEditingProcedure(null); setIsModalOpen(true); }}
+              className="flex items-center justify-center space-x-2 bg-[#1d2530] hover:bg-black text-white px-8 py-3 rounded-xl transition-all font-medium shadow-sm active:scale-[0.98]"
+            >
+              <PlusIcon className="w-5 h-5" />
+              <span>Add Procedure</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -376,6 +424,171 @@ export default function Procedures() {
               className="px-6 py-2.5 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-colors shadow-sm"
             >
               Yes, Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Global Pricing Management Modal */}
+      <Modal 
+        isOpen={isPricingModalOpen} 
+        onClose={() => setIsPricingModalOpen(false)} 
+        title="Manage Pricing Photo"
+      >
+        <div className="space-y-6">
+          <p className="text-sm text-gray-500 text-center">Upload or set the pricing image that will be shown to all patients on the Test Guides page.</p>
+          
+          <div className="pt-2">
+            <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
+              Global Pricing Photo
+            </label>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-4">
+                  <input 
+                    type="text" 
+                    value={globalPricingUrl}
+                    onChange={(e) => setGlobalPricingUrl(e.target.value)}
+                    placeholder="Paste image URL or upload below..."
+                    className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                  />
+                  <label className={`shrink-0 cursor-pointer flex items-center justify-center p-3 bg-white border-2 border-dashed border-gray-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50 transition-all ${uploadingPricing ? 'opacity-50 pointer-events-none' : ''}`}>
+                    <input 
+                      type="file" 
+                      className="hidden" 
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          setUploadingPricing(true);
+                          const storageRef = ref(storage, `pricing/global_pricing_${Date.now()}`);
+                          const snapshot = await uploadBytes(storageRef, file);
+                          const url = await getDownloadURL(snapshot.ref);
+                          setGlobalPricingUrl(url);
+                        } catch (err) {
+                          console.error(err);
+                          alert("Failed to upload image.");
+                        } finally {
+                          setUploadingPricing(false);
+                        }
+                      }}
+                    />
+                    {uploadingPricing ? (
+                      <ArrowPathIcon className="w-6 h-6 text-indigo-500 animate-spin" />
+                    ) : (
+                      <ArrowUpTrayIcon className="w-6 h-6 text-gray-400" />
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center">
+                <p className="text-[10px] text-gray-400 max-w-[60%]">Upload the laboratory pricing photo. Patients will see this when they click the "Pricing" button.</p>
+                <button 
+                  onClick={async () => {
+                    setIsSavingPricing(true);
+                    try {
+                      await setDoc(doc(db, 'settings', 'pricing'), {
+                        url: globalPricingUrl,
+                        updatedAt: new Date()
+                      });
+                      alert("Global pricing photo updated successfully!");
+                      setIsPricingModalOpen(false);
+                    } catch (err) {
+                      console.error(err);
+                      alert("Failed to update pricing photo.");
+                    } finally {
+                      setIsSavingPricing(false);
+                    }
+                  }}
+                  disabled={isSavingPricing}
+                  className={`px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-md transition-all ${isSavingPricing ? 'opacity-50' : 'hover:bg-indigo-700'}`}
+                >
+                  {isSavingPricing ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+
+              {globalPricingUrl && (
+                <div className="mt-4 p-2 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden relative group">
+                  <p className="text-[10px] font-bold text-gray-500 mb-2 uppercase text-center">Preview</p>
+                  <img src={globalPricingUrl} alt="Preview" className="max-h-64 mx-auto rounded shadow-sm" />
+                  <button 
+                    onClick={() => setGlobalPricingUrl('')}
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <XMarkIcon className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* General Guidelines Management Modal */}
+      <Modal 
+        isOpen={isGuidelinesModalOpen} 
+        onClose={() => setIsGuidelinesModalOpen(false)} 
+        title="Manage General Guidelines (What to do)"
+      >
+        <div className="space-y-6">
+          <p className="text-sm text-gray-500 text-center">Edit the general instructions that patients see on the "What to do" page.</p>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">General Rules</label>
+              <textarea 
+                rows={4}
+                value={generalGuidelines.rules}
+                onChange={(e) => setGeneralGuidelines({...generalGuidelines, rules: e.target.value})}
+                placeholder="List basic rules for all tests..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-blue-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-emerald-700 mb-2">Do's</label>
+              <textarea 
+                rows={4}
+                value={generalGuidelines.dos}
+                onChange={(e) => setGeneralGuidelines({...generalGuidelines, dos: e.target.value})}
+                placeholder="What patients should do..."
+                className="w-full bg-emerald-50/30 border border-emerald-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-red-700 mb-2">Don'ts</label>
+              <textarea 
+                rows={4}
+                value={generalGuidelines.donts}
+                onChange={(e) => setGeneralGuidelines({...generalGuidelines, donts: e.target.value})}
+                placeholder="What patients should avoid..."
+                className="w-full bg-red-50/30 border border-red-100 rounded-xl px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-red-500/20"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-4 border-t border-gray-100">
+            <button 
+              onClick={async () => {
+                setIsSavingGuidelines(true);
+                try {
+                  await setDoc(doc(db, 'settings', 'generalGuidelines'), generalGuidelines);
+                  alert("General guidelines updated successfully!");
+                  setIsGuidelinesModalOpen(false);
+                } catch (err) {
+                  console.error(err);
+                  alert("Failed to update guidelines.");
+                } finally {
+                  setIsSavingGuidelines(false);
+                }
+              }}
+              disabled={isSavingGuidelines}
+              className={`px-8 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-md transition-all ${isSavingGuidelines ? 'opacity-50' : 'hover:bg-indigo-700 active:scale-95'}`}
+            >
+              {isSavingGuidelines ? 'Saving...' : 'Save Guidelines'}
             </button>
           </div>
         </div>

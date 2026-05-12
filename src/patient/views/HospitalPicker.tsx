@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { MapPinIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { BuildingOfficeIcon } from '@heroicons/react/24/solid';
@@ -29,9 +30,10 @@ export default function HospitalPicker() {
       <h1 className="text-sm font-extrabold font-display mb-4 text-[var(--color-on-surface)] tracking-tight">AVAILABLE HOSPITALS</h1>
       <div className="space-y-4">
         {hospitals.map((hospital) => (
-            <div
+            <Link
               key={hospital.id}
-              className="p-5 rounded-2xl transition-all duration-300 bg-[var(--color-surface-container-lowest)] border-2 border-transparent hover:border-[#427cf2] hover:shadow-md"
+              to={`/patient/test-guides?hospitalId=${hospital.id}`}
+              className="block p-5 rounded-2xl transition-all duration-300 bg-[var(--color-surface-container-lowest)] border-2 border-transparent hover:border-[#427cf2] hover:shadow-md cursor-pointer"
             >
               <div className="flex items-start justify-between">
                 <div>
@@ -44,7 +46,7 @@ export default function HospitalPicker() {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
         ))}
       </div>
       <h1 className="text-sm font-extrabold font-display mt-8 mb-4 text-[var(--color-on-surface)] tracking-tight opacity-60">COMING SOON</h1>

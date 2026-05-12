@@ -11,6 +11,7 @@ interface HospitalData {
   contactNumber?: string;
   location?: string;
   status: string;
+  pricingImageUrl?: string;
   id?: string;
 }
 
@@ -179,7 +180,8 @@ function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void
     address: '',
     contactNumber: '',
     location: '',
-    status: 'Active'
+    status: 'Active',
+    pricingImageUrl: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -255,6 +257,17 @@ function AddHospitalForm({ onClose, onSave, initialData }: { onClose: () => void
           <option>Pending</option>
           <option>Disabled</option>
         </select>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1.5">Pricing Photo URL</label>
+        <input 
+          type="text" 
+          value={formData.pricingImageUrl || ''}
+          onChange={(e) => setFormData({ ...formData, pricingImageUrl: e.target.value })}
+          placeholder="e.g. https://example.com/pricing.jpg"
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-bold"
+        />
+        <p className="text-[10px] text-gray-400 mt-1">Provide a direct link to the hospital's pricing image.</p>
       </div>
       
       <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 mt-6">
