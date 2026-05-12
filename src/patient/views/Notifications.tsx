@@ -202,7 +202,7 @@ export default function Notifications() {
         notifications: [
           {
             title: "🔔 Test Notification",
-            body: "Your LabPrep reminders are correctly configured!",
+            body: "Your LABPrep reminders are correctly configured!",
             id: 999,
             schedule: { at: testTime },
             channelId: 'reminders',

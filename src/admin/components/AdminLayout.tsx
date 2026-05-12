@@ -49,7 +49,7 @@ export default function AdminLayout() {
       >
         <div className="p-6 flex items-center justify-between md:justify-center border-b border-white/10">
           <h1 className="text-2xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
-            LabPrep Admin
+            LABPrep Admin
           </h1>
           <button 
             className="md:hidden p-2 text-gray-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-lg transition-colors"

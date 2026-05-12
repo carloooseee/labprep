@@ -21,7 +21,7 @@ export default function Settings() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Platform Name</label>
-              <input type="text" defaultValue="LabPrep Mobile" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none" />
+              <input type="text" defaultValue="LABPrep Mobile" className="w-full border border-gray-200 rounded-xl px-4 py-2.5 bg-gray-50 text-gray-900 focus:ring-2 focus:ring-blue-500 outline-none" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Support Email</label>

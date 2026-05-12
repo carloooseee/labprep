@@ -178,7 +178,7 @@ export default function Login() {
           </div>
           
           <h1 className="text-5xl font-display font-black text-white tracking-tight mb-2 animate-in slide-in-from-bottom-4 duration-700">
-            LabPrep
+            LABPrep
           </h1>
           <p className="text-xl font-bold tracking-widest text-white animate-in slide-in-from-bottom-4 duration-1000">
             Prepare Right. Test Right.

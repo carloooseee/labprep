@@ -48,7 +48,7 @@ export default function Layout() {
             <TestTubeIcon className="w-6 h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-xl font-extrabold font-display text-gray-900 tracking-tight leading-none">LabPrep</h1>
+            <h1 className="text-xl font-extrabold font-display text-gray-900 tracking-tight leading-none">LABPrep</h1>
             <p className="text-[10px] font-body text-gray-400 font-bold uppercase tracking-wider mt-0.5">Prepare Right. Test Right.</p>
           </div>
         </div>

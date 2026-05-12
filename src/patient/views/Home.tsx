@@ -37,7 +37,7 @@ export default function Home() {
 
   const heroSlides = [
     {
-      title: "Welcome to LabPrep",
+      title: "Welcome to LABPrep",
       subtitle: greeting,
       description: "Your premium health preparation companion.",
       icon: <SparklesIcon className="w-24 h-24" />,
