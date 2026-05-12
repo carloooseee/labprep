@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { App as CapApp } from '@capacitor/app';
 import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mp4';
 import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
 
@@ -161,6 +162,23 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
           </ul>
         </div>
       </div>
+      
+      {/* What to Know Section */}
+      {guidelines?.whatToKnow && guidelines.whatToKnow.length > 0 && (
+        <div className="bg-blue-50/50 p-5 rounded-2xl border border-blue-100/50 shadow-sm">
+          <h4 className="font-bold font-display text-blue-800 mb-4 flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+            What to Know
+          </h4>
+          <ul className="space-y-3 text-sm font-body text-blue-900 leading-relaxed">
+            {guidelines.whatToKnow.map((item: any, idx: number) => (
+              <li key={idx} className="flex items-start gap-2.5">
+                <span className="shrink-0 text-base">{item.icon}</span> {item.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {fastingRequired && (
         <div className="bg-orange-50/50 p-5 rounded-2xl border border-orange-200/50 shadow-sm">
@@ -175,47 +193,42 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
 };
 
 export default function TestGuides() {
-  const { selectedHospitalId, setSelectedHospitalId, hospitals, testGuides, loading } = useAppContext();
+  const { testGuides, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchParams] = useSearchParams();
-  const initialCategory = searchParams.get('category') || 'All';
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
   const [lang, setLang] = useState<'EN' | 'PH'>('EN');
 
   useEffect(() => {
-    const cat = searchParams.get('category');
-    if (cat) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setSelectedCategory(cat);
+    let handler: any = null;
+    if (selectedGuide) {
+      CapApp.addListener('backButton', () => {
+        setSelectedGuide(null);
+      }).then(h => { handler = h; });
     }
-  }, [searchParams]);
 
+    return () => {
+      if (handler) {
+        handler.remove();
+      }
+    };
+  }, [selectedGuide]);
+
+  const filteredGuides = testGuides.filter(
+    (proc) => proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const categories = Array.from(new Set(filteredGuides.map(g => g.category)));
   const categoryPriority: Record<string, number> = {
     'Hematology': 1,
     'Blood Chemistry': 2,
     'Serological Test': 3,
     'Urinalysis': 4,
     'Stool Test': 5,
-    'Imaging': 6
+    'Imaging': 6,
+    'Other Test': 7
   };
-
-  const dynamicCategories = ['All', ...new Set(testGuides.map(g => g.category))]
-    .filter(Boolean)
-    .sort((a, b) => {
-      if (a === 'All') return -1;
-      if (b === 'All') return 1;
-      const pA = categoryPriority[a] || 999;
-      const pB = categoryPriority[b] || 999;
-      if (pA !== pB) return pA - pB;
-      return a.localeCompare(b);
-    });
-
-  const filteredGuides = testGuides.filter(
-    (proc) => proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase())
-           && (selectedCategory === 'All' || proc.category === selectedCategory)
-  );
+  const sortedCategories = categories.sort((a, b) => (categoryPriority[a] || 999) - (categoryPriority[b] || 999));
 
   if (loading) {
     return (
@@ -232,30 +245,9 @@ export default function TestGuides() {
       <div className="bg-gradient-to-r from-[#e745a7] to-[#b34bee] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-20"><DocumentTextIcon className="w-24 h-24" /></div>
         <div className="relative z-10">
-          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Laboratory Tests Categories</h2>
+          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">LABPrep Guides</h2>
           <div className="flex items-center mt-6 space-x-2">
             <span className="font-body text-sm font-medium">Learn how to prepare for your lab tests</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Hospital Selector */}
-      <div className="mb-4">
-        <label className="block text-sm font-bold font-display text-[var(--color-on-surface-variant)] mb-2 uppercase tracking-wide">
-          Filter by Hospital
-        </label>
-        <div className="relative">
-          <select 
-            value={selectedHospitalId || ''} 
-            onChange={(e) => setSelectedHospitalId(e.target.value)}
-            className="w-full appearance-none bg-[var(--color-surface-container-lowest)] border border-[var(--color-surface-container-highest)] text-[var(--color-on-surface)] font-body font-bold py-3 px-4 pr-10 rounded-xl focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] transition-all"
-          >
-            {hospitals.map(hospital => (
-              <option key={hospital.id} value={hospital.id}>{hospital.name}</option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-[var(--color-on-surface-variant)]">
-            <svg className="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
           </div>
         </div>
       </div>
@@ -279,28 +271,22 @@ export default function TestGuides() {
         </div>
       </div>
 
-      {/* Category Filter Buttons */}
-      <div className="mb-8 flex flex-wrap gap-2 pb-2 overflow-x-auto no-scrollbar">
-        {dynamicCategories.map(cat => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider whitespace-nowrap transition-all active:scale-95 shrink-0 ${
-              selectedCategory === cat 
-                ? 'bg-[#427cf2] text-white shadow-md shadow-[#427cf2]/20 border border-transparent' 
-                : 'bg-[var(--color-surface-container-lowest)] text-[var(--color-on-surface-variant)] border border-[var(--color-surface-container-highest)]'
-            }`}
-          >
-            {cat === 'All' ? 'All Tests' : cat}
-          </button>
-        ))}
+      {/* Pricing Button */}
+      <div className="mb-8">
+        <button 
+          onClick={() => { /* Modal to show pricing image goes here later */ }}
+          className="w-full bg-[#10b981] hover:bg-[#059669] text-white font-bold font-display py-3 px-4 rounded-xl shadow-lg transition-colors flex items-center justify-center space-x-2"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>Pricing</span>
+        </button>
       </div>
 
       {filteredGuides.length === 0 ? (
         <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this criteria.</p>
       ) : (
         <div className="space-y-10">
-          {dynamicCategories.filter(c => c !== 'All').map((cat) => {
+          {sortedCategories.map((cat) => {
             const categoryGuides = filteredGuides.filter(g => g.category === cat);
             if (categoryGuides.length === 0) return null;
             return (
