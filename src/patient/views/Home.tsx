@@ -1,39 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
 import { 
   SparklesIcon,
   BuildingOfficeIcon, 
   BellAlertIcon,
   UserIcon,
   DocumentTextIcon,
-  ChevronRightIcon,
-  TagIcon
+  ChevronRightIcon
 } from '@heroicons/react/24/solid';
 
 export default function Home() {
-  const { testGuides } = useAppContext();
   
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good Morning!' : hour < 18 ? 'Good Afternoon!' : 'Good Evening!';
-
-  const categoryPriority: Record<string, number> = {
-    'Hematology': 1,
-    'Blood Chemistry': 2,
-    'Serological Test': 3,
-    'Urinalysis': 4,
-    'Stool Test': 5,
-    'Imaging': 6
-  };
-
-  const dynamicCategories = [...new Set(testGuides.map(g => g.category))]
-    .filter(Boolean)
-    .sort((a, b) => {
-      const pA = categoryPriority[a] || 999;
-      const pB = categoryPriority[b] || 999;
-      if (pA !== pB) return pA - pB;
-      return a.localeCompare(b);
-    });
 
   const heroSlides = [
     {

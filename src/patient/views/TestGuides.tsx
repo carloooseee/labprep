@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+// Removed useSearchParams import
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
@@ -231,10 +231,7 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
 };
 
 export default function TestGuides() {
-  const { testGuides, hospitals, loading } = useAppContext();
-  const [searchParams] = useSearchParams();
-  const hospitalId = searchParams.get('hospitalId');
-  const selectedHospital = hospitals.find(h => h.id === hospitalId);
+  const { testGuides, loading } = useAppContext();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
