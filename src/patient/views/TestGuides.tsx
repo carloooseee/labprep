@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 // Removed useSearchParams import
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon, XMarkIcon, TagIcon } from '@heroicons/react/24/solid';
 import { App as CapApp } from '@capacitor/app';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
@@ -234,6 +234,7 @@ export default function TestGuides() {
   const { testGuides, loading } = useAppContext();
   
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
   const [lang, setLang] = useState<'EN' | 'PH'>('EN');
@@ -269,16 +270,14 @@ export default function TestGuides() {
     };
   }, [selectedGuide]);
 
-  const filteredGuides = testGuides.filter(
-    (proc) => proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredGuides = testGuides.filter((proc) => {
+    const matchesSearch = proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase());
+    const procCategory = proc.category?.trim() || 'Other Test';
+    const normalizedCategory = procCategory.toLowerCase() === 'other test' ? 'Other Test' : procCategory;
+    const matchesCategory = activeCategory ? normalizedCategory === activeCategory : true;
+    return matchesSearch && matchesCategory;
+  });
 
-  const categories = Array.from(new Set(
-    filteredGuides.map(g => {
-      const cat = g.category?.trim() || 'Other Test';
-      return cat.toLowerCase() === 'other test' ? 'Other Test' : cat;
-    })
-  ));
   const categoryPriority: Record<string, number> = {
     'Hematology': 1,
     'Blood Chemistry': 2,
@@ -288,6 +287,21 @@ export default function TestGuides() {
     'Imaging': 6,
     'Other Test': 7
   };
+
+  const allCategories = Array.from(new Set(
+    testGuides.map(g => {
+      const cat = g.category?.trim() || 'Other Test';
+      return cat.toLowerCase() === 'other test' ? 'Other Test' : cat;
+    })
+  )).filter(Boolean).sort((a, b) => (categoryPriority[a] || 999) - (categoryPriority[b] || 999));
+
+  const categories = Array.from(new Set(
+    filteredGuides.map(g => {
+      const cat = g.category?.trim() || 'Other Test';
+      return cat.toLowerCase() === 'other test' ? 'Other Test' : cat;
+    })
+  ));
+  
   const sortedCategories = categories.sort((a, b) => (categoryPriority[a] || 999) - (categoryPriority[b] || 999));
 
   if (loading) {
@@ -309,6 +323,41 @@ export default function TestGuides() {
           <div className="flex items-center mt-6 space-x-2">
             <span className="font-body text-sm font-medium">Learn how to prepare for your lab tests</span>
           </div>
+        </div>
+      </div>
+
+      {/* Laboratory Test Categories Section */}
+      <div className="mb-8">
+        <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)] mb-4">Laboratory Test Categories</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {allCategories.map(category => {
+            const procCount = testGuides.filter(p => {
+              const cat = p.category?.trim() || 'Other Test';
+              return (cat.toLowerCase() === 'other test' ? 'Other Test' : cat) === category;
+            }).length;
+            const isActive = activeCategory === category;
+            return (
+              <div 
+                key={category}
+                onClick={() => setActiveCategory(isActive ? null : category)}
+                className={`p-4 rounded-2xl shadow-sm border transition-transform active:scale-95 flex flex-col h-full items-center text-center justify-center space-y-3 cursor-pointer ${
+                  isActive 
+                    ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-500/20' 
+                    : 'bg-white border-[#e5e9eb] hover:bg-gray-50'
+                }`}
+              >
+                <div className={`p-3 rounded-xl transition-colors ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'}`}>
+                  <TagIcon className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className={`font-bold font-display text-sm leading-tight mb-1 ${isActive ? 'text-blue-800' : 'text-gray-800'}`}>{category}</h4>
+                  <p className={`text-[10px] font-body uppercase tracking-wider font-bold ${isActive ? 'text-blue-600' : 'text-[var(--color-on-surface-variant)]'}`}>
+                    {procCount} {procCount === 1 ? 'Test' : 'Tests'}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
