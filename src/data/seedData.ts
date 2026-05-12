@@ -513,6 +513,30 @@ export const testGuides = [
       ],
       donts: []
     }
+  },
+  {
+    id: 'p_other_1',
+    procedureName: 'Electrocardiogram (ECG)',
+    category: 'Other Test',
+    description: 'A test that records the electrical activity of your heart.',
+    fastingRequired: 'None',
+    duration: 20,
+    status: 'Active',
+    imageUrl: 'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?auto=format&fit=crop&q=80&w=800',
+    preparationSteps: [
+      { icon: '👕', title: 'Clothing', description: 'Wear comfortable clothing that is easy to remove if needed.', timing: 'Before test' }
+    ],
+    guidelines: {
+      dos: [
+        { icon: '😌', text: 'Relax during the procedure.' }
+      ],
+      donts: [
+        { icon: '📱', text: 'Do not use your mobile phone during the test.' }
+      ],
+      whatToKnow: [
+        { icon: '❤️', text: 'This test is painless and non-invasive.' }
+      ]
+    }
   }
 ];
 

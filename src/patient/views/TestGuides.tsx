@@ -6,6 +6,7 @@ import { DocumentTextIcon, XMarkIcon } from '@heroicons/react/24/solid';
 import { App as CapApp } from '@capacitor/app';
 import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mp4';
 import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
+import fecalysiaVideo from '../../assets/fecalysia.mov';
 
 // Fallback Images
 import urinalysisImg from '../../assets/test-guides/urinalysis.png';
@@ -104,6 +105,48 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
         <p className="text-[15px] font-body leading-relaxed text-[var(--color-on-surface-variant)] border-b border-[#e5e9eb] pb-6">
           {description}
         </p>
+
+        {/* Video Section */}
+        {(() => {
+          const procName = guide.procedureName.toLowerCase();
+          let videoSrc = null;
+          let videoTitle = "";
+
+          if (procName.includes('urine') || procName.includes('urinalysis')) {
+            videoSrc = urineVideo;
+            videoTitle = "Urine Collection Guide";
+          } else if (procName.includes('stool') || procName.includes('fecalysis')) {
+            // For stool/fecalysis, we can show both or just one. User specifically asked for fecalysia.
+            videoSrc = fecalysiaVideo; 
+            videoTitle = "Fecalysis Collection Guide";
+          }
+
+          if (!videoSrc) return null;
+
+          return (
+            <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-black shadow-lg">
+              <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
+                  Video Tutorial: {videoTitle}
+                </span>
+              </div>
+              <video 
+                src={videoSrc} 
+                controls 
+                className="w-full aspect-video outline-none"
+                poster={guide.imageUrl}
+              />
+              {/* Optional: Add second video for stool if it's Fecalysis */}
+              {procName.includes('stool') && stoolVideo && (
+                <div className="mt-4 p-4 bg-gray-900 border-t border-gray-800">
+                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Alternative: Stool Prep Guide</p>
+                   <video src={stoolVideo} controls className="w-full rounded-lg outline-none" />
+                </div>
+              )}
+            </div>
+          );
+        })()}
         <div>
           <h3 className="font-bold font-display text-lg mb-4 text-[var(--color-on-surface)]">
             Preparation Steps
@@ -245,7 +288,7 @@ export default function TestGuides() {
       <div className="bg-gradient-to-r from-[#e745a7] to-[#b34bee] rounded-[2rem] p-8 text-white mb-8 shadow-xl shadow-[var(--color-primary)]/20 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-20"><DocumentTextIcon className="w-24 h-24" /></div>
         <div className="relative z-10">
-          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">LABPrep Guides</h2>
+          <h2 className="text-3xl font-display font-bold mt-4 leading-tight">Laboratory Test Guides</h2>
           <div className="flex items-center mt-6 space-x-2">
             <span className="font-body text-sm font-medium">Learn how to prepare for your lab tests</span>
           </div>

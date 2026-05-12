@@ -81,7 +81,7 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
 export default function Procedures() {
   const { testGuides, hospitals, loading } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('Choose laboratory test');
+  const [categoryFilter, setCategoryFilter] = useState('All Categories');
   const [hospitalFilter, setHospitalFilter] = useState('All Hospitals');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeActionId, setActiveActionId] = useState<string | null>(null);
@@ -96,14 +96,13 @@ export default function Procedures() {
     'Stool Test': 3,
     'Blood Chemistry': 4,
     'Hematology': 5,
-    'Imaging': 6
+    'Imaging': 6,
+    'Other Test': 7
   };
 
-  const dynamicCategories = ['Choose laboratory test', ...new Set(testGuides.map(p => p.category))]
-    .filter(Boolean)
+  const dynamicCategories = ['Other Test', ...new Set(testGuides.map(p => p.category))]
+    .filter(c => c && c !== 'Choose laboratory test' && c !== 'Choose categories' && c !== 'All')
     .sort((a, b) => {
-      if (a === 'Choose laboratory test') return -1;
-      if (b === 'Choose laboratory test') return 1;
       const pA = categoryPriority[a] || 999;
       const pB = categoryPriority[b] || 999;
       if (pA !== pB) return pA - pB;
@@ -116,7 +115,7 @@ export default function Procedures() {
     const descMatch = (proc.description || '').toLowerCase().includes(query);
     const matchesSearch = nameMatch || descMatch;
     
-    const matchesCategory = categoryFilter === 'Choose laboratory test' || proc.category === categoryFilter;
+    const matchesCategory = categoryFilter === 'All Categories' || proc.category === categoryFilter;
     const matchesHospital = hospitalFilter === 'All Hospitals' || proc.hospital === hospitalFilter;
     
     return matchesSearch && matchesCategory && matchesHospital;
@@ -197,7 +196,10 @@ export default function Procedures() {
               onChange={(e) => setCategoryFilter(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm appearance-none cursor-pointer font-medium text-gray-700"
             >
-              {dynamicCategories.map(c => <option key={c} value={c}>{c}</option>)}
+              <option value="All Categories">All Categories</option>
+              {dynamicCategories.map(cat => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
           </div>
 
@@ -410,7 +412,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
     hospital: hospitals[0]?.id || '',
     procedureName: '',
     procedureNameFilipino: '',
-    category: categories[0] || 'Blood Test',
+    category: 'Other Test',
     description: '',
     descriptionFilipino: '',
     imageUrl: '',
