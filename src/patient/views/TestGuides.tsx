@@ -276,7 +276,12 @@ export default function TestGuides() {
     (proc) => proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const categories = Array.from(new Set(filteredGuides.map(g => g.category)));
+  const categories = Array.from(new Set(
+    filteredGuides.map(g => {
+      const cat = g.category?.trim() || 'Other Test';
+      return cat.toLowerCase() === 'other test' ? 'Other Test' : cat;
+    })
+  ));
   const categoryPriority: Record<string, number> = {
     'Hematology': 1,
     'Blood Chemistry': 2,

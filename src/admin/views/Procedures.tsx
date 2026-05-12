@@ -132,8 +132,12 @@ export default function Procedures() {
     fetchSettings();
   }, []);
 
-  const dynamicCategories = ['Other Test', ...new Set(testGuides.map(p => p.category))]
-    .filter(c => c && c !== 'Choose laboratory test' && c !== 'Choose categories' && c !== 'All')
+  const dynamicCategories = Array.from(new Set(
+    ['Other Test', ...testGuides.map(p => p.category)]
+      .map(c => c?.trim())
+      .filter(c => c && c !== 'Choose laboratory test' && c !== 'Choose categories' && c !== 'All')
+      .map(c => c.toLowerCase() === 'other test' ? 'Other Test' : c)
+  ))
     .sort((a, b) => {
       const pA = categoryPriority[a] || 999;
       const pB = categoryPriority[b] || 999;
