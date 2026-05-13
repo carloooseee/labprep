@@ -95,7 +95,7 @@ export default function Notifications() {
             importance: 5, // High importance
             visibility: 1,
             vibration: true,
-            // Removed specific sound file to ensure it uses system default if asset is missing
+            sound: 'default'
           });
         }
       } catch (e) {
@@ -104,6 +104,16 @@ export default function Notifications() {
     };
     setupNotifications();
   }, []);
+
+  useEffect(() => {
+    const handleBack = () => {
+      if (isModalOpen) {
+        setIsModalOpen(false);
+      }
+    };
+    window.addEventListener('hardwareBackButton', handleBack);
+    return () => window.removeEventListener('hardwareBackButton', handleBack);
+  }, [isModalOpen]);
 
   // Function to provide immediate vibration and sound feedback
   const playNotificationFeedback = () => {

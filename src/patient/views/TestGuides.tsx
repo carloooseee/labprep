@@ -301,19 +301,16 @@ export default function TestGuides() {
   }, []);
 
   useEffect(() => {
-    let handler: any = null;
-    if (selectedGuide) {
-      CapApp.addListener('backButton', () => {
+    const handleBack = () => {
+      if (isPricingModalOpen) {
+        setIsPricingModalOpen(false);
+      } else if (selectedGuide) {
         setSelectedGuide(null);
-      }).then(h => { handler = h; });
-    }
-
-    return () => {
-      if (handler) {
-        handler.remove();
       }
     };
-  }, [selectedGuide]);
+    window.addEventListener('hardwareBackButton', handleBack);
+    return () => window.removeEventListener('hardwareBackButton', handleBack);
+  }, [selectedGuide, isPricingModalOpen]);
 
   const filteredGuides = testGuides.filter((proc) => {
     const matchesSearch = proc.procedureName.toLowerCase().includes(searchQuery.toLowerCase());

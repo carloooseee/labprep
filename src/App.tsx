@@ -51,6 +51,12 @@ function HardwareBackButton() {
 
   useEffect(() => {
     const handler = CapApp.addListener('backButton', () => {
+      const hasModal = document.querySelector('.fixed.inset-0[class*="z-"]');
+      if (hasModal) {
+        window.dispatchEvent(new CustomEvent('hardwareBackButton'));
+        return;
+      }
+
       // Home screens — exit the app
       const exitPaths = ['/patient/home', '/admin/dashboard', '/login'];
       if (exitPaths.includes(location.pathname)) {

@@ -102,6 +102,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
+    // Setup notification channel on app start
+    const initNotifications = async () => {
+      try {
+        await LocalNotifications.createChannel({
+          id: 'reminders',
+          name: 'Medical Reminders',
+          description: 'Alerts for lab test preparations',
+          importance: 5, // High importance for sound and heads-up
+          visibility: 1,
+          vibration: true,
+          sound: 'default'
+        });
+      } catch (e) {
+        console.warn('Channel creation error:', e);
+      }
+    };
+    initNotifications();
+
     // 1. Listen to Hospitals
     const hospitalsUnsubscribe = onSnapshot(collection(db, 'hospitals'), (snapshot) => {
       const hospitalData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Hospital));
