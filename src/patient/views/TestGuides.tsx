@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-// Removed useSearchParams import
+import { translateText } from '../../utils/translate';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon, TagIcon } from '@heroicons/react/24/solid';
@@ -88,16 +88,97 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
   );
 };
 
-const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines', lang: 'EN' | 'PH' }) => {
-  const tl = (guide.translations?.tl ?? {}) as {
-    description?: string;
-    preparationSteps?: TestGuide['preparationSteps'];
-    guidelines?: TestGuide['guidelines'];
-  };
-  const description = lang === 'EN' ? guide.description : (tl.description || guide.description);
-  const preparationSteps = lang === 'EN' ? (guide.preparationSteps || []) : (tl.preparationSteps?.length ? tl.preparationSteps : (guide.preparationSteps || []));
-  const guidelines = lang === 'EN' ? guide.guidelines : ((tl.guidelines?.dos?.length || tl.guidelines?.donts?.length) ? tl.guidelines : guide.guidelines);
-  const fastingRequired = lang === 'EN' ? guide.fastingRequired : (guide.fastingRequiredFilipino || guide.fastingRequired);
+function useLiveTranslation(guide: TestGuide | null, lang: 'EN' | 'PH') {
+  const [translatedGuide, setTranslatedGuide] = useState<TestGuide | null>(guide);
+  const [isTranslating, setIsTranslating] = useState(false);
+
+  useEffect(() => {
+    if (!guide) {
+      setTranslatedGuide(null);
+      return;
+    }
+    if (lang === 'EN') {
+      setTranslatedGuide(guide);
+      return;
+    }
+
+    let isMounted = true;
+    setIsTranslating(true);
+
+    const translateAll = async () => {
+      try {
+        const translated = { ...guide };
+        
+        const [
+          procedureName,
+          description,
+          fastingRequired,
+          preparationSteps,
+          dos,
+          donts,
+          whatToKnow
+        ] = await Promise.all([
+          translateText(guide.procedureName),
+          translateText(guide.description),
+          guide.fastingRequired ? translateText(guide.fastingRequired) : Promise.resolve(guide.fastingRequired),
+          guide.preparationSteps ? Promise.all(
+            guide.preparationSteps.map(async (step: any) => ({
+              ...step,
+              title: await translateText(step.title),
+              description: await translateText(step.description),
+              timing: step.timing ? await translateText(step.timing) : step.timing
+            }))
+          ) : Promise.resolve(guide.preparationSteps),
+          guide.guidelines?.dos ? Promise.all(guide.guidelines.dos.map(async (i: any) => ({ ...i, text: await translateText(i.text) }))) : Promise.resolve(guide.guidelines?.dos),
+          guide.guidelines?.donts ? Promise.all(guide.guidelines.donts.map(async (i: any) => ({ ...i, text: await translateText(i.text) }))) : Promise.resolve(guide.guidelines?.donts),
+          guide.guidelines?.whatToKnow ? Promise.all(guide.guidelines.whatToKnow.map(async (i: any) => ({ ...i, text: await translateText(i.text) }))) : Promise.resolve(guide.guidelines?.whatToKnow)
+        ]);
+
+        translated.procedureName = procedureName;
+        translated.description = description;
+        translated.fastingRequired = fastingRequired;
+        translated.preparationSteps = preparationSteps;
+        translated.guidelines = { dos, donts, whatToKnow };
+
+        if (isMounted) {
+          setTranslatedGuide(translated);
+        }
+      } catch (err) {
+        console.error("Translation failed", err);
+        if (isMounted) setTranslatedGuide(guide);
+      } finally {
+        if (isMounted) setIsTranslating(false);
+      }
+    };
+
+    translateAll();
+
+    return () => { isMounted = false; };
+  }, [guide, lang]);
+
+  return { translatedGuide, isTranslating };
+}
+
+const GenericGuideContent = ({ guide, activeTab, isTranslating }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines', isTranslating?: boolean }) => {
+  const description = guide.description;
+  const preparationSteps = guide.preparationSteps || [];
+  const guidelines = guide.guidelines;
+  const fastingRequired = guide.fastingRequired;
+
+  if (isTranslating) {
+    return (
+      <div className="space-y-6 animate-pulse">
+         <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+         <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+         <div className="h-4 bg-gray-200 rounded w-4/6 mb-8"></div>
+         <div className="h-8 bg-gray-200 rounded w-1/3 mb-4 mt-8"></div>
+         <div className="space-y-3 ml-4 border-l-2 border-gray-200 pl-4">
+           <div className="h-16 bg-gray-100 rounded w-full"></div>
+           <div className="h-16 bg-gray-100 rounded w-full"></div>
+         </div>
+      </div>
+    );
+  }
   
   if (activeTab === 'Preparations') {
     return (
@@ -106,45 +187,7 @@ const GenericGuideContent = ({ guide, activeTab, lang }: { guide: TestGuide, act
           {description}
         </p>
 
-        {/* Video Section */}
-        {(() => {
-          const procName = guide.procedureName.toLowerCase();
-          let videoSrc = null;
-          let videoTitle = "";
 
-          if (procName.includes('urine') || procName.includes('urinalysis')) {
-            videoSrc = urineVideo;
-            videoTitle = "Urine Collection Guide";
-          } else if (procName.includes('stool') || procName.includes('fecalysis')) {
-            videoSrc = fecalysiaVideo; 
-            videoTitle = "Fecalysis Collection Guide";
-          }
-
-          if (!videoSrc) return null;
-
-          return (
-            <div className="mb-8 overflow-hidden rounded-2xl border border-gray-200 bg-black shadow-lg">
-              <div className="bg-gray-900 px-4 py-2 flex items-center justify-between">
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></span>
-                  Video Tutorial: {videoTitle}
-                </span>
-              </div>
-              <video 
-                src={videoSrc} 
-                controls 
-                className="w-full aspect-video outline-none"
-                poster={guide.imageUrl}
-              />
-              {procName.includes('stool') && stoolVideo && (
-                <div className="mt-4 p-4 bg-gray-900 border-t border-gray-800">
-                   <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3">Alternative: Stool Prep Guide</p>
-                   <video src={stoolVideo} controls className="w-full rounded-lg outline-none" />
-                </div>
-              )}
-            </div>
-          );
-        })()}
         <div>
           <h3 className="font-bold font-display text-lg mb-4 text-[var(--color-on-surface)]">
             Preparation Steps
@@ -240,6 +283,8 @@ export default function TestGuides() {
   const [lang, setLang] = useState<'EN' | 'PH'>('EN');
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+
+  const { translatedGuide, isTranslating } = useLiveTranslation(selectedGuide, lang);
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -446,8 +491,8 @@ export default function TestGuides() {
         </div>
       )}
 
-      {selectedGuide && (() => {
-        const isUrineVideo = selectedGuide.procedureName.toLowerCase().includes('24') && selectedGuide.procedureName.toLowerCase().includes('urine');
+      {selectedGuide && translatedGuide && (() => {
+        const isUrineVideo = selectedGuide.procedureName.toLowerCase().includes('24') && (selectedGuide.procedureName.toLowerCase().includes('urine') || selectedGuide.procedureName.toLowerCase().includes('urinalysis'));
         const isStoolVideo = selectedGuide.procedureName.toLowerCase().includes('stool');
         const hasVideo = isUrineVideo || isStoolVideo;
 
@@ -482,16 +527,20 @@ export default function TestGuides() {
           <div className={`flex flex-col flex-grow bg-white relative z-20 overflow-hidden ${hasVideo ? '' : '-mt-6 rounded-t-[2rem]'}`}>
             <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
               <div className="flex justify-between items-start mb-2">
-                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight flex-1 mr-2">{lang === 'EN' ? selectedGuide.procedureName : (selectedGuide.procedureNameFilipino || selectedGuide.procedureName)}</h2>
+                <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight flex-1 mr-2">
+                  {isTranslating ? (
+                    <span className="inline-block animate-pulse bg-gray-200 w-3/4 h-8 rounded"></span>
+                  ) : translatedGuide.procedureName}
+                </h2>
                 <div className="flex bg-gray-100 p-1 rounded-xl shrink-0">
                   <button onClick={() => setLang('EN')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'EN' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>EN</button>
                   <button onClick={() => setLang('PH')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'PH' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>PH</button>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
-                {selectedGuide.fastingRequired && (
+                {translatedGuide.fastingRequired && (
                   <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
-                    {lang === 'EN' ? selectedGuide.fastingRequired : (selectedGuide.fastingRequiredFilipino || selectedGuide.fastingRequired)}
+                    {isTranslating ? '...' : translatedGuide.fastingRequired}
                   </span>
                 )}
                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
@@ -516,7 +565,7 @@ export default function TestGuides() {
             </div>
 
             <div className="p-5 pt-4 overflow-y-auto pb-24 h-full">
-              <GenericGuideContent guide={selectedGuide} activeTab={activeTab} lang={lang} />
+              <GenericGuideContent guide={translatedGuide} activeTab={activeTab} isTranslating={isTranslating} />
             </div>
           </div>
         </div>

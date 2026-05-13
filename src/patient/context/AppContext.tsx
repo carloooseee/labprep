@@ -140,15 +140,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
           id: snap.id,
           // Normalization logic: Fallback to old keys if new ones are missing
           procedureName: data.procedureName || data.name || 'Unnamed Procedure',
+          procedureNameFilipino: data.procedureNameFilipino || '',
           category: data.category || 'Other',
           description: data.description || '',
+          descriptionFilipino: data.descriptionFilipino || '',
           fastingRequired: data.fastingRequired || data.fastingRequirement || '',
+          fastingRequiredFilipino: data.fastingRequiredFilipino || '',
           duration: data.duration || 15,
           preparationSteps: data.preparationSteps || data.preparations || [],
+          preparationStepsFilipino: data.preparationStepsFilipino || [],
           hospital: data.hospital || data.hospitalId || '',
           status: data.status || 'Active',
           imageUrl: data.imageUrl || '',
           guidelines: data.guidelines || { dos: [], donts: [], whatToKnow: [] },
+          guidelinesFilipino: data.guidelinesFilipino || { dos: [], donts: [], whatToKnow: [] },
           translations: normalizedTranslations
         } as TestGuide;
       }).sort((a, b) => a.procedureName.localeCompare(b.procedureName));
@@ -175,7 +180,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
                   body: data.message || 'You have a new broadcast message.',
                   id: Math.floor(Math.random() * 1000000),
                   channelId: 'reminders',
-                  smallIcon: 'ic_stat_name'
+                  smallIcon: 'ic_stat_name',
+                  sound: 'default'
                 }
               ]
             }).catch(e => console.error('Local Notification auto-trigger error:', e));

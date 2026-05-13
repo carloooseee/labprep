@@ -624,30 +624,22 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 }
 
 function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[], categories: string[] }) {
-  const [lang, setLang] = useState<'EN' | 'PH'>('EN');
   const [formData, setFormData] = useState(initialData || {
     hospital: hospitals[0]?.id || '',
     procedureName: '',
-    procedureNameFilipino: '',
     category: 'Other Test',
     description: '',
-    descriptionFilipino: '',
     imageUrl: '',
-    defaultInstructions: '',
     preparationSteps: [],
-    preparationStepsFilipino: [],
     guidelines: { dos: [], donts: [], whatToKnow: [] },
-    guidelinesFilipino: { dos: [], donts: [], whatToKnow: [] },
     fastingRequired: '',
-    fastingRequiredFilipino: '',
     status: 'Active'
   });
 
-  const isEN = lang === 'EN';
-  const activeSteps = isEN ? formData.preparationSteps : (formData.preparationStepsFilipino || []);
-  const activeGuidelines = isEN ? (formData.guidelines || {}) : (formData.guidelinesFilipino || {});
-  const stepsKey = isEN ? 'preparationSteps' : 'preparationStepsFilipino';
-  const guidelinesKey = isEN ? 'guidelines' : 'guidelinesFilipino';
+  const activeSteps = formData.preparationSteps || [];
+  const activeGuidelines = formData.guidelines || {};
+  const stepsKey = 'preparationSteps';
+  const guidelinesKey = 'guidelines';
 
   const [uploadingImage, setUploadingImage] = useState(false);
 
@@ -738,14 +730,6 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
-      {/* Language Switcher */}
-      <div className="flex items-center justify-between bg-gray-50 rounded-xl p-3 border border-gray-200">
-        <span className="text-sm font-bold text-gray-700">Editing Language</span>
-        <div className="flex bg-white rounded-lg p-1 border border-gray-200 shadow-sm">
-          <button type="button" onClick={() => setLang('EN')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${lang === 'EN' ? 'bg-blue-600 text-white shadow' : 'text-gray-500'}`}>🇺🇸 English</button>
-          <button type="button" onClick={() => setLang('PH')} className={`px-4 py-1.5 text-xs font-bold rounded-md transition-all ${lang === 'PH' ? 'bg-blue-600 text-white shadow' : 'text-gray-500'}`}>🇵🇭 Filipino</button>
-        </div>
-      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Hospital</label>
@@ -763,14 +747,14 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Procedure Name {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+            Procedure Name
           </label>
           <input 
             type="text" 
-            value={isEN ? formData.procedureName : (formData.procedureNameFilipino || '')}
-            onChange={(e) => setFormData({ ...formData, [isEN ? 'procedureName' : 'procedureNameFilipino']: e.target.value })}
+            value={formData.procedureName}
+            onChange={(e) => setFormData({ ...formData, procedureName: e.target.value })}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
-            required={isEN}
+            required
           />
         </div>
       </div>
@@ -811,12 +795,12 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Description {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+          Description
         </label>
         <textarea 
           rows={2}
-          value={isEN ? formData.description : (formData.descriptionFilipino || '')}
-          onChange={(e) => setFormData({ ...formData, [isEN ? 'description' : 'descriptionFilipino']: e.target.value })}
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
           className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none"
         />
       </div>
@@ -858,21 +842,12 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
         )}
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">Default Instructions</label>
-        <textarea 
-          rows={2}
-          value={formData.defaultInstructions || ''}
-          onChange={(e) => setFormData({ ...formData, defaultInstructions: e.target.value })}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none"
-          placeholder="Standard instructions for the patient..."
-        />
-      </div>
+
 
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Preparation Steps {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+            Preparation Steps
           </label>
           <button type="button" onClick={addStep} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Step
@@ -895,7 +870,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Testing Guidelines – What to Do {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+            Testing Guidelines – What to Do
           </label>
           <button type="button" onClick={() => addGuideline('dos')} className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Do
@@ -917,7 +892,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Testing Guidelines – To Avoid {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+            Testing Guidelines – To Avoid
           </label>
           <button type="button" onClick={() => addGuideline('donts')} className="text-xs font-bold text-red-600 bg-red-50 px-3 py-1.5 rounded-lg border border-red-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Don't
@@ -939,7 +914,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       <div>
         <div className="flex justify-between items-center mb-2">
           <label className="block text-sm font-medium text-gray-700">
-            Testing Guidelines – What to Know {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+            Testing Guidelines – What to Know
           </label>
           <button type="button" onClick={() => addGuideline('whatToKnow')} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-100 flex items-center">
             <PlusIcon className="w-3 h-3 mr-1" /> Add Note
@@ -961,9 +936,9 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Fasting Required {lang === 'PH' ? <span className="text-blue-500">(Filipino)</span> : ''}
+            Fasting Required
           </label>
-          <input type="text" value={isEN ? formData.fastingRequired : (formData.fastingRequiredFilipino || '')} onChange={(e) => setFormData({ ...formData, [isEN ? 'fastingRequired' : 'fastingRequiredFilipino']: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
+          <input type="text" value={formData.fastingRequired} onChange={(e) => setFormData({ ...formData, fastingRequired: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
         </div>
       </div>
 
