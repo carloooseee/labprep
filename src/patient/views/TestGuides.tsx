@@ -3,12 +3,10 @@ import { translateText } from '../../utils/translate';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon, TagIcon } from '@heroicons/react/24/solid';
-import { App as CapApp } from '@capacitor/app';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mov';
 import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
-import fecalysiaVideo from '../../assets/fecalysia.mov';
 
 // Fallback Images
 import urinalysisImg from '../../assets/test-guides/urinalysis.png';
