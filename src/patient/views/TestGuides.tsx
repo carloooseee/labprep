@@ -107,6 +107,19 @@ function useLiveTranslation(guide: TestGuide | null, lang: 'EN' | 'PH') {
       try {
         const translated = { ...guide };
         
+        // Preparation for nested fields
+        const prepSteps = guide.preparationSteps || [];
+        const manualPrepSteps = guide.preparationStepsFilipino || [];
+        
+        const manualDos = guide.guidelinesFilipino?.dos || [];
+        const originalDos = guide.guidelines?.dos || [];
+        
+        const manualDonts = guide.guidelinesFilipino?.donts || [];
+        const originalDonts = guide.guidelines?.donts || [];
+        
+        const manualWhatToKnow = guide.guidelinesFilipino?.whatToKnow || [];
+        const originalWhatToKnow = guide.guidelines?.whatToKnow || [];
+
         const [
           procedureName,
           description,
@@ -116,20 +129,34 @@ function useLiveTranslation(guide: TestGuide | null, lang: 'EN' | 'PH') {
           donts,
           whatToKnow
         ] = await Promise.all([
-          translateText(guide.procedureName),
-          translateText(guide.description),
-          guide.fastingRequired ? translateText(guide.fastingRequired) : Promise.resolve(guide.fastingRequired),
-          guide.preparationSteps ? Promise.all(
-            guide.preparationSteps.map(async (step: any) => ({
+          guide.procedureNameFilipino || translateText(guide.procedureName),
+          guide.descriptionFilipino || translateText(guide.description),
+          guide.fastingRequiredFilipino || (guide.fastingRequired ? translateText(guide.fastingRequired) : Promise.resolve(guide.fastingRequired)),
+          
+          Promise.all(prepSteps.map(async (step: any, idx: number) => {
+            const manual = manualPrepSteps[idx];
+            return {
               ...step,
-              title: await translateText(step.title),
-              description: await translateText(step.description),
-              timing: step.timing ? await translateText(step.timing) : step.timing
-            }))
-          ) : Promise.resolve(guide.preparationSteps),
-          guide.guidelines?.dos ? Promise.all(guide.guidelines.dos.map(async (i: any) => ({ ...i, text: await translateText(i.text) }))) : Promise.resolve(guide.guidelines?.dos),
-          guide.guidelines?.donts ? Promise.all(guide.guidelines.donts.map(async (i: any) => ({ ...i, text: await translateText(i.text) }))) : Promise.resolve(guide.guidelines?.donts),
-          guide.guidelines?.whatToKnow ? Promise.all(guide.guidelines.whatToKnow.map(async (i: any) => ({ ...i, text: await translateText(i.text) }))) : Promise.resolve(guide.guidelines?.whatToKnow)
+              title: manual?.title || await translateText(step.title),
+              description: manual?.description || await translateText(step.description),
+              timing: step.timing ? (manual?.timing || await translateText(step.timing)) : step.timing
+            };
+          })),
+
+          Promise.all(originalDos.map(async (i: any, idx: number) => {
+            const manual = manualDos[idx];
+            return { ...i, text: manual?.text || await translateText(i.text) };
+          })),
+
+          Promise.all(originalDonts.map(async (i: any, idx: number) => {
+            const manual = manualDonts[idx];
+            return { ...i, text: manual?.text || await translateText(i.text) };
+          })),
+
+          Promise.all(originalWhatToKnow.map(async (i: any, idx: number) => {
+            const manual = manualWhatToKnow[idx];
+            return { ...i, text: manual?.text || await translateText(i.text) };
+          }))
         ]);
 
         translated.procedureName = procedureName;

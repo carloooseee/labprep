@@ -624,17 +624,35 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 }
 
 function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories }: { onClose: () => void, onSave: (data: any) => void, initialData?: any, hospitals: any[], categories: string[] }) {
-  const [formData, setFormData] = useState(initialData || {
-    hospital: hospitals[0]?.id || '',
-    procedureName: '',
-    category: 'Other Test',
-    description: '',
-    imageUrl: '',
-    preparationSteps: [],
-    guidelines: { dos: [], donts: [], whatToKnow: [] },
-    fastingRequired: '',
-    status: 'Active'
+  const [formData, setFormData] = useState(() => {
+    const base = initialData || {
+      hospital: hospitals[0]?.id || '',
+      procedureName: '',
+      category: 'Other Test',
+      description: '',
+      imageUrl: '',
+      preparationSteps: [],
+      guidelines: { dos: [], donts: [], whatToKnow: [] },
+      fastingRequired: '',
+      status: 'Active'
+    };
+    
+    // Ensure Filipino fields exist
+    return {
+      ...base,
+      procedureNameFilipino: base.procedureNameFilipino || '',
+      descriptionFilipino: base.descriptionFilipino || '',
+      fastingRequiredFilipino: base.fastingRequiredFilipino || '',
+      preparationStepsFilipino: base.preparationStepsFilipino || (base.preparationSteps || []).map((s: any) => ({ ...s, title: '', description: '' })),
+      guidelinesFilipino: base.guidelinesFilipino || {
+        dos: (base.guidelines?.dos || []).map((i: any) => ({ ...i, text: '' })),
+        donts: (base.guidelines?.donts || []).map((i: any) => ({ ...i, text: '' })),
+        whatToKnow: (base.guidelines?.whatToKnow || []).map((i: any) => ({ ...i, text: '' }))
+      }
+    };
   });
+
+  const [formLang, setFormLang] = useState<'EN' | 'PH'>('EN');
 
   const activeSteps = formData.preparationSteps || [];
   const activeGuidelines = formData.guidelines || {};
@@ -673,54 +691,115 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
   const addStep = () => {
     setFormData({
       ...formData,
-      [stepsKey]: [...activeSteps, { icon: '📝', title: '', description: '' }]
+      preparationSteps: [...(formData.preparationSteps || []), { icon: '📝', title: '', description: '' }],
+      preparationStepsFilipino: [...(formData.preparationStepsFilipino || []), { icon: '📝', title: '', description: '' }]
     });
   };
 
   const removeStep = (index: number) => {
-    const newSteps = [...activeSteps];
+    const newSteps = [...(formData.preparationSteps || [])];
+    const newStepsFilipino = [...(formData.preparationStepsFilipino || [])];
     newSteps.splice(index, 1);
-    setFormData({ ...formData, [stepsKey]: newSteps });
+    newStepsFilipino.splice(index, 1);
+    setFormData({ ...formData, preparationSteps: newSteps, preparationStepsFilipino: newStepsFilipino });
   };
 
-  const updateStep = (index: number, field: string, value: string) => {
-    const newSteps = [...activeSteps];
-    newSteps[index] = { ...newSteps[index], [field]: value };
-    setFormData({ ...formData, [stepsKey]: newSteps });
+  const updateStep = (index: number, field: string, value: string, lang: 'EN' | 'PH') => {
+    if (lang === 'EN') {
+      const newSteps = [...(formData.preparationSteps || [])];
+      newSteps[index] = { ...newSteps[index], [field]: value };
+      
+      // If updating icon, sync it to Filipino
+      if (field === 'icon') {
+        const newStepsFilipino = [...(formData.preparationStepsFilipino || [])];
+        if (newStepsFilipino[index]) {
+          newStepsFilipino[index] = { ...newStepsFilipino[index], icon: value };
+          setFormData({ ...formData, preparationSteps: newSteps, preparationStepsFilipino: newStepsFilipino });
+          return;
+        }
+      }
+      setFormData({ ...formData, preparationSteps: newSteps });
+    } else {
+      const newStepsFilipino = [...(formData.preparationStepsFilipino || [])];
+      newStepsFilipino[index] = { ...newStepsFilipino[index], [field]: value };
+      
+      // If updating icon, sync it to English
+      if (field === 'icon') {
+        const newSteps = [...(formData.preparationSteps || [])];
+        if (newSteps[index]) {
+          newSteps[index] = { ...newSteps[index], icon: value };
+          setFormData({ ...formData, preparationSteps: newSteps, preparationStepsFilipino: newStepsFilipino });
+          return;
+        }
+      }
+      setFormData({ ...formData, preparationStepsFilipino: newStepsFilipino });
+    }
   };
 
   const addGuideline = (type: 'dos' | 'donts' | 'whatToKnow') => {
     setFormData({
       ...formData,
-      [guidelinesKey]: {
-        ...activeGuidelines,
-        [type]: [...(activeGuidelines?.[type] || []), { icon: '📌', text: '' }]
+      guidelines: {
+        ...formData.guidelines,
+        [type]: [...(formData.guidelines?.[type] || []), { icon: '📌', text: '' }]
+      },
+      guidelinesFilipino: {
+        ...formData.guidelinesFilipino,
+        [type]: [...(formData.guidelinesFilipino?.[type] || []), { icon: '📌', text: '' }]
       }
     });
   };
 
   const removeGuideline = (type: 'dos' | 'donts' | 'whatToKnow', index: number) => {
-    const newItems = [...(activeGuidelines?.[type] || [])];
+    const newItems = [...(formData.guidelines?.[type] || [])];
+    const newItemsFilipino = [...(formData.guidelinesFilipino?.[type] || [])];
     newItems.splice(index, 1);
+    newItemsFilipino.splice(index, 1);
     setFormData({
       ...formData,
-      [guidelinesKey]: {
-        ...activeGuidelines,
-        [type]: newItems
-      }
+      guidelines: { ...formData.guidelines, [type]: newItems },
+      guidelinesFilipino: { ...formData.guidelinesFilipino, [type]: newItemsFilipino }
     });
   };
 
-  const updateGuideline = (type: 'dos' | 'donts' | 'whatToKnow', index: number, field: string, value: string) => {
-    const newItems = [...(activeGuidelines?.[type] || [])];
-    newItems[index] = { ...newItems[index], [field]: value };
-    setFormData({
-      ...formData,
-      [guidelinesKey]: {
-        ...activeGuidelines,
-        [type]: newItems
+  const updateGuideline = (type: 'dos' | 'donts' | 'whatToKnow', index: number, field: string, value: string, lang: 'EN' | 'PH') => {
+    if (lang === 'EN') {
+      const newItems = [...(formData.guidelines?.[type] || [])];
+      newItems[index] = { ...newItems[index], [field]: value };
+      
+      // Sync icon
+      if (field === 'icon') {
+        const newItemsFilipino = [...(formData.guidelinesFilipino?.[type] || [])];
+        if (newItemsFilipino[index]) {
+          newItemsFilipino[index] = { ...newItemsFilipino[index], icon: value };
+          setFormData({
+            ...formData,
+            guidelines: { ...formData.guidelines, [type]: newItems },
+            guidelinesFilipino: { ...formData.guidelinesFilipino, [type]: newItemsFilipino }
+          });
+          return;
+        }
       }
-    });
+      setFormData({ ...formData, guidelines: { ...formData.guidelines, [type]: newItems } });
+    } else {
+      const newItemsFilipino = [...(formData.guidelinesFilipino?.[type] || [])];
+      newItemsFilipino[index] = { ...newItemsFilipino[index], [field]: value };
+      
+      // Sync icon
+      if (field === 'icon') {
+        const newItems = [...(formData.guidelines?.[type] || [])];
+        if (newItems[index]) {
+          newItems[index] = { ...newItems[index], icon: value };
+          setFormData({
+            ...formData,
+            guidelines: { ...formData.guidelines, [type]: newItems },
+            guidelinesFilipino: { ...formData.guidelinesFilipino, [type]: newItemsFilipino }
+          });
+          return;
+        }
+      }
+      setFormData({ ...formData, guidelinesFilipino: { ...formData.guidelinesFilipino, [type]: newItemsFilipino } });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -730,6 +809,24 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
   return (
     <form className="space-y-5" onSubmit={handleSubmit}>
+      {/* Language Toggle */}
+      <div className="flex bg-gray-100 p-1 rounded-xl w-fit mb-4">
+        <button 
+          type="button"
+          onClick={() => setFormLang('EN')} 
+          className={`px-6 py-2 text-xs font-bold rounded-lg transition-all ${formLang === 'EN' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+        >
+          English
+        </button>
+        <button 
+          type="button"
+          onClick={() => setFormLang('PH')} 
+          className={`px-6 py-2 text-xs font-bold rounded-lg transition-all ${formLang === 'PH' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+        >
+          Tagalog
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">Hospital</label>
@@ -747,14 +844,18 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Procedure Name
+            Procedure Name {formLang === 'PH' && '(Tagalog)'}
           </label>
           <input 
             type="text" 
-            value={formData.procedureName}
-            onChange={(e) => setFormData({ ...formData, procedureName: e.target.value })}
+            value={formLang === 'EN' ? formData.procedureName : formData.procedureNameFilipino}
+            onChange={(e) => setFormData({ 
+              ...formData, 
+              [formLang === 'EN' ? 'procedureName' : 'procedureNameFilipino']: e.target.value 
+            })}
             className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none"
-            required
+            required={formLang === 'EN'}
+            placeholder={formLang === 'PH' ? 'Tagalog translation...' : ''}
           />
         </div>
       </div>
@@ -795,13 +896,17 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1.5">
-          Description
+          Description {formLang === 'PH' && '(Tagalog)'}
         </label>
         <textarea 
           rows={2}
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          value={formLang === 'EN' ? formData.description : formData.descriptionFilipino}
+          onChange={(e) => setFormData({ 
+            ...formData, 
+            [formLang === 'EN' ? 'description' : 'descriptionFilipino']: e.target.value 
+          })}
           className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none resize-none"
+          placeholder={formLang === 'PH' ? 'Tagalog translation...' : ''}
         />
       </div>
 
@@ -854,12 +959,29 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
           </button>
         </div>
         <div className="space-y-3">
-          {activeSteps.map((step: any, idx: number) => (
+          {(formLang === 'EN' ? formData.preparationSteps : formData.preparationStepsFilipino).map((step: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
-              <input type="text" value={step.icon} onChange={(e) => updateStep(idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <input 
+                type="text" 
+                value={step.icon} 
+                onChange={(e) => updateStep(idx, 'icon', e.target.value, formLang)} 
+                className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" 
+              />
               <div className="flex-1 space-y-2">
-                <input type="text" value={step.title} onChange={(e) => updateStep(idx, 'title', e.target.value)} placeholder="Title" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" />
-                <input type="text" value={step.description} onChange={(e) => updateStep(idx, 'description', e.target.value)} placeholder="Instructions" className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" />
+                <input 
+                  type="text" 
+                  value={step.title} 
+                  onChange={(e) => updateStep(idx, 'title', e.target.value, formLang)} 
+                  placeholder={formLang === 'EN' ? "Title" : "Pamagat (Tagalog)"} 
+                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" 
+                />
+                <input 
+                  type="text" 
+                  value={step.description} 
+                  onChange={(e) => updateStep(idx, 'description', e.target.value, formLang)} 
+                  placeholder={formLang === 'EN' ? "Instructions" : "Mga tagubilin (Tagalog)"} 
+                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" 
+                />
               </div>
               <button type="button" onClick={() => removeStep(idx)} className="text-gray-400 hover:text-red-500"><XMarkIcon className="w-4 h-4" /></button>
             </div>
@@ -877,11 +999,22 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
           </button>
         </div>
         <div className="space-y-3">
-          {(activeGuidelines.dos || []).map((item: any, idx: number) => (
+          {(formLang === 'EN' ? (formData.guidelines?.dos || []) : (formData.guidelinesFilipino?.dos || [])).map((item: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100/50">
-              <input type="text" value={item.icon} onChange={(e) => updateGuideline('dos', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <input 
+                type="text" 
+                value={item.icon} 
+                onChange={(e) => updateGuideline('dos', idx, 'icon', e.target.value, formLang)} 
+                className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" 
+              />
               <div className="flex-1">
-                <input type="text" value={item.text} onChange={(e) => updateGuideline('dos', idx, 'text', e.target.value)} placeholder="What to do" className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" />
+                <input 
+                  type="text" 
+                  value={item.text} 
+                  onChange={(e) => updateGuideline('dos', idx, 'text', e.target.value, formLang)} 
+                  placeholder={formLang === 'EN' ? "What to do" : "Ano ang dapat gawin (Tagalog)"} 
+                  className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" 
+                />
               </div>
               <button type="button" onClick={() => removeGuideline('dos', idx)} className="text-gray-400 hover:text-red-500 flex items-center"><XMarkIcon className="w-4 h-4" /></button>
             </div>
@@ -899,11 +1032,22 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
           </button>
         </div>
         <div className="space-y-3">
-          {(activeGuidelines.donts || []).map((item: any, idx: number) => (
+          {(formLang === 'EN' ? (formData.guidelines?.donts || []) : (formData.guidelinesFilipino?.donts || [])).map((item: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-red-50/50 p-3 rounded-xl border border-red-100/50">
-              <input type="text" value={item.icon} onChange={(e) => updateGuideline('donts', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <input 
+                type="text" 
+                value={item.icon} 
+                onChange={(e) => updateGuideline('donts', idx, 'icon', e.target.value, formLang)} 
+                className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" 
+              />
               <div className="flex-1">
-                <input type="text" value={item.text} onChange={(e) => updateGuideline('donts', idx, 'text', e.target.value)} placeholder="What to avoid" className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" />
+                <input 
+                  type="text" 
+                  value={item.text} 
+                  onChange={(e) => updateGuideline('donts', idx, 'text', e.target.value, formLang)} 
+                  placeholder={formLang === 'EN' ? "What to avoid" : "Ano ang dapat iwasan (Tagalog)"} 
+                  className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" 
+                />
               </div>
               <button type="button" onClick={() => removeGuideline('donts', idx)} className="text-gray-400 hover:text-red-500 flex items-center"><XMarkIcon className="w-4 h-4" /></button>
             </div>
@@ -921,11 +1065,22 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
           </button>
         </div>
         <div className="space-y-3">
-          {(activeGuidelines.whatToKnow || []).map((item: any, idx: number) => (
+          {(formLang === 'EN' ? (formData.guidelines?.whatToKnow || []) : (formData.guidelinesFilipino?.whatToKnow || [])).map((item: any, idx: number) => (
             <div key={idx} className="flex gap-3 bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
-              <input type="text" value={item.icon} onChange={(e) => updateGuideline('whatToKnow', idx, 'icon', e.target.value)} className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" />
+              <input 
+                type="text" 
+                value={item.icon} 
+                onChange={(e) => updateGuideline('whatToKnow', idx, 'icon', e.target.value, formLang)} 
+                className="w-10 h-10 bg-white border border-gray-200 rounded-lg text-center" 
+              />
               <div className="flex-1">
-                <input type="text" value={item.text} onChange={(e) => updateGuideline('whatToKnow', idx, 'text', e.target.value)} placeholder="What to know" className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" />
+                <input 
+                  type="text" 
+                  value={item.text} 
+                  onChange={(e) => updateGuideline('whatToKnow', idx, 'text', e.target.value, formLang)} 
+                  placeholder={formLang === 'EN' ? "What to know" : "Ano ang dapat malaman (Tagalog)"} 
+                  className="w-full h-10 bg-white border border-gray-200 rounded-lg px-3 text-xs outline-none" 
+                />
               </div>
               <button type="button" onClick={() => removeGuideline('whatToKnow', idx)} className="text-gray-400 hover:text-red-500 flex items-center"><XMarkIcon className="w-4 h-4" /></button>
             </div>
@@ -936,9 +1091,18 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       <div className="grid grid-cols-1 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            Fasting Required
+            Fasting Required {formLang === 'PH' && '(Tagalog)'}
           </label>
-          <input type="text" value={formData.fastingRequired} onChange={(e) => setFormData({ ...formData, fastingRequired: e.target.value })} className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" />
+          <input 
+            type="text" 
+            value={formLang === 'EN' ? formData.fastingRequired : formData.fastingRequiredFilipino} 
+            onChange={(e) => setFormData({ 
+              ...formData, 
+              [formLang === 'EN' ? 'fastingRequired' : 'fastingRequiredFilipino']: e.target.value 
+            })} 
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" 
+            placeholder={formLang === 'PH' ? 'Tagalog translation...' : ''}
+          />
         </div>
       </div>
 
