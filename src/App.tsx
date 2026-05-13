@@ -51,7 +51,8 @@ function HardwareBackButton() {
 
   useEffect(() => {
     const handler = CapApp.addListener('backButton', () => {
-      const hasModal = document.querySelector('.fixed.inset-0[class*="z-"]');
+      // Check if any modal or overlay is open (usually has .fixed.inset-0)
+      const hasModal = document.querySelector('.fixed.inset-0');
       if (hasModal) {
         window.dispatchEvent(new CustomEvent('hardwareBackButton'));
         return;
