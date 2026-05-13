@@ -654,11 +654,6 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
 
   const [formLang, setFormLang] = useState<'EN' | 'PH'>('EN');
 
-  const activeSteps = formData.preparationSteps || [];
-  const activeGuidelines = formData.guidelines || {};
-  const stepsKey = 'preparationSteps';
-  const guidelinesKey = 'guidelines';
-
   const [uploadingImage, setUploadingImage] = useState(false);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
