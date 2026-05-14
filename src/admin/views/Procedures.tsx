@@ -39,21 +39,19 @@ const getFallbackImage = (category: string) => {
   }
 };
 
-const SafeImage = ({ src, alt, category, className }: { src?: string, alt: string, category: string, className?: string }) => {
-  const [imgSrc, setImgSrc] = useState(src || getFallbackImage(category));
+const SafeImage = ({ src, alt, category, className, objectMode = 'contain' }: { src?: string, alt: string, category: string, className?: string, objectMode?: 'cover' | 'contain' }) => {
+  const targetSrc = src || getFallbackImage(category);
+  const [currentSrc, setCurrentSrc] = useState(targetSrc);
   const [loading, setLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    if (src) {
-      setImgSrc(src);
-      setHasError(false);
+    if (targetSrc !== currentSrc) {
+      setCurrentSrc(targetSrc);
       setLoading(true);
-    } else {
-      setImgSrc(getFallbackImage(category));
-      setLoading(false);
+      setHasError(false);
     }
-  }, [src, category]);
+  }, [targetSrc, currentSrc]);
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
@@ -63,13 +61,13 @@ const SafeImage = ({ src, alt, category, className }: { src?: string, alt: strin
         </div>
       )}
       <img
-        src={imgSrc}
+        src={currentSrc}
         alt={alt}
-        className={`w-full h-full object-contain transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}
+        className={`w-full h-full ${objectMode === 'cover' ? 'object-cover' : 'object-contain'} transition-opacity duration-300 ${loading ? 'opacity-0' : 'opacity-100'}`}
         onLoad={() => setLoading(false)}
         onError={() => {
           if (!hasError) {
-            setImgSrc(getFallbackImage(category));
+            setCurrentSrc(getFallbackImage(category));
             setHasError(true);
             setLoading(false);
           }
