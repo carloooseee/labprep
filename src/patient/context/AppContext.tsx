@@ -135,38 +135,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const guideData = snapshot.docs.map(snap => {
         const data = snap.data() as Record<string, unknown>;
         
-        // Deep normalization for translations
-        const normalizedTranslations = { ...(data.translations as Record<string, unknown> | undefined) };
-        if (normalizedTranslations.tl && typeof normalizedTranslations.tl === 'object') {
-          const tl = normalizedTranslations.tl as Record<string, unknown>;
-          normalizedTranslations.tl = {
-            ...tl,
-            procedureName: (tl.procedureName || tl.name || data.procedureName || data.name || '') as string,
-            description: (tl.description || data.description || '') as string,
-            preparationSteps: (tl.preparationSteps || tl.preparations || []) as unknown[],
-            guidelines: (tl.guidelines || data.guidelines || { dos: [], donts: [], whatToKnow: [] }) as Record<string, unknown>
-          };
-        }
-
         return {
           id: snap.id,
-          // Normalization logic: Fallback to old keys if new ones are missing
           procedureName: data.procedureName || data.name || 'Unnamed Procedure',
-          procedureNameFilipino: data.procedureNameFilipino || '',
           category: data.category || 'Other',
           description: data.description || '',
-          descriptionFilipino: data.descriptionFilipino || '',
           fastingRequired: data.fastingRequired || data.fastingRequirement || '',
-          fastingRequiredFilipino: data.fastingRequiredFilipino || '',
           duration: data.duration || 15,
           preparationSteps: data.preparationSteps || data.preparations || [],
-          preparationStepsFilipino: data.preparationStepsFilipino || [],
           hospital: data.hospital || data.hospitalId || '',
           status: data.status || 'Active',
           imageUrl: data.imageUrl || '',
           guidelines: data.guidelines || { dos: [], donts: [], whatToKnow: [] },
-          guidelinesFilipino: data.guidelinesFilipino || { dos: [], donts: [], whatToKnow: [] },
-          translations: normalizedTranslations
         } as TestGuide;
       }).sort((a, b) => a.procedureName.localeCompare(b.procedureName));
       

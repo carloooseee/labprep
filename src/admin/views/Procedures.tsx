@@ -624,6 +624,7 @@ function Modal({ isOpen, onClose, title, children }: { isOpen: boolean, onClose:
 function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories }: { onClose: () => void, onSave: (data: Partial<TestGuide>) => void, initialData?: TestGuide, hospitals: Hospital[], categories: string[] }) {
   const [formData, setFormData] = useState<TestGuide>(() => {
     return initialData || {
+      id: '',
       hospital: hospitals[0]?.id || '',
       procedureName: '',
       category: 'Other Test',

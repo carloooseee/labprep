@@ -266,23 +266,6 @@ export const testGuides = [
         { icon: '🚫', text: "Don't touch inside of container" },
         { icon: '🩸', text: "Don't collect during menstruation" }
       ]
-    },
-    translations: {
-      tl: {
-        procedureName: 'Urinalysis (Pagsusuri ng Ihi)',
-        description: 'Sinusuri ang ihi upang matukoy ang iba\'t ibang sakit at kondisyon.',
-        preparationSteps: [
-          { icon: '🌅', title: 'Unang Ihi', description: 'Kolektahin ang unang ihi sa umaga', timing: 'Umaga ng test' }
-        ],
-        guidelines: {
-          dos: [
-            { icon: '🧼', text: 'Linisin ang ari bago kumuha ng ihi' }
-          ],
-          donts: [
-            { icon: '🚫', text: 'Huwag hawakan ang loob ng lalagyan' }
-          ]
-        }
-      }
     }
   },
   {
@@ -347,12 +330,6 @@ export const testGuides = [
       donts: [
         { icon: '☕', text: 'Avoid large amounts of caffeine before test' }
       ]
-    },
-    translations: {
-      tl: {
-        procedureName: 'Thyroid Function Test (TFT)',
-        description: 'Sinusukat ang antas ng thyroid hormone sa iyong katawan.'
-      }
     }
   },
   {
