@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { translateText } from '../../utils/translate';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import { DocumentTextIcon, XMarkIcon, TagIcon } from '@heroicons/react/24/solid';
@@ -86,13 +87,125 @@ const SafeImage = ({ src, alt, category, className, objectMode = 'cover' }: { sr
   );
 };
 
+function useLiveTranslation(guide: TestGuide | null, lang: 'EN' | 'PH') {
+  const [translatedGuide, setTranslatedGuide] = useState<TestGuide | null>(guide);
+  const [isTranslating, setIsTranslating] = useState(false);
 
-const GenericGuideContent = ({ guide, activeTab }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines' }) => {
+  useEffect(() => {
+    if (!guide) {
+      setTranslatedGuide(null);
+      return;
+    }
+    if (lang === 'EN') {
+      setTranslatedGuide(guide);
+      return;
+    }
+
+    let isMounted = true;
+    setIsTranslating(true);
+
+    const translateAll = async () => {
+      try {
+        const translated = { ...guide };
+        
+        // Preparation for nested fields
+        const prepSteps = guide.preparationSteps || [];
+        const manualPrepSteps = guide.preparationStepsFilipino || [];
+        
+        const manualDos = guide.guidelinesFilipino?.dos || [];
+        const originalDos = guide.guidelines?.dos || [];
+        
+        const manualDonts = guide.guidelinesFilipino?.donts || [];
+        const originalDonts = guide.guidelines?.donts || [];
+        
+        const manualWhatToKnow = guide.guidelinesFilipino?.whatToKnow || [];
+        const originalWhatToKnow = guide.guidelines?.whatToKnow || [];
+
+        const [
+          procedureName,
+          description,
+          fastingRequired,
+          preparationSteps,
+          dos,
+          donts,
+          whatToKnow
+        ] = await Promise.all([
+          guide.procedureNameFilipino || translateText(guide.procedureName),
+          guide.descriptionFilipino || translateText(guide.description),
+          guide.fastingRequiredFilipino || (guide.fastingRequired ? translateText(guide.fastingRequired) : Promise.resolve(guide.fastingRequired)),
+          
+          Promise.all(prepSteps.map(async (step: any, idx: number) => {
+            const manual = manualPrepSteps[idx];
+            return {
+              ...step,
+              title: manual?.title || await translateText(step.title),
+              description: manual?.description || await translateText(step.description),
+              timing: step.timing ? (manual?.timing || await translateText(step.timing)) : step.timing
+            };
+          })),
+
+          Promise.all(originalDos.map(async (i: any, idx: number) => {
+            const manual = manualDos[idx];
+            return { ...i, text: manual?.text || await translateText(i.text) };
+          })),
+
+          Promise.all(originalDonts.map(async (i: any, idx: number) => {
+            const manual = manualDonts[idx];
+            return { ...i, text: manual?.text || await translateText(i.text) };
+          })),
+
+          Promise.all(originalWhatToKnow.map(async (i: any, idx: number) => {
+            const manual = manualWhatToKnow[idx];
+            return { ...i, text: manual?.text || await translateText(i.text) };
+          }))
+        ]);
+
+        translated.procedureName = procedureName;
+        translated.description = description;
+        translated.fastingRequired = fastingRequired;
+        translated.preparationSteps = preparationSteps;
+        translated.guidelines = { dos, donts, whatToKnow };
+
+        if (isMounted) {
+          setTranslatedGuide(translated);
+        }
+      } catch (err) {
+        console.error("Translation failed", err);
+        if (isMounted) setTranslatedGuide(guide);
+      } finally {
+        if (isMounted) setIsTranslating(false);
+      }
+    };
+
+    translateAll();
+
+    return () => { isMounted = false; };
+  }, [guide, lang]);
+
+  return { translatedGuide, isTranslating };
+}
+
+const GenericGuideContent = ({ guide, activeTab, isTranslating }: { guide: TestGuide, activeTab: 'Preparations' | 'Guidelines', isTranslating?: boolean }) => {
   const description = guide.description;
   const preparationSteps = guide.preparationSteps || [];
   const guidelines = guide.guidelines;
   const fastingRequired = guide.fastingRequired;
 
+  if (isTranslating) {
+    return (
+      <div className="space-y-6 animate-pulse">
+         <div className="h-4 bg-gray-200 rounded w-full mb-4"></div>
+         <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
+         <div className="h-4 bg-gray-200 rounded w-4/6 mb-8"></div>
+         <div className="h-8 bg-gray-200 rounded w-1/3 mb-4 mt-8"></div>
+         <div className="space-y-3 ml-4 border-l-2 border-gray-200 pl-4">
+           <div className="h-16 bg-gray-100 rounded w-full"></div>
+           <div className="h-16 bg-gray-100 rounded w-full"></div>
+         </div>
+      </div>
+    );
+  }
+  
   if (activeTab === 'Preparations') {
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -193,8 +306,11 @@ export default function TestGuides() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
   const [activeTab, setActiveTab] = useState<'Preparations' | 'Guidelines'>('Preparations');
+  const [lang, setLang] = useState<'EN' | 'PH'>('EN');
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+
+  const { translatedGuide, isTranslating } = useLiveTranslation(selectedGuide, lang);
 
   useEffect(() => {
     const fetchPricing = async () => {
@@ -398,7 +514,7 @@ export default function TestGuides() {
         </div>
       )}
 
-      {selectedGuide && (() => {
+      {selectedGuide && translatedGuide && (() => {
         const isUrineVideo = selectedGuide.procedureName.toLowerCase().includes('24') && (selectedGuide.procedureName.toLowerCase().includes('urine') || selectedGuide.procedureName.toLowerCase().includes('urinalysis'));
         const isStoolVideo = selectedGuide.procedureName.toLowerCase().includes('stool');
         const hasVideo = isUrineVideo || isStoolVideo;
@@ -436,13 +552,19 @@ export default function TestGuides() {
             <div className="p-5 pb-3 shrink-0 shadow-sm border-b border-gray-100">
               <div className="flex justify-between items-start mb-2">
                 <h2 className="text-2xl font-bold font-display text-[var(--color-on-surface)] leading-tight flex-1 mr-2">
-                  {selectedGuide.procedureName}
+                  {isTranslating ? (
+                    <span className="inline-block animate-pulse bg-gray-200 w-3/4 h-8 rounded"></span>
+                  ) : translatedGuide.procedureName}
                 </h2>
+                <div className="flex bg-gray-100 p-1 rounded-xl shrink-0">
+                  <button onClick={() => setLang('EN')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'EN' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>EN</button>
+                  <button onClick={() => setLang('PH')} className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${lang === 'PH' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}>PH</button>
+                </div>
               </div>
               <div className="flex flex-wrap gap-2 mb-4">
-                {selectedGuide.fastingRequired && (
+                {translatedGuide.fastingRequired && (
                   <span className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 shadow-sm">
-                    {selectedGuide.fastingRequired}
+                    {isTranslating ? '...' : translatedGuide.fastingRequired}
                   </span>
                 )}
                 <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getCategoryColor(selectedGuide.category)} border border-transparent shadow-sm`}>
@@ -467,7 +589,7 @@ export default function TestGuides() {
             </div>
 
             <div className="p-5 pt-4 overflow-y-auto pb-24 h-full">
-              <GenericGuideContent guide={selectedGuide} activeTab={activeTab} />
+              <GenericGuideContent guide={translatedGuide} activeTab={activeTab} isTranslating={isTranslating} />
             </div>
           </div>
         </div>
