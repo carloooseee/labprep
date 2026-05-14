@@ -20,20 +20,14 @@ export interface TestGuide {
   id: string;
   name?: string;
   procedureName: string;
-  procedureNameFilipino?: string;
   category: string;
   description: string;
-  descriptionFilipino?: string;
   fastingRequired?: string;
-  fastingRequiredFilipino?: string;
   duration?: number;
   imageUrl?: string;
   defaultInstructions?: string;
   preparationSteps: { icon: string; title: string; description: string; timing?: string }[];
-  preparationStepsFilipino?: { icon: string; title: string; description: string; timing?: string }[];
   guidelines: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[]; whatToKnow?: { icon: string; text: string }[] };
-  guidelinesFilipino?: { dos?: { icon: string; text: string }[]; donts?: { icon: string; text: string }[]; whatToKnow?: { icon: string; text: string }[] };
-  translations?: Record<string, unknown>;
   hospital?: string;
   status?: string;
 }
