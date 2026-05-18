@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { translateText } from '../../utils/translate';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { DocumentTextIcon, XMarkIcon, TagIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon, XMarkIcon, TagIcon, BuildingOfficeIcon } from '@heroicons/react/24/solid';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mov';
@@ -300,8 +301,10 @@ const GenericGuideContent = ({ guide, activeTab, isTranslating }: { guide: TestG
 };
 
 export default function TestGuides() {
-  const { testGuides, loading } = useAppContext();
-  
+  const { hospitals, testGuides, setSelectedHospitalId, loading } = useAppContext();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [selectedGuide, setSelectedGuide] = useState<TestGuide | null>(null);
@@ -309,6 +312,16 @@ export default function TestGuides() {
   const [lang, setLang] = useState<'EN' | 'PH'>('EN');
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+
+  // Read hospitalId from URL params and sync with context
+  const hospitalIdFromUrl = searchParams.get('hospitalId');
+  const activeHospital = hospitalIdFromUrl
+    ? hospitals.find(h => h.id === hospitalIdFromUrl) ?? null
+    : null;
+
+  useEffect(() => {
+    setSelectedHospitalId(hospitalIdFromUrl || null);
+  }, [hospitalIdFromUrl, setSelectedHospitalId]);
 
   const { translatedGuide, isTranslating } = useLiveTranslation(selectedGuide, lang);
 
@@ -343,7 +356,10 @@ export default function TestGuides() {
     const procCategory = proc.category?.trim() || 'Other Test';
     const normalizedCategory = procCategory.toLowerCase() === 'other test' ? 'Other Test' : procCategory;
     const matchesCategory = activeCategory ? normalizedCategory === activeCategory : true;
-    return matchesSearch && matchesCategory;
+    const matchesHospital = hospitalIdFromUrl
+      ? (!proc.hospital || proc.hospital === hospitalIdFromUrl)
+      : true;
+    return matchesSearch && matchesCategory && matchesHospital;
   });
 
   const categoryPriority: Record<string, number> = {
@@ -394,7 +410,31 @@ export default function TestGuides() {
         </div>
       </div>
 
+      {/* Active Hospital Filter Banner */}
+      {activeHospital ? (
+        <div className="mb-6 flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="p-2 bg-blue-600 text-white rounded-xl shrink-0">
+            <BuildingOfficeIcon className="w-4 h-4" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-blue-500 mb-0.5">Showing Guides For</p>
+            <p className="text-sm font-bold text-blue-900 truncate">{activeHospital.name}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-6 flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3">
+          <div className="p-2 bg-gray-200 text-gray-500 rounded-xl shrink-0">
+            <BuildingOfficeIcon className="w-4 h-4" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-0.5">Showing Guides For</p>
+            <p className="text-sm font-bold text-gray-600">All Hospitals</p>
+          </div>
+        </div>
+      )}
+
       {/* Laboratory Test Categories Section */}
+
       <div className="mb-8">
         <h3 className="text-xl font-bold font-display text-[var(--color-on-surface)] mb-4">Laboratory Test Categories</h3>
         <div className="grid grid-cols-2 gap-3">
