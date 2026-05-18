@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { translateText } from '../../utils/translate';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
@@ -303,7 +303,7 @@ const GenericGuideContent = ({ guide, activeTab, isTranslating }: { guide: TestG
 export default function TestGuides() {
   const { hospitals, testGuides, setSelectedHospitalId, loading } = useAppContext();
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+
 
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
