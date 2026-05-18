@@ -312,6 +312,49 @@ export default function TestGuides() {
   const [lang, setLang] = useState<'EN' | 'PH'>('EN');
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+  const [globalPricingMargin, setGlobalPricingMargin] = useState('16px');
+
+  // Database defaults for custom cropping
+  const [dbPricingZoom, setDbPricingZoom] = useState(1);
+  const [dbPricingPanX, setDbPricingPanX] = useState(0);
+  const [dbPricingPanY, setDbPricingPanY] = useState(0);
+
+  // Active patient interactive zoom & pan values
+  const [activeZoom, setActiveZoom] = useState(1);
+  const [activePanX, setActivePanX] = useState(0);
+  const [activePanY, setActivePanY] = useState(0);
+
+  // Patient drag state handlers
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [basePan, setBasePan] = useState({ x: 0, y: 0 });
+
+  const handleDragStart = (clientX: number, clientY: number) => {
+    setDragStart({ x: clientX, y: clientY });
+    setBasePan({ x: activePanX, y: activePanY });
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!isDragging) return;
+    const dx = clientX - dragStart.x;
+    const dy = clientY - dragStart.y;
+    setActivePanX(basePan.x + dx);
+    setActivePanY(basePan.y + dy);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
+
+  // Reset active patient zoom/pan to DB crop defaults when opening pricing list modal
+  useEffect(() => {
+    if (isPricingModalOpen) {
+      setActiveZoom(dbPricingZoom);
+      setActivePanX(dbPricingPanX);
+      setActivePanY(dbPricingPanY);
+    }
+  }, [isPricingModalOpen, dbPricingZoom, dbPricingPanX, dbPricingPanY]);
 
   // Read hospitalId from URL params and sync with context
   const hospitalIdFromUrl = searchParams.get('hospitalId');
@@ -331,6 +374,10 @@ export default function TestGuides() {
         const snap = await getDoc(doc(db, 'settings', 'pricing'));
         if (snap.exists()) {
           setGlobalPricingUrl(snap.data().url || '');
+          setGlobalPricingMargin(snap.data().margin || '16px');
+          setDbPricingZoom(snap.data().zoom || 1);
+          setDbPricingPanX(snap.data().panX || 0);
+          setDbPricingPanY(snap.data().panY || 0);
         }
       } catch (err) {
         console.error("Error fetching global pricing:", err);
@@ -649,15 +696,56 @@ export default function TestGuides() {
                 <XMarkIcon className="w-6 h-6 text-gray-400" />
               </button>
             </div>
-            <div className="flex-1 overflow-auto bg-gray-50 p-4 flex items-center justify-center">
-              <img 
-                src={globalPricingUrl} 
-                alt="Laboratory Pricing"
-                className="max-w-full h-auto rounded-lg shadow-sm"
-              />
+            <div 
+              className={`flex-grow w-full overflow-hidden bg-gray-50 flex items-center justify-center relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+              style={{ 
+                padding: globalPricingMargin,
+                height: '60vh' 
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleDragStart(e.clientX, e.clientY);
+              }}
+              onMouseMove={(e) => {
+                handleDragMove(e.clientX, e.clientY);
+              }}
+              onMouseUp={handleDragEnd}
+              onMouseLeave={handleDragEnd}
+              onTouchStart={(e) => {
+                const touch = e.touches[0];
+                if (touch) {
+                  handleDragStart(touch.clientX, touch.clientY);
+                }
+              }}
+              onTouchMove={(e) => {
+                const touch = e.touches[0];
+                if (touch) {
+                  handleDragMove(touch.clientX, touch.clientY);
+                }
+              }}
+              onTouchEnd={handleDragEnd}
+              onWheel={(e) => {
+                e.preventDefault();
+                const zoomFactor = 0.05;
+                const direction = e.deltaY < 0 ? 1 : -1;
+                const newZoom = Math.min(Math.max(activeZoom + direction * zoomFactor, 0.5), 8);
+                setActiveZoom(newZoom);
+              }}
+            >
+              <div className="w-full h-full overflow-hidden flex items-center justify-center relative bg-white rounded-2xl border border-gray-100 shadow-sm pointer-events-none select-none">
+                <img 
+                  src={globalPricingUrl} 
+                  alt="Laboratory Pricing"
+                  className="max-h-full max-w-full object-contain origin-center transition-transform duration-75 select-none"
+                  style={{
+                    transform: `translate(${activePanX}px, ${activePanY}px) scale(${activeZoom})`
+                  }}
+                />
+              </div>
             </div>
-            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center text-xs text-gray-500 font-body">
-              Prices are subject to change without prior notice. Please contact the laboratory directly for confirmation.
+            <div className="p-4 bg-gray-50 border-t border-gray-100 text-center font-body shrink-0 flex flex-col items-center justify-center gap-1">
+              <p className="text-xs font-semibold text-indigo-600">💡 Tip: You can drag to move and zoom in/out on the pricing sheet.</p>
+              <p className="text-[10px] text-gray-400">Prices are subject to change without prior notice. Please contact the laboratory directly for confirmation.</p>
             </div>
           </div>
         </div>

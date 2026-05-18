@@ -87,6 +87,10 @@ export default function Procedures() {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [isGuidelinesModalOpen, setIsGuidelinesModalOpen] = useState(false);
   const [globalPricingUrl, setGlobalPricingUrl] = useState('');
+  const [globalPricingMargin, setGlobalPricingMargin] = useState('16px');
+  const [globalPricingZoom, setGlobalPricingZoom] = useState(1);
+  const [globalPricingPanX, setGlobalPricingPanX] = useState(0);
+  const [globalPricingPanY, setGlobalPricingPanY] = useState(0);
   const [generalGuidelines, setGeneralGuidelines] = useState<any>({
     rules: '',
     rulesFilipino: '',
@@ -102,6 +106,29 @@ export default function Procedures() {
   const [editingProcedure, setEditingProcedure] = useState<any>(null);
   const [viewingProcedure, setViewingProcedure] = useState<any>(null);
   const [procedureToDelete, setProcedureToDelete] = useState<any>(null);
+
+  // Mouse & Touch Drag Crop State
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [basePan, setBasePan] = useState({ x: 0, y: 0 });
+
+  const handleDragStart = (clientX: number, clientY: number) => {
+    setDragStart({ x: clientX, y: clientY });
+    setBasePan({ x: globalPricingPanX, y: globalPricingPanY });
+    setIsDragging(true);
+  };
+
+  const handleDragMove = (clientX: number, clientY: number) => {
+    if (!isDragging) return;
+    const dx = clientX - dragStart.x;
+    const dy = clientY - dragStart.y;
+    setGlobalPricingPanX(basePan.x + dx);
+    setGlobalPricingPanY(basePan.y + dy);
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
+  };
 
   // Derive dynamic categories from data
   const categoryPriority: Record<string, number> = {
@@ -121,6 +148,10 @@ export default function Procedures() {
         const pricingSnap = await getDoc(doc(db, 'settings', 'pricing'));
         if (pricingSnap.exists()) {
           setGlobalPricingUrl(pricingSnap.data().url || '');
+          setGlobalPricingMargin(pricingSnap.data().margin || '16px');
+          setGlobalPricingZoom(pricingSnap.data().zoom || 1);
+          setGlobalPricingPanX(pricingSnap.data().panX || 0);
+          setGlobalPricingPanY(pricingSnap.data().panY || 0);
         }
 
         const guidelinesSnap = await getDoc(doc(db, 'settings', 'generalGuidelines'));
@@ -489,14 +520,57 @@ export default function Procedures() {
                 </div>
               </div>
 
-              <div className="flex justify-between items-center">
-                <p className="text-[10px] text-gray-400 max-w-[60%]">Upload the laboratory pricing photo. Patients will see this when they click the "Pricing" button.</p>
+              {globalPricingUrl && (
+                <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200/60 space-y-3 shadow-sm">
+                  <div className="flex justify-between items-center pb-1.5 border-b border-gray-200/50">
+                    <span className="text-xs font-bold text-gray-800 uppercase tracking-wider font-display">Framing Adjustments</span>
+                    <button 
+                      type="button"
+                      onClick={() => {
+                        setGlobalPricingMargin('16px');
+                        setGlobalPricingZoom(1);
+                        setGlobalPricingPanX(0);
+                        setGlobalPricingPanY(0);
+                      }}
+                      className="text-[10px] font-bold text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100/80 px-2.5 py-1 rounded-lg transition-all"
+                    >
+                      Reset Frame
+                    </button>
+                  </div>
+
+                  <div className="text-[11px] text-gray-600 leading-relaxed font-body bg-indigo-50/50 p-2.5 rounded-xl border border-indigo-100/50">
+                    Click & <strong>drag the image</strong> below to position it. <strong>Scroll your mouse wheel</strong> to zoom in/out. You can also use the control buttons overlayed on the bottom-right of the image.
+                  </div>
+
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-[11px] font-semibold text-gray-600 uppercase tracking-wide">Outer Border Padding</span>
+                      <span className="text-[10px] font-mono font-bold text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded">{globalPricingMargin}</span>
+                    </div>
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="64" 
+                      value={parseInt(globalPricingMargin) || 0}
+                      onChange={(e) => setGlobalPricingMargin(`${e.target.value}px`)}
+                      className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center gap-4">
+                <p className="text-[10px] text-gray-400 max-w-[60%]">Configure how the laboratory pricing photo fits on patient screens. Use crop settings to focus or align the photo.</p>
                 <button 
                   onClick={async () => {
                     setIsSavingPricing(true);
                     try {
                       await setDoc(doc(db, 'settings', 'pricing'), {
                         url: globalPricingUrl,
+                        margin: globalPricingMargin,
+                        zoom: globalPricingZoom,
+                        panX: globalPricingPanX,
+                        panY: globalPricingPanY,
                         updatedAt: new Date()
                       });
                       alert("Global pricing photo updated successfully!");
@@ -509,19 +583,103 @@ export default function Procedures() {
                     }
                   }}
                   disabled={isSavingPricing}
-                  className={`px-6 py-2.5 bg-indigo-600 text-white font-bold rounded-xl shadow-md transition-all ${isSavingPricing ? 'opacity-50' : 'hover:bg-indigo-700'}`}
+                  className={`px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-md transition-all active:scale-[0.98] shrink-0 ${isSavingPricing ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   {isSavingPricing ? 'Saving...' : 'Save Changes'}
                 </button>
               </div>
 
               {globalPricingUrl && (
-                <div className="mt-4 p-2 bg-gray-100 rounded-lg border border-gray-200 overflow-hidden relative group">
-                  <p className="text-[10px] font-bold text-gray-500 mb-2 uppercase text-center">Preview</p>
-                  <img src={globalPricingUrl} alt="Preview" className="max-h-64 mx-auto rounded shadow-sm" />
+                <div className="mt-4 p-4 bg-gray-100 rounded-2xl border border-gray-200 overflow-hidden relative group">
+                  <p className="text-[10px] font-bold text-gray-500 mb-2 uppercase text-center font-display">Interactive Preview (Drag & Scroll)</p>
+                  <div 
+                    className={`bg-white rounded-xl shadow-inner flex items-center justify-center border border-gray-150 overflow-hidden relative ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+                    style={{ 
+                      padding: globalPricingMargin,
+                      height: '280px' 
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleDragStart(e.clientX, e.clientY);
+                    }}
+                    onMouseMove={(e) => {
+                      handleDragMove(e.clientX, e.clientY);
+                    }}
+                    onMouseUp={handleDragEnd}
+                    onMouseLeave={handleDragEnd}
+                    onTouchStart={(e) => {
+                      const touch = e.touches[0];
+                      if (touch) {
+                        handleDragStart(touch.clientX, touch.clientY);
+                      }
+                    }}
+                    onTouchMove={(e) => {
+                      const touch = e.touches[0];
+                      if (touch) {
+                        handleDragMove(touch.clientX, touch.clientY);
+                      }
+                    }}
+                    onTouchEnd={handleDragEnd}
+                    onWheel={(e) => {
+                      e.preventDefault();
+                      const zoomFactor = 0.05;
+                      const direction = e.deltaY < 0 ? 1 : -1;
+                      const newZoom = Math.min(Math.max(globalPricingZoom + direction * zoomFactor, 1), 6);
+                      setGlobalPricingZoom(newZoom);
+                    }}
+                  >
+                    <div className="w-full h-full overflow-hidden flex items-center justify-center relative bg-gray-50 rounded-lg border border-gray-100 pointer-events-none select-none">
+                      <img 
+                        src={globalPricingUrl} 
+                        alt="Preview" 
+                        className="max-h-full max-w-full object-contain origin-center transition-transform duration-75 select-none" 
+                        style={{
+                          transform: `translate(${globalPricingPanX}px, ${globalPricingPanY}px) scale(${globalPricingZoom})`
+                        }}
+                      />
+                    </div>
+
+                    {/* Interactive Zoom / Reset overlay control */}
+                    <div 
+                      className="absolute bottom-4 right-4 flex items-center bg-black/75 backdrop-blur-sm rounded-xl p-1.5 space-x-1.5 z-30 select-none shadow-lg border border-white/10"
+                      onMouseDown={(e) => e.stopPropagation()} // Prevent drag start when clicking control buttons
+                      onTouchStart={(e) => e.stopPropagation()}
+                    >
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setGlobalPricingZoom(z => Math.min(z + 0.25, 6)); }}
+                        className="w-7 h-7 flex items-center justify-center text-white hover:bg-white/20 active:bg-white/30 rounded-lg font-bold text-sm transition-colors cursor-pointer"
+                        title="Zoom In"
+                      >
+                        +
+                      </button>
+                      <span className="text-[10px] text-white/95 font-mono px-1 font-bold min-w-[28px] text-center">{globalPricingZoom.toFixed(2)}x</span>
+                      <button 
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setGlobalPricingZoom(z => Math.max(z - 0.25, 1)); }}
+                        className="w-7 h-7 flex items-center justify-center text-white hover:bg-white/20 active:bg-white/30 rounded-lg font-bold text-sm transition-colors cursor-pointer"
+                        title="Zoom Out"
+                      >
+                        -
+                      </button>
+                      <div className="w-px h-4 bg-white/20 mx-1" />
+                      <button 
+                        type="button"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setGlobalPricingZoom(1); 
+                          setGlobalPricingPanX(0); 
+                          setGlobalPricingPanY(0); 
+                        }}
+                        className="px-2.5 py-1 text-[10px] text-white hover:bg-white/20 active:bg-white/30 rounded-lg font-bold transition-colors cursor-pointer"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
                   <button 
                     onClick={() => setGlobalPricingUrl('')}
-                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity animate-in fade-in cursor-pointer hover:bg-red-600"
                   >
                     <XMarkIcon className="w-4 h-4" />
                   </button>
