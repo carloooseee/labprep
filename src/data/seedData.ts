@@ -331,7 +331,7 @@ export const testGuides = [
   {
     id: 'p7',
     procedureName: 'Thyroid Function Test (TFT)',
-    category: 'Blood Test',
+    category: 'Serology',
     description: 'Measures thyroid hormone levels to check how well your thyroid is working.',
     duration: 20,
     status: 'Active',
@@ -358,7 +358,7 @@ export const testGuides = [
   {
     id: 'p15',
     procedureName: 'Typhidot Test (Typhoid Fever Test)',
-    category: 'Blood Test',
+    category: 'Serology',
     description: 'Checks for Typhoid fever, an infection from contaminated food/water.',
     status: 'Active',
     imageUrl: 'https://www.hospitals.com.au/images/hospitals.jpg',
@@ -379,7 +379,7 @@ export const testGuides = [
   {
     id: 'p16',
     procedureName: 'Dengue Test',
-    category: 'Blood Test',
+    category: 'Serology',
     description: 'Checks for Dengue fever, a viral infection spread by mosquitoes.',
     status: 'Active',
     imageUrl: 'https://www.hospitals.com.au/images/hospitals.jpg',
@@ -400,7 +400,7 @@ export const testGuides = [
   {
     id: 'p17',
     procedureName: 'RPR Test (Syphilis Screening)',
-    category: 'Blood Test',
+    category: 'Serology',
     description: 'Checks for Syphilis, a sexually transmitted infection.',
     status: 'Active',
     imageUrl: 'https://www.hospitals.com.au/images/hospitals.jpg',
@@ -421,7 +421,7 @@ export const testGuides = [
   {
     id: 'p18',
     procedureName: 'HIV Test',
-    category: 'Blood Test',
+    category: 'Serology',
     description: 'Checks for HIV, a virus that weakens the body’s defense system.',
     status: 'Active',
     imageUrl: 'https://www.hospitals.com.au/images/hospitals.jpg',
@@ -442,7 +442,7 @@ export const testGuides = [
   {
     id: 'p19',
     procedureName: 'HBsAg Test (Hepatitis B Screening)',
-    category: 'Blood Test',
+    category: 'Serology',
     description: 'Checks for Hepatitis B, a virus that affects the liver.',
     status: 'Active',
     imageUrl: 'https://www.hospitals.com.au/images/hospitals.jpg',

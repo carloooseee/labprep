@@ -189,15 +189,15 @@ export default function Login() {
 
         <div className="w-full max-w-sm space-y-4 relative z-10 animate-in slide-in-from-bottom-8 duration-1000">
           <button 
-            onClick={() => setView('signup')}
+            onClick={() => { setView('signup'); setEmail(''); setPassword(''); setName(''); setConfirmPassword(''); setError(''); setSuccess(''); }}
             className="w-full py-4 bg-white text-[#417af0] rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl active:scale-95 transition-all"
           >
-            Get Started
+            Sign Up
           </button>
           <div className="text-center pt-2">
             <p className="text-white/60 text-xs font-bold uppercase tracking-widest mb-1">Already a member?</p>
             <button 
-              onClick={() => setView('signin')}
+              onClick={() => { setView('signin'); setEmail(''); setPassword(''); setError(''); setSuccess(''); }}
               className="text-white font-black text-base hover:underline"
             >
               Sign In
@@ -347,9 +347,14 @@ export default function Login() {
             </p>
             <button 
               onClick={() => {
-                setView(view === 'signin' ? 'signup' : 'signin');
+                const newView = view === 'signin' ? 'signup' : 'signin';
+                setView(newView);
                 setError('');
                 setSuccess('');
+                setEmail('');
+                setPassword('');
+                setName('');
+                setConfirmPassword('');
               }}
               className="mt-2 text-[#417af0] font-black text-sm hover:underline font-display"
             >

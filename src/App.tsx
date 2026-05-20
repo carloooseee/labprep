@@ -114,8 +114,10 @@ export default function App() {
               <Route path="procedures" element={<AdminProcedures />} />
               <Route path="notifications" element={<AdminNotifications />} />
               <Route path="settings" element={<AdminSettings />} />
-              <Route path="seed" element={<SeedDatabase />} />
             </Route>
+
+            {/* Public Migration Route */}
+            <Route path="/seed" element={<SeedDatabase />} />
           </Routes>
         </BrowserRouter>
       </AppProvider>

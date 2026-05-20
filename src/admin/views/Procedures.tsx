@@ -91,6 +91,7 @@ export default function Procedures() {
   const [globalPricingZoom, setGlobalPricingZoom] = useState(1);
   const [globalPricingPanX, setGlobalPricingPanX] = useState(0);
   const [globalPricingPanY, setGlobalPricingPanY] = useState(0);
+  const [pricingHospitalId, setPricingHospitalId] = useState('global');
   const [generalGuidelines, setGeneralGuidelines] = useState<any>({
     rules: '',
     rulesFilipino: '',
@@ -164,6 +165,33 @@ export default function Procedures() {
     };
     fetchSettings();
   }, []);
+
+  // Fetch pricing when hospital selection changes in the modal
+  useEffect(() => {
+    if (!isPricingModalOpen) return;
+    const fetchHospitalPricing = async () => {
+      try {
+        const docId = pricingHospitalId === 'global' ? 'pricing' : `pricing_${pricingHospitalId}`;
+        const snap = await getDoc(doc(db, 'settings', docId));
+        if (snap.exists()) {
+          setGlobalPricingUrl(snap.data().url || '');
+          setGlobalPricingMargin(snap.data().margin || '16px');
+          setGlobalPricingZoom(snap.data().zoom || 1);
+          setGlobalPricingPanX(snap.data().panX || 0);
+          setGlobalPricingPanY(snap.data().panY || 0);
+        } else {
+          setGlobalPricingUrl('');
+          setGlobalPricingMargin('16px');
+          setGlobalPricingZoom(1);
+          setGlobalPricingPanX(0);
+          setGlobalPricingPanY(0);
+        }
+      } catch (err) {
+        console.error("Error fetching hospital pricing:", err);
+      }
+    };
+    fetchHospitalPricing();
+  }, [pricingHospitalId, isPricingModalOpen]);
 
   const dynamicCategories = Array.from(new Set(
     ['Other Test', ...testGuides.map(p => p.category)]
@@ -473,11 +501,28 @@ export default function Procedures() {
         title="Manage Pricing Photo"
       >
         <div className="space-y-6">
-          <p className="text-sm text-gray-500 text-center">Upload or set the pricing image that will be shown to all patients on the Test Guides page.</p>
+          {/* Hospital Selector */}
+          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+            <label className="block text-xs font-bold text-blue-700 mb-2 uppercase tracking-wide">Pricing For Hospital</label>
+            <div className="relative">
+              <BuildingOfficeIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-400 pointer-events-none" />
+              <select
+                value={pricingHospitalId}
+                onChange={(e) => setPricingHospitalId(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 bg-white border border-blue-200 rounded-xl text-sm font-bold outline-none cursor-pointer appearance-none"
+              >
+                <option value="global">🌐 Global (All Hospitals fallback)</option>
+                {hospitals.map(h => <option key={h.id} value={h.id}>🏥 {h.name}</option>)}
+              </select>
+            </div>
+            <p className="text-[10px] text-blue-500 mt-2 font-body">Patients who selected this hospital will see this pricing list. Global is shown as fallback if hospital-specific pricing isn't set.</p>
+          </div>
+
+          <p className="text-sm text-gray-500 text-center">Upload or set the pricing image for the selected hospital.</p>
           
           <div className="pt-2">
             <label className="block text-sm font-bold text-gray-700 mb-2 uppercase tracking-wide">
-              Global Pricing Photo
+              {pricingHospitalId === 'global' ? 'Global Pricing Photo' : `${hospitals.find(h => h.id === pricingHospitalId)?.name || ''} Pricing Photo`}
             </label>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
@@ -565,15 +610,17 @@ export default function Procedures() {
                   onClick={async () => {
                     setIsSavingPricing(true);
                     try {
-                      await setDoc(doc(db, 'settings', 'pricing'), {
+                      const docId = pricingHospitalId === 'global' ? 'pricing' : `pricing_${pricingHospitalId}`;
+                      await setDoc(doc(db, 'settings', docId), {
                         url: globalPricingUrl,
                         margin: globalPricingMargin,
                         zoom: globalPricingZoom,
                         panX: globalPricingPanX,
                         panY: globalPricingPanY,
+                        hospitalId: pricingHospitalId,
                         updatedAt: new Date()
                       });
-                      alert("Global pricing photo updated successfully!");
+                      alert(`Pricing photo saved for ${pricingHospitalId === 'global' ? 'all hospitals (global)' : hospitals.find(h => h.id === pricingHospitalId)?.name || pricingHospitalId}!`);
                       setIsPricingModalOpen(false);
                     } catch (err) {
                       console.error(err);
@@ -833,7 +880,25 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       procedureNameFilipino: base.procedureNameFilipino || '',
       descriptionFilipino: base.descriptionFilipino || '',
       fastingRequiredFilipino: base.fastingRequiredFilipino || '',
-      preparationStepsFilipino: base.preparationStepsFilipino || (base.preparationSteps || []).map((s: any) => ({ ...s, title: '', description: '' })),
+      preparationSteps: (base.preparationSteps || []).map((s: any) => ({
+        ...s,
+        title: s.title || '',
+        description: s.description || '',
+        timing: s.timing || ''
+      })),
+      preparationStepsFilipino: base.preparationStepsFilipino
+        ? base.preparationStepsFilipino.map((s: any) => ({
+            ...s,
+            title: s.title || '',
+            description: s.description || '',
+            timing: s.timing || ''
+          }))
+        : (base.preparationSteps || []).map((s: any) => ({
+            ...s,
+            title: '',
+            description: '',
+            timing: ''
+          })),
       guidelinesFilipino: base.guidelinesFilipino || {
         dos: (base.guidelines?.dos || []).map((i: any) => ({ ...i, text: '' })),
         donts: (base.guidelines?.donts || []).map((i: any) => ({ ...i, text: '' })),
@@ -876,8 +941,8 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
   const addStep = () => {
     setFormData({
       ...formData,
-      preparationSteps: [...(formData.preparationSteps || []), { icon: '📝', title: '', description: '' }],
-      preparationStepsFilipino: [...(formData.preparationStepsFilipino || []), { icon: '📝', title: '', description: '' }]
+      preparationSteps: [...(formData.preparationSteps || []), { icon: '📝', title: '', description: '', timing: '' }],
+      preparationStepsFilipino: [...(formData.preparationStepsFilipino || []), { icon: '📝', title: '', description: '', timing: '' }]
     });
   };
 
@@ -1055,7 +1120,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
               value={formData.category}
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="w-full pl-10 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-              placeholder="Type a category name (e.g., Blood Test)"
+              placeholder="Type a category name (e.g., Serology)"
               required
             />
           </div>
@@ -1165,6 +1230,13 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
                   value={step.description} 
                   onChange={(e) => updateStep(idx, 'description', e.target.value, formLang)} 
                   placeholder={formLang === 'EN' ? "Instructions" : "Mga tagubilin (Tagalog)"} 
+                  className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" 
+                />
+                <input 
+                  type="text" 
+                  value={step.timing || ''} 
+                  onChange={(e) => updateStep(idx, 'timing', e.target.value, formLang)} 
+                  placeholder={formLang === 'EN' ? "Timing (e.g., During test, Pre-test)" : "Kailan gagawin (Tagalog, hal. Bago mag-test)"} 
                   className="w-full bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none" 
                 />
               </div>
@@ -1343,11 +1415,18 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
       <div>
         <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Steps</h5>
         <div className="space-y-2">
-          {procedure.preparationSteps?.map((step: { icon: string; title: string; description: string }, idx: number) => (
+          {procedure.preparationSteps?.map((step: { icon: string; title: string; description: string; timing?: string }, idx: number) => (
             <div key={idx} className="flex items-start gap-3 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
               <span className="text-lg shrink-0">{step.icon}</span>
               <div className="flex-1">
-                <p className="text-[11px] font-bold text-gray-800">{step.title}</p>
+                <p className="text-[11px] font-bold text-gray-800">
+                  {step.title}
+                  {step.timing && (
+                    <span className="ml-2 inline-block text-[9px] font-bold uppercase tracking-wider bg-gray-200/80 text-gray-500 px-1.5 py-0.5 rounded">
+                      {step.timing}
+                    </span>
+                  )}
+                </p>
                 <p className="text-[10px] text-gray-500 leading-tight">{step.description}</p>
               </div>
             </div>

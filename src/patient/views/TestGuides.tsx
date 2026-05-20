@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { translateText } from '../../utils/translate';
 import { useAppContext, type TestGuide } from '../context/AppContext';
 import { MagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
-import { DocumentTextIcon, XMarkIcon, TagIcon, BuildingOfficeIcon } from '@heroicons/react/24/solid';
+import { DocumentTextIcon, XMarkIcon, BuildingOfficeIcon } from '@heroicons/react/24/solid';
 import { db } from '../../firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import urineVideo from '../../assets/24-Hour_Urine_Guide (1).mov';
@@ -19,10 +19,12 @@ import genericImg from '../../assets/test-guides/generic.png';
 const getCategoryColor = (category: string) => {
   switch (category) {
     case 'Urinalysis': return 'bg-orange-50 text-orange-600';
-    case 'Serological Test': return 'bg-rose-50 text-rose-600';
+    case 'Serological Test':
+    case 'Serology': return 'bg-rose-50 text-rose-600';
     case 'Stool Test': return 'bg-amber-100 text-amber-800';
     case 'Blood Chemistry': return 'bg-violet-50 text-violet-600';
     case 'Hematology': return 'bg-teal-50 text-teal-600';
+    case 'Imaging': return 'bg-sky-50 text-sky-600';
     default: return 'bg-gray-100 text-gray-600';
   }
 };
@@ -30,11 +32,25 @@ const getCategoryColor = (category: string) => {
 const getCategoryOverlayColor = (category: string) => {
   switch (category) {
     case 'Urinalysis': return 'from-orange-500/40 to-orange-600/10';
-    case 'Serological Test': return 'from-rose-500/40 to-rose-600/10';
+    case 'Serological Test':
+    case 'Serology': return 'from-rose-500/40 to-rose-600/10';
     case 'Stool Test': return 'from-amber-700/40 to-amber-800/10';
     case 'Blood Chemistry': return 'from-violet-500/40 to-violet-600/10';
     case 'Hematology': return 'from-teal-500/40 to-teal-600/10';
     default: return 'from-gray-500/40 to-gray-600/10';
+  }
+};
+
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case 'Hematology': return '🩸';
+    case 'Blood Chemistry': return '🧪';
+    case 'Serological Test':
+    case 'Serology': return '🦠';
+    case 'Urinalysis': return '🫧';
+    case 'Stool Test': return '🔬';
+    case 'Imaging': return '📷';
+    default: return '🏥';
   }
 };
 
@@ -44,7 +60,8 @@ const getFallbackImage = (category: string) => {
     case 'Stool Test': return stoolTestImg;
     case 'Hematology':
     case 'Blood Chemistry':
-    case 'Serological Test': return bloodTestImg;
+    case 'Serological Test':
+    case 'Serology': return bloodTestImg;
     case 'Imaging': return imagingImg;
     default: return genericImg;
   }
@@ -313,6 +330,7 @@ export default function TestGuides() {
   const [isPricingModalOpen, setIsPricingModalOpen] = useState(false);
   const [globalPricingUrl, setGlobalPricingUrl] = useState('');
   const [globalPricingMargin, setGlobalPricingMargin] = useState('16px');
+  const testsRef = useRef<HTMLDivElement>(null);
 
   // Database defaults for custom cropping
   const [dbPricingZoom, setDbPricingZoom] = useState(1);
@@ -371,6 +389,19 @@ export default function TestGuides() {
   useEffect(() => {
     const fetchPricing = async () => {
       try {
+        // Try hospital-specific pricing first, fall back to global
+        if (hospitalIdFromUrl) {
+          const hospitalSnap = await getDoc(doc(db, 'settings', `pricing_${hospitalIdFromUrl}`));
+          if (hospitalSnap.exists() && hospitalSnap.data().url) {
+            setGlobalPricingUrl(hospitalSnap.data().url || '');
+            setGlobalPricingMargin(hospitalSnap.data().margin || '16px');
+            setDbPricingZoom(hospitalSnap.data().zoom || 1);
+            setDbPricingPanX(hospitalSnap.data().panX || 0);
+            setDbPricingPanY(hospitalSnap.data().panY || 0);
+            return;
+          }
+        }
+        // Fall back to global pricing
         const snap = await getDoc(doc(db, 'settings', 'pricing'));
         if (snap.exists()) {
           setGlobalPricingUrl(snap.data().url || '');
@@ -378,13 +409,15 @@ export default function TestGuides() {
           setDbPricingZoom(snap.data().zoom || 1);
           setDbPricingPanX(snap.data().panX || 0);
           setDbPricingPanY(snap.data().panY || 0);
+        } else {
+          setGlobalPricingUrl('');
         }
       } catch (err) {
-        console.error("Error fetching global pricing:", err);
+        console.error("Error fetching pricing:", err);
       }
     };
     fetchPricing();
-  }, []);
+  }, [hospitalIdFromUrl]);
 
   useEffect(() => {
     const handleBack = () => {
@@ -413,6 +446,7 @@ export default function TestGuides() {
     'Hematology': 1,
     'Blood Chemistry': 2,
     'Serological Test': 3,
+    'Serology': 3,
     'Urinalysis': 4,
     'Stool Test': 5,
     'Imaging': 6,
@@ -494,15 +528,23 @@ export default function TestGuides() {
             return (
               <div 
                 key={category}
-                onClick={() => setActiveCategory(isActive ? null : category)}
+                onClick={() => {
+                  const next = isActive ? null : category;
+                  setActiveCategory(next);
+                  if (next) {
+                    setTimeout(() => {
+                      testsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }, 80);
+                  }
+                }}
                 className={`p-4 rounded-2xl shadow-sm border transition-transform active:scale-95 flex flex-col h-full items-center text-center justify-center space-y-3 cursor-pointer ${
                   isActive 
                     ? 'bg-blue-50 border-blue-400 ring-2 ring-blue-500/20' 
                     : 'bg-white border-[#e5e9eb] hover:bg-gray-50'
                 }`}
               >
-                <div className={`p-3 rounded-xl transition-colors ${isActive ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-600'}`}>
-                  <TagIcon className="w-6 h-6" />
+                <div className={`text-3xl transition-all ${isActive ? 'scale-110' : ''}`}>
+                  {getCategoryIcon(category)}
                 </div>
                 <div>
                   <h4 className={`font-bold font-display text-sm leading-tight mb-1 ${isActive ? 'text-blue-800' : 'text-gray-800'}`}>{category}</h4>
@@ -551,7 +593,7 @@ export default function TestGuides() {
       {filteredGuides.length === 0 ? (
         <p className="text-sm font-body text-[var(--color-on-surface-variant)]">No guides available for this criteria.</p>
       ) : (
-        <div className="space-y-10">
+        <div ref={testsRef} className="space-y-10">
           {sortedCategories.map((cat) => {
             const categoryGuides = filteredGuides.filter(g => g.category === cat);
             if (categoryGuides.length === 0) return null;

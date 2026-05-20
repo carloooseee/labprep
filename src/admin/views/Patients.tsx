@@ -3,17 +3,12 @@ import type { ReactNode } from 'react';
 import { 
   MagnifyingGlassIcon, 
   UserIcon, 
-  EnvelopeIcon, 
-  PhoneIcon,
   ArrowPathIcon,
-  PlusIcon,
-  XMarkIcon,
-  MapPinIcon,
-  CalendarIcon
+  XMarkIcon
 } from '@heroicons/react/24/outline';
 import { useAppContext } from '../../patient/context/AppContext';
 import { db } from '../../firebase';
-import { doc, setDoc, addDoc, collection } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 interface PatientData {
   displayName?: string;
@@ -51,13 +46,6 @@ export default function Patients() {
     try {
       if (editingPatient) {
         await setDoc(doc(db, 'users', editingPatient.id as string), data, { merge: true });
-      } else {
-        const docRef = await addDoc(collection(db, 'users'), {
-          ...data,
-          role: 'patient',
-          preferredLanguage: 'en'
-        });
-        await setDoc(docRef, { id: docRef.id, uid: docRef.id }, { merge: true });
       }
       setIsModalOpen(false);
       setEditingPatient(null);
@@ -70,9 +58,7 @@ export default function Patients() {
   const filteredPatients = (patients as PatientData[]).filter((patient) => {
     const query = searchQuery.toLowerCase();
     const nameMatch = (patient.displayName || patient.name || '').toLowerCase().includes(query);
-    const emailMatch = (patient.email || '').toLowerCase().includes(query);
-    const contactMatch = (patient.phone || patient.contact || '').toLowerCase().includes(query);
-    const matchesSearch = nameMatch || emailMatch || contactMatch;
+    const matchesSearch = nameMatch;
     
     const matchesStatus = statusFilter === 'All Status' || patient.status === statusFilter;
     
@@ -84,13 +70,13 @@ export default function Patients() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-white p-6 rounded-2xl shadow-sm border border-[#e5e9eb]">
         <div className="flex-1">
           <h2 className="text-2xl font-display font-semibold text-gray-900">Patients</h2>
-          <p className="text-gray-500 mt-1">view and manage registered patients nalang</p>
+          <p className="text-gray-500 mt-1">View registered patients</p>
           
           <div className="mt-6 relative max-w-xl">
             <MagnifyingGlassIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input 
               type="text" 
-              placeholder="Search by name, email, or phone..." 
+              placeholder="Search by name..." 
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
@@ -99,15 +85,6 @@ export default function Patients() {
         </div>
         
         <div className="flex items-center space-x-3 shrink-0">
-
-
-          <button 
-            onClick={() => { setEditingPatient(null); setIsModalOpen(true); }}
-            className="flex items-center justify-center space-x-2 bg-[#1d2530] hover:bg-black text-white px-6 py-3 rounded-xl transition-all font-medium shadow-sm hover:shadow-md active:scale-95"
-          >
-            <PlusIcon className="w-5 h-5" />
-            <span>Add Patient</span>
-          </button>
         </div>
       </div>
 
@@ -124,39 +101,11 @@ export default function Patients() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
-                    <h3 className="font-semibold text-gray-900 text-lg truncate flex items-center">
+                    <h3 className="font-semibold text-gray-900 text-lg truncate">
                       {patient.displayName || patient.name}
-                      {patient.gender && (
-                        <span className="ml-2 text-[10px] font-bold text-gray-400 border border-gray-200 px-1.5 py-0.5 rounded uppercase">
-                          {patient.gender}
-                        </span>
-                      )}
                     </h3>
-
                   </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-2 gap-x-6 mt-2">
-                    <div className="flex items-center text-sm text-gray-500">
-                      <EnvelopeIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                      {patient.email}
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <PhoneIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                      {patient.phone || patient.contact || 'No phone'}
-                    </div>
-                    {patient.dateOfBirth && (
-                      <div className="flex items-center text-sm text-gray-500">
-                        <CalendarIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                        DOB: {patient.dateOfBirth}
-                      </div>
-                    )}
-                    {patient.address && (
-                      <div className="flex items-center text-sm text-gray-500 col-span-full">
-                        <MapPinIcon className="w-4 h-4 mr-1.5 text-gray-400 shrink-0" />
-                        {patient.address}
-                      </div>
-                    )}
-                  </div>
+                  <p className="text-xs text-gray-400 mt-1 font-body">Registered patient</p>
                 </div>
               </li>
             ))
