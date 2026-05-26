@@ -13,6 +13,8 @@ import {
   ExclamationCircleIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline';
+import mainLogoNoBg from './assets/main-logo_no-bg.png';
+import mainHalfLogoNoBg from './assets/main-half-logo_no-bg.png';
 
 type AuthView = 'welcome' | 'signin' | 'signup';
 
@@ -142,21 +144,7 @@ export default function Login() {
     }
   };
 
-  const TestTubeIcon = ({ className }: { className?: string }) => (
-    <svg 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke="currentColor" 
-      strokeWidth="2" 
-      strokeLinecap="round" 
-      strokeLinejoin="round" 
-      className={className}
-    >
-      <path d="M9 2h6" />
-      <path d="M10 2v17.5a2.5 2.5 0 0 0 5 0V2" />
-      <path d="M10 14h5" />
-    </svg>
-  );
+
 
   if (view === 'welcome') {
     return (
@@ -164,15 +152,8 @@ export default function Login() {
         <div className="flex-1 flex flex-col items-center justify-center text-center relative z-10 w-full max-w-sm">
           <div className="mb-10 relative animate-in zoom-in duration-700">
             <div className="relative animate-float">
-              <div className="relative w-32 h-32 flex items-center justify-center">
-                <TestTubeIcon className="w-24 h-24 text-white" />
-                <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-white rounded-xl shadow-lg flex items-center justify-center p-1 border-2 border-[#27c463]">
-                  <div className="w-full h-full bg-[#27c463]/10 rounded-lg flex items-center justify-center border-2 border-[#27c463]">
-                    <svg className="w-6 h-6 text-[#27c463]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="4" d="M5 13l4 4L19 7" />
-                    </svg>
-                  </div>
-                </div>
+              <div className="relative w-48 h-48 flex items-center justify-center">
+                <img src={mainHalfLogoNoBg} alt="LABPrep Logo" className="w-48 h-48 object-contain drop-shadow-2xl" />
               </div>
             </div>
           </div>
@@ -224,8 +205,8 @@ export default function Login() {
 
         <div className="bg-white rounded-[3rem] shadow-2xl shadow-black/20 p-8 md:p-10 border border-gray-100 animate-in zoom-in-95 duration-500">
           <div className="text-center mb-10">
-            <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <TestTubeIcon className="w-8 h-8 text-[#417af0]" />
+            <div className="w-28 h-28 flex items-center justify-center mx-auto mb-4">
+              <img src={mainLogoNoBg} alt="LABPrep Logo" className="w-full h-full object-contain drop-shadow-sm" />
             </div>
             <h2 className="text-3xl font-display font-black text-gray-900 tracking-tight">
               {view === 'signin' ? 'Sign In Now' : 'Create Account'}

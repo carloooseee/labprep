@@ -13,22 +13,9 @@ import {
   BellAlertIcon as BellSolid, 
   UserIcon as UserSolid 
 } from '@heroicons/react/24/solid';
+import mainLogoNoBg from '../../assets/main-logo_no-bg.png';
 
-const TestTubeIcon = ({ className }: { className?: string }) => (
-  <svg 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M9 2h6" />
-    <path d="M10 2v17.5a2.5 2.5 0 0 0 5 0V2" />
-    <path d="M10 14h5" />
-  </svg>
-);
+
 
 export default function Layout() {
   const tabs = [
@@ -44,8 +31,8 @@ export default function Layout() {
       {/* Top Global Brand Header (Replicated Navbar) */}
       <header className="shrink-0 w-full bg-[#f8fafc] border-b border-gray-200/50 px-6 py-4 z-50 flex justify-between items-center gap-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-[#417af0] rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <TestTubeIcon className="w-6 h-6 text-white" />
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img src={mainLogoNoBg} alt="LABPrep Logo" className="w-full h-full object-contain drop-shadow-sm" />
           </div>
           <div>
             <h1 className="text-xl font-extrabold font-display text-gray-900 tracking-tight leading-none">LABPrep</h1>

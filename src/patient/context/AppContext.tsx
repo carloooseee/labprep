@@ -36,6 +36,7 @@ export interface TestGuide {
   translations?: Record<string, unknown>;
   hospital?: string;
   status?: string;
+  price?: string;
 }
 
 export interface Stat {
@@ -172,7 +173,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
           imageUrl: data.imageUrl || '',
           guidelines: data.guidelines || { dos: [], donts: [], whatToKnow: [] },
           guidelinesFilipino: data.guidelinesFilipino || { dos: [], donts: [], whatToKnow: [] },
-          translations: normalizedTranslations
+          translations: normalizedTranslations,
+          price: (data.price as string) || ''
         } as TestGuide;
       }).sort((a, b) => a.procedureName.localeCompare(b.procedureName));
       

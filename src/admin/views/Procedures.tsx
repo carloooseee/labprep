@@ -871,6 +871,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
       preparationSteps: [],
       guidelines: { dos: [], donts: [], whatToKnow: [] },
       fastingRequired: '',
+      price: '',
       status: 'Active'
     };
     
@@ -1345,7 +1346,7 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1.5">
             Fasting Required {formLang === 'PH' && '(Tagalog)'}
@@ -1361,6 +1362,18 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
             placeholder={formLang === 'PH' ? 'Tagalog translation...' : ''}
           />
         </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            Price
+          </label>
+          <input 
+            type="text" 
+            value={formData.price || ''} 
+            onChange={(e) => setFormData({ ...formData, price: e.target.value })} 
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none" 
+            placeholder="e.g. ₱1,500"
+          />
+        </div>
       </div>
 
       <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
@@ -1371,12 +1384,37 @@ function AddProcedureForm({ onClose, onSave, initialData, hospitals, categories 
   );
 }
 
-function ProcedureDetails({ procedure, onClose }: { procedure: import('../../patient/context/AppContext').TestGuide, onClose: () => void }) {
+function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () => void }) {
   const { hospitals } = useAppContext();
+  const [detailLang, setDetailLang] = useState<'EN' | 'PH'>('EN');
   if (!procedure) return null;
+
+  const isPh = detailLang === 'PH';
+  const name = isPh && procedure.procedureNameFilipino ? procedure.procedureNameFilipino : procedure.procedureName;
+  const description = isPh && procedure.descriptionFilipino ? procedure.descriptionFilipino : procedure.description;
+  const fasting = isPh && procedure.fastingRequiredFilipino ? procedure.fastingRequiredFilipino : procedure.fastingRequired;
+  const steps = isPh && procedure.preparationStepsFilipino?.length ? procedure.preparationStepsFilipino : procedure.preparationSteps;
+  const guidelines = isPh && procedure.guidelinesFilipino ? procedure.guidelinesFilipino : procedure.guidelines;
 
   return (
     <div className="space-y-6">
+      {/* Language Toggle */}
+      <div className="flex bg-gray-100 p-1 rounded-xl w-fit mb-4">
+        <button 
+          type="button"
+          onClick={() => setDetailLang('EN')} 
+          className={`px-6 py-2 text-xs font-bold rounded-lg transition-all ${detailLang === 'EN' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+        >
+          English
+        </button>
+        <button 
+          type="button"
+          onClick={() => setDetailLang('PH')} 
+          className={`px-6 py-2 text-xs font-bold rounded-lg transition-all ${detailLang === 'PH' ? 'bg-white shadow text-blue-600' : 'text-gray-500'}`}
+        >
+          Tagalog
+        </button>
+      </div>
       <div className="flex items-center space-x-4">
         <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center overflow-hidden">
           <SafeImage 
@@ -1387,7 +1425,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
           />
         </div>
         <div>
-          <h4 className="text-2xl font-bold text-gray-900">{procedure.procedureName}</h4>
+          <h4 className="text-2xl font-bold text-gray-900">{name}</h4>
           <div className="flex items-center text-sm text-gray-500 mt-0.5">
             <BuildingOfficeIcon className="w-4 h-4 mr-1.5" />
             {hospitals.find((h: { id: string; name: string }) => h.id === procedure.hospital)?.name || 'Global Procedure'}
@@ -1395,7 +1433,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 text-xs font-semibold">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold">
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl">
           <div className="text-[10px] text-gray-400 uppercase mb-1">Category</div>
           <div>{procedure.category}</div>
@@ -1407,7 +1445,13 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl min-w-0">
           <div className="text-[10px] text-gray-400 uppercase mb-1">Fasting</div>
           <div className="font-semibold text-gray-700 break-words">
-            {procedure.fastingRequired || 'None'}
+            {fasting || 'None'}
+          </div>
+        </div>
+        <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl min-w-0">
+          <div className="text-[10px] text-gray-400 uppercase mb-1">Price</div>
+          <div className="font-semibold text-gray-700 break-words">
+            {procedure.price || 'N/A'}
           </div>
         </div>
       </div>
@@ -1415,7 +1459,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
       <div>
         <h5 className="text-sm font-bold text-gray-900 mb-2">Preparation Steps</h5>
         <div className="space-y-2">
-          {procedure.preparationSteps?.map((step: { icon: string; title: string; description: string; timing?: string }, idx: number) => (
+          {steps?.map((step: { icon: string; title: string; description: string; timing?: string }, idx: number) => (
             <div key={idx} className="flex items-start gap-3 p-2 bg-blue-50/50 rounded-lg border border-blue-100/50">
               <span className="text-lg shrink-0">{step.icon}</span>
               <div className="flex-1">
@@ -1431,7 +1475,7 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
               </div>
             </div>
           ))}
-          {!procedure.preparationSteps?.length && (
+          {!steps?.length && (
             <p className="text-xs text-gray-400 italic">No preparation steps defined.</p>
           )}
         </div>
@@ -1446,12 +1490,12 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
               What to Do
             </h6>
             <ul className="space-y-2">
-              {procedure.guidelines?.dos?.map((item: { icon: string; text: string }, idx: number) => (
+              {guidelines?.dos?.map((item: { icon: string; text: string }, idx: number) => (
                 <li key={idx} className="flex gap-2 text-[10px] text-emerald-900 leading-tight">
                   <span className="shrink-0">{item.icon}</span> {item.text}
                 </li>
               ))}
-              {!procedure.guidelines?.dos?.length && <li className="text-[10px] text-emerald-600/50 italic">None</li>}
+              {!guidelines?.dos?.length && <li className="text-[10px] text-emerald-600/50 italic">None</li>}
             </ul>
           </div>
           <div className="bg-red-50/50 p-4 rounded-xl border border-red-100/50">
@@ -1460,12 +1504,12 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
               To Avoid
             </h6>
             <ul className="space-y-2">
-              {procedure.guidelines?.donts?.map((item: { icon: string; text: string }, idx: number) => (
+              {guidelines?.donts?.map((item: { icon: string; text: string }, idx: number) => (
                 <li key={idx} className="flex gap-2 text-[10px] text-red-900 leading-tight">
                   <span className="shrink-0">{item.icon}</span> {item.text}
                 </li>
               ))}
-              {!procedure.guidelines?.donts?.length && <li className="text-[10px] text-red-600/50 italic">None</li>}
+              {!guidelines?.donts?.length && <li className="text-[10px] text-red-600/50 italic">None</li>}
             </ul>
           </div>
           <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100/50 col-span-2">
@@ -1474,12 +1518,12 @@ function ProcedureDetails({ procedure, onClose }: { procedure: import('../../pat
               What to Know
             </h6>
             <ul className="space-y-2">
-              {procedure.guidelines?.whatToKnow?.map((item: { icon: string; text: string }, idx: number) => (
+              {guidelines?.whatToKnow?.map((item: { icon: string; text: string }, idx: number) => (
                 <li key={idx} className="flex gap-2 text-[10px] text-blue-900 leading-tight">
                   <span className="shrink-0">{item.icon}</span> {item.text}
                 </li>
               ))}
-              {!procedure.guidelines?.whatToKnow?.length && <li className="text-[10px] text-blue-600/50 italic">None</li>}
+              {!guidelines?.whatToKnow?.length && <li className="text-[10px] text-blue-600/50 italic">None</li>}
             </ul>
           </div>
         </div>

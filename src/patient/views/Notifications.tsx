@@ -320,15 +320,6 @@ export default function Notifications() {
             <div className={`w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300 ${remindersEnabled ? 'translate-x-[24px]' : 'translate-x-[4px]'}`} />
           </button>
         </div>
-        
-        {/* Test Notification Utility */}
-        <button 
-          onClick={testNotification}
-          className="mt-4 flex items-center justify-center space-x-2 w-full py-2.5 border border-dashed border-gray-300 rounded-xl text-gray-500 text-xs font-bold hover:bg-gray-50 transition-colors"
-        >
-          <BellAlertIconOutline className="w-4 h-4" />
-          <span>Test Notification System (5s)</span>
-        </button>
       </div>
 
       <button

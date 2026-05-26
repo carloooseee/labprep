@@ -11,6 +11,7 @@ import stoolVideo from '../../assets/Stool_Collection_Prep (1).mp4';
 
 // Fallback Images
 import urinalysisImg from '../../assets/test-guides/urinalysis.png';
+import urinalysisLogo from '../../assets/test-guides/urinalysis_logo.png';
 import bloodTestImg from '../../assets/test-guides/blood_test.png';
 import stoolTestImg from '../../assets/test-guides/stool_test.png';
 import imagingImg from '../../assets/test-guides/imaging.png';
@@ -47,7 +48,7 @@ const getCategoryIcon = (category: string) => {
     case 'Blood Chemistry': return '🧪';
     case 'Serological Test':
     case 'Serology': return '🦠';
-    case 'Urinalysis': return '🫧';
+    case 'Urinalysis': return <img src={urinalysisLogo} alt="Urinalysis" className="w-8 h-8 object-contain mx-auto inline-block" />;
     case 'Stool Test': return '🔬';
     case 'Imaging': return '📷';
     default: return '🏥';
@@ -253,6 +254,16 @@ const GenericGuideContent = ({ guide, activeTab, isTranslating }: { guide: TestG
             ))}
           </div>
         </div>
+
+        {guide.price && (
+          <div className="mt-8 bg-blue-50/50 p-5 rounded-2xl border border-blue-100/50 shadow-sm flex items-center justify-between">
+            <h4 className="font-bold font-display text-blue-800 flex items-center gap-2">
+              <span className="text-xl">💰</span>
+              Estimated Price
+            </h4>
+            <span className="text-lg font-bold font-display text-blue-900">{guide.price}</span>
+          </div>
+        )}
       </div>
     );
   }
@@ -522,7 +533,9 @@ export default function TestGuides() {
           {allCategories.map(category => {
             const procCount = testGuides.filter(p => {
               const cat = p.category?.trim() || 'Other Test';
-              return (cat.toLowerCase() === 'other test' ? 'Other Test' : cat) === category;
+              const matchesCategory = (cat.toLowerCase() === 'other test' ? 'Other Test' : cat) === category;
+              const matchesHospital = hospitalIdFromUrl ? (!p.hospital || p.hospital === hospitalIdFromUrl) : true;
+              return matchesCategory && matchesHospital;
             }).length;
             const isActive = activeCategory === category;
             return (
