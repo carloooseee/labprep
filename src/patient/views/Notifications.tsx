@@ -204,29 +204,6 @@ export default function Notifications() {
     }
   };
 
-  // Helper for user to test if notifications are working on their APK
-  const testNotification = async () => {
-    const testTime = new Date(Date.now() + 5000); // 5 seconds from now
-    try {
-      await LocalNotifications.schedule({
-        notifications: [
-          {
-            title: "🔔 Test Notification",
-            body: "Your LABPrep reminders are correctly configured!",
-            id: 999,
-            schedule: { at: testTime },
-            channelId: 'reminders',
-          }
-        ]
-      });
-      playNotificationFeedback(); // Immediate feedback
-      alert("Test scheduled for 5 seconds from now. You can close the app to see it hit.");
-    } catch (e) {
-      console.error(e);
-      alert("Test failed. Check permissions.");
-    }
-  };
-
   const deleteReminder = async (id: string) => {
     try {
       await deleteDoc(doc(db, 'reminders', id));

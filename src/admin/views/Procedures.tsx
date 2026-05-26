@@ -1426,7 +1426,8 @@ function ProcedureDetails({ procedure, onClose }: { procedure: any, onClose: () 
         </div>
         <div>
           <h4 className="text-2xl font-bold text-gray-900">{name}</h4>
-          <div className="flex items-center text-sm text-gray-500 mt-0.5">
+          {description && <p className="text-xs text-gray-500 mt-1 max-w-md">{description}</p>}
+          <div className="flex items-center text-sm text-gray-500 mt-1.5">
             <BuildingOfficeIcon className="w-4 h-4 mr-1.5" />
             {hospitals.find((h: { id: string; name: string }) => h.id === procedure.hospital)?.name || 'Global Procedure'}
           </div>
